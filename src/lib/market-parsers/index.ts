@@ -3,6 +3,8 @@ import { coupangParser } from './coupang';
 import { smartstoreParser } from './smartstore';
 import { elevenstParser } from './elevenst';
 import { gmarketParser } from './gmarket';
+import { zigzagParser } from './zigzag';
+import { ablyParser } from './ably';
 
 export type { MarketParser, MarketOrderRow, MarketSettlementRow, ParsedMarketData } from './types';
 
@@ -11,6 +13,8 @@ const parsers: MarketParser[] = [
   smartstoreParser,
   elevenstParser,
   gmarketParser,
+  zigzagParser,
+  ablyParser,
 ];
 
 export function detectMarket(headers: string[]): MarketParser | null {
