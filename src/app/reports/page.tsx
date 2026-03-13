@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useReport, getDateRange } from '@/lib/hooks/useReports';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,26 +18,42 @@ import {
 import {
   Loader2,
   TrendingUp,
-  TrendingDown,
   DollarSign,
-  ShoppingCart,
   Target,
   BarChart3,
   FileText,
   Download,
+  Wallet,
+  ShoppingCart,
+  PieChart,
 } from 'lucide-react';
-import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { SalesChart, ChannelPieChart, BarChartComponent } from '@/components/charts';
+import { getCategoryName } from '@/lib/hooks/useOperatingExpenses';
 
 type GroupBy = 'day' | 'week' | 'month';
+
+const PERIOD_PRESETS = [
+  { key: 'today', label: '오늘' },
+  { key: 'yesterday', label: '어제' },
+  { key: 'week', label: '1주일' },
+  { key: '2weeks', label: '2주일' },
+  { key: 'thisMonth', label: '이번 달' },
+  { key: 'lastMonth', label: '지난 달' },
+  { key: 'month', label: '최근 30일' },
+  { key: 'quarter', label: '분기 (3개월)' },
+  { key: 'firstHalf', label: '상반기' },
+  { key: 'secondHalf', label: '하반기' },
+  { key: 'year', label: '1년' },
+];
 
 export default function ReportsPage() {
   const initialRange = getDateRange('month');
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
   const [groupBy, setGroupBy] = useState<GroupBy>('day');
+  const [activePreset, setActivePreset] = useState('month');
 
   const { data, isLoading, error } = useReport({ startDate, endDate, groupBy });
 
@@ -45,6 +61,12 @@ export default function ReportsPage() {
     const range = getDateRange(preset);
     setStartDate(range.startDate);
     setEndDate(range.endDate);
+    setActivePreset(preset);
+
+    const daysDiff = (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / 86400000;
+    if (daysDiff <= 14) setGroupBy('day');
+    else if (daysDiff <= 90) setGroupBy('week');
+    else setGroupBy('month');
   };
 
   const getChannelName = (ch: string) => {
@@ -56,70 +78,41 @@ export default function ReportsPage() {
       const [year, month] = period.split('-');
       return `${year}년 ${month}월`;
     }
-    return new Date(period).toLocaleDateString('ko-KR', {
-      month: 'short',
-      day: 'numeric',
-    });
+    if (groupBy === 'week') {
+      const d = new Date(period);
+      const end = new Date(d);
+      end.setDate(end.getDate() + 6);
+      return `${d.getMonth() + 1}/${d.getDate()} ~ ${end.getMonth() + 1}/${end.getDate()}`;
+    }
+    return new Date(period).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   };
 
   const handleExport = (type: string) => {
-    const params = new URLSearchParams({
-      type,
-      startDate,
-      endDate,
-      format: 'csv',
-    });
+    const params = new URLSearchParams({ type, startDate, endDate, format: 'csv' });
     window.open(`/api/export?${params}`, '_blank');
   };
 
+  const ts = data?.totalSummary;
+
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">대시보드</Button>
-              </Link>
-              <Link href="/products">
-                <Button variant="ghost" size="sm">상품 관리</Button>
-              </Link>
-              <Link href="/sales">
-                <Button variant="ghost" size="sm">판매 기록</Button>
-              </Link>
-              <Link href="/expenses">
-                <Button variant="ghost" size="sm">비용 관리</Button>
-              </Link>
-              <Link href="/reports">
-                <Button variant="ghost" size="sm" className="bg-gray-100">결산 리포트</Button>
-              </Link>
-            </nav>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* 페이지 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">결산 리포트</h1>
-            <p className="text-muted-foreground">기간별 매출, 수익, 광고비를 분석합니다</p>
+            <p className="text-muted-foreground">기간별 매출, 비용, 수익을 종합 분석합니다</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => handleExport('sales')}>
-              <Download className="h-4 w-4 mr-2" />
-              판매 내보내기
+              <Download className="h-4 w-4 mr-2" />판매
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleExport('advertising')}>
-              <Download className="h-4 w-4 mr-2" />
-              광고비 내보내기
+              <Download className="h-4 w-4 mr-2" />광고비
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleExport('report')}>
-              <Download className="h-4 w-4 mr-2" />
-              리포트 내보내기
+              <Download className="h-4 w-4 mr-2" />리포트
             </Button>
           </div>
         </div>
@@ -127,40 +120,31 @@ export default function ReportsPage() {
         {/* 기간 선택 */}
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => handlePreset('today')}>오늘</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('yesterday')}>어제</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('week')}>최근 7일</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('month')}>최근 30일</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('thisMonth')}>이번 달</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('lastMonth')}>지난 달</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePreset('quarter')}>최근 3개월</Button>
+            <div className="flex flex-wrap gap-1.5">
+              {PERIOD_PRESETS.map((p) => (
+                <Button
+                  key={p.key}
+                  variant={activePreset === p.key ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handlePreset(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium">시작일</label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
+                <Input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setActivePreset(''); }} />
               </div>
               <div>
                 <label className="text-sm font-medium">종료일</label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
+                <Input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setActivePreset(''); }} />
               </div>
               <div>
                 <label className="text-sm font-medium">집계 단위</label>
-                <select
-                  className="w-full h-10 px-3 border rounded-md"
-                  value={groupBy}
-                  onChange={(e) => setGroupBy(e.target.value as GroupBy)}
-                >
+                <select className="w-full h-10 px-3 border rounded-md" value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
                   <option value="day">일별</option>
                   <option value="week">주별</option>
                   <option value="month">월별</option>
@@ -175,162 +159,186 @@ export default function ReportsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              데이터를 불러오는데 실패했습니다
-            </CardContent>
-          </Card>
+          <Card><CardContent className="py-12 text-center text-muted-foreground">데이터를 불러오는데 실패했습니다</CardContent></Card>
         ) : !data ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">기간을 선택하세요</p>
-            </CardContent>
-          </Card>
+          <Card><CardContent className="py-12 text-center"><FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" /><p className="text-muted-foreground">기간을 선택하세요</p></CardContent></Card>
         ) : (
           <>
-            {/* 전체 요약 */}
+            {/* 핵심 KPI 카드 */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-blue-600" />
-                    </div>
+                    <div className="p-2 bg-blue-100 rounded-lg"><DollarSign className="h-5 w-5 text-blue-600" /></div>
                     <div>
                       <p className="text-sm text-muted-foreground">총 매출</p>
-                      <p className="text-xl font-bold">{formatCurrency(data.totalSummary.revenue)}</p>
+                      <p className="text-xl font-bold">{formatCurrency(ts!.revenue)}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${data.totalSummary.profit >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                      <TrendingUp className={`h-5 w-5 ${data.totalSummary.profit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                    <div className="p-2 bg-red-100 rounded-lg"><Wallet className="h-5 w-5 text-red-600" /></div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">총 비용</p>
+                      <p className="text-xl font-bold">{formatCurrency(ts!.totalCost)}</p>
+                      <p className="text-xs text-muted-foreground">광고 {formatCurrency(ts!.adCost)} + 운영 {formatCurrency(ts!.operatingCost)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${ts!.netProfitAfterAll >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                      <TrendingUp className={`h-5 w-5 ${ts!.netProfitAfterAll >= 0 ? 'text-green-600' : 'text-red-600'}`} />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">총 순이익</p>
-                      <p className={`text-xl font-bold ${data.totalSummary.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(data.totalSummary.profit)}
+                      <p className="text-sm text-muted-foreground">최종 순수익</p>
+                      <p className={`text-xl font-bold ${ts!.netProfitAfterAll >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(ts!.netProfitAfterAll)}
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-100 rounded-lg">
-                      <Target className="h-5 w-5 text-red-600" />
-                    </div>
+                    <div className="p-2 bg-purple-100 rounded-lg"><ShoppingCart className="h-5 w-5 text-purple-600" /></div>
                     <div>
-                      <p className="text-sm text-muted-foreground">총 광고비</p>
-                      <p className="text-xl font-bold">{formatCurrency(data.totalSummary.adCost)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${data.totalSummary.netProfitAfterAd >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                      <BarChart3 className={`h-5 w-5 ${data.totalSummary.netProfitAfterAd >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">광고 후 순이익</p>
-                      <p className={`text-xl font-bold ${data.totalSummary.netProfitAfterAd >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(data.totalSummary.netProfitAfterAd)}
-                      </p>
+                      <p className="text-sm text-muted-foreground">판매</p>
+                      <p className="text-xl font-bold">{ts!.salesCount.toLocaleString()}건 / {ts!.quantity.toLocaleString()}개</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* 추가 지표 */}
+            {/* ROI / ROAS / 마진율 / 전환 */}
             <Card>
               <CardContent className="pt-6">
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
                   <div>
-                    <p className="text-sm text-muted-foreground">총 판매 건수</p>
-                    <p className="text-lg font-semibold">{data.totalSummary.salesCount.toLocaleString()}건</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">총 판매 수량</p>
-                    <p className="text-lg font-semibold">{data.totalSummary.quantity.toLocaleString()}개</p>
-                  </div>
-                  <div>
                     <p className="text-sm text-muted-foreground">ROAS</p>
-                    <p className={`text-lg font-semibold ${data.totalSummary.roas >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>
-                      {data.totalSummary.roas.toFixed(0)}%
+                    <p className={`text-2xl font-bold ${ts!.roas >= 100 ? 'text-green-600' : ts!.roas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                      {ts!.adCost > 0 ? `${ts!.roas.toFixed(0)}%` : '-'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">ROI</p>
-                    <p className={`text-lg font-semibold ${data.totalSummary.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {data.totalSummary.roi.toFixed(0)}%
+                    <p className={`text-2xl font-bold ${ts!.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {ts!.totalCost > 0 ? `${ts!.roi.toFixed(0)}%` : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">마진율</p>
+                    <p className={`text-2xl font-bold ${ts!.marginRate >= 20 ? 'text-green-600' : ts!.marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {ts!.revenue > 0 ? `${ts!.marginRate.toFixed(1)}%` : '-'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">광고 전환수</p>
-                    <p className="text-lg font-semibold">{data.totalSummary.conversions.toLocaleString()}건</p>
+                    <p className="text-2xl font-bold">{ts!.conversions.toLocaleString()}건</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">전환당 비용</p>
+                    <p className="text-2xl font-bold">{ts!.conversions > 0 ? formatCurrency(ts!.adCost / ts!.conversions) : '-'}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* 손익 계산서 */}
+            <Card>
+              <CardHeader><CardTitle>손익 계산서</CardTitle></CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>항목</TableHead>
+                      <TableHead className="text-right">금액</TableHead>
+                      <TableHead className="text-right">매출 대비</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">총 매출</TableCell>
+                      <TableCell className="text-right font-bold text-blue-600">{formatCurrency(ts!.revenue)}</TableCell>
+                      <TableCell className="text-right">100%</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">상품 순이익 (플랫폼 수수료 차감)</TableCell>
+                      <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
+                      <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.profit / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-red-600 pl-8">(-) 광고비</TableCell>
+                      <TableCell className="text-right text-red-600">-{formatCurrency(ts!.adCost)}</TableCell>
+                      <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.adCost / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-orange-600 pl-8">(-) 운영비</TableCell>
+                      <TableCell className="text-right text-orange-600">-{formatCurrency(ts!.operatingCost)}</TableCell>
+                      <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.operatingCost / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-t-2 font-bold text-lg">
+                      <TableCell>최종 순수익</TableCell>
+                      <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(ts!.netProfitAfterAll)}
+                      </TableCell>
+                      <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.netProfitAfterAll / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* 운영비 카테고리별 */}
+            {data.expenseCategorySummary && data.expenseCategorySummary.length > 0 && (
+              <Card>
+                <CardHeader><CardTitle>운영비 카테고리별 내역</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {data.expenseCategorySummary.map((cat) => (
+                      <div key={cat.category} className="p-3 border rounded-lg text-center">
+                        <p className="text-sm text-muted-foreground">{getCategoryName(cat.category)}</p>
+                        <p className="text-lg font-bold">{formatCurrency(cat.amount)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* 매출/이익 추이 차트 */}
             {data.periodSummaries.length > 1 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>매출/이익 추이</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>매출/수익 추이</CardTitle></CardHeader>
                 <CardContent>
-                  <SalesChart
-                    data={data.periodSummaries.map((p) => ({
-                      date: p.period,
-                      revenue: p.revenue,
-                      profit: p.profit,
-                    }))}
-                  />
+                  <SalesChart data={data.periodSummaries.map((p) => ({ date: p.period, revenue: p.revenue, profit: p.netProfitAfterAll }))} />
                 </CardContent>
               </Card>
             )}
 
             {/* 채널별 차트 */}
-            {data.channelSummary.length > 1 && (
+            {data.channelSummary.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {data.channelSummary.length > 1 && (
+                  <Card>
+                    <CardHeader><CardTitle>채널별 매출 비중</CardTitle></CardHeader>
+                    <CardContent>
+                      <ChannelPieChart data={data.channelSummary.map((ch) => ({ channel: ch.channel, name: getChannelName(ch.channel), value: ch.revenue }))} />
+                    </CardContent>
+                  </Card>
+                )}
                 <Card>
-                  <CardHeader>
-                    <CardTitle>채널별 매출 비중</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ChannelPieChart
-                      data={data.channelSummary.map((ch) => ({
-                        channel: ch.channel,
-                        name: getChannelName(ch.channel),
-                        value: ch.revenue,
-                      }))}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>채널별 매출/이익</CardTitle>
-                  </CardHeader>
+                  <CardHeader><CardTitle>채널별 매출/이익</CardTitle></CardHeader>
                   <CardContent>
                     <BarChartComponent
-                      data={data.channelSummary.map((ch) => ({
-                        name: getChannelName(ch.channel),
-                        revenue: ch.revenue,
-                        profit: ch.profit,
-                      }))}
+                      data={data.channelSummary.map((ch) => ({ name: getChannelName(ch.channel), revenue: ch.revenue, profit: ch.profit }))}
                       bars={[
                         { dataKey: 'revenue', name: '매출', color: '#3b82f6' },
                         { dataKey: 'profit', name: '순이익', color: '#22c55e' },
@@ -342,87 +350,103 @@ export default function ReportsPage() {
               </div>
             )}
 
-            {/* 채널별 요약 */}
+            {/* 채널별 실적 카드 */}
             {data.channelSummary.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>채널별 실적</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>채널별 실적</CardTitle></CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {data.channelSummary.map((ch) => (
-                      <div key={ch.channel} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <Badge variant="secondary">{getChannelName(ch.channel)}</Badge>
-                          <span className="text-sm text-muted-foreground">{ch.count}건</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">매출</span>
-                            <span className="font-medium">{formatCurrency(ch.revenue)}</span>
+                    {data.channelSummary.map((ch) => {
+                      const chRoas = (ch.adCost && ch.adCost > 0) ? (ch.revenue / ch.adCost * 100) : 0;
+                      return (
+                        <div key={ch.channel} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge variant="secondary">{getChannelName(ch.channel)}</Badge>
+                            <span className="text-sm text-muted-foreground">{ch.count}건</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">순이익</span>
-                            <span className={`font-medium ${ch.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(ch.profit)}
-                            </span>
-                          </div>
-                          {ch.adCost !== undefined && ch.adCost > 0 && (
+                          <div className="space-y-2">
                             <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">광고비</span>
-                              <span className="font-medium text-red-600">-{formatCurrency(ch.adCost)}</span>
+                              <span className="text-sm text-muted-foreground">매출</span>
+                              <span className="font-medium">{formatCurrency(ch.revenue)}</span>
                             </div>
-                          )}
+                            <div className="flex justify-between">
+                              <span className="text-sm text-muted-foreground">순이익</span>
+                              <span className={`font-medium ${ch.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(ch.profit)}</span>
+                            </div>
+                            {ch.adCost !== undefined && ch.adCost > 0 && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">광고비</span>
+                                  <span className="font-medium text-red-600">-{formatCurrency(ch.adCost)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-muted-foreground">ROAS</span>
+                                  <span className={`font-medium ${chRoas >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>{chRoas.toFixed(0)}%</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* 기간별 상세 */}
+            {/* 기간별 상세 테이블 */}
             {data.periodSummaries.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>{groupBy === 'day' ? '일별' : groupBy === 'week' ? '주별' : '월별'} 상세</CardTitle>
                 </CardHeader>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>기간</TableHead>
-                      <TableHead className="text-right">매출</TableHead>
-                      <TableHead className="text-right">순이익</TableHead>
-                      <TableHead className="text-right">광고비</TableHead>
-                      <TableHead className="text-right">광고 후 이익</TableHead>
-                      <TableHead className="text-right">ROAS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.periodSummaries.map((period) => (
-                      <TableRow key={period.period}>
-                        <TableCell className="font-medium">
-                          {formatPeriod(period.period)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(period.revenue)}
-                        </TableCell>
-                        <TableCell className={`text-right ${period.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(period.profit)}
-                        </TableCell>
-                        <TableCell className="text-right text-red-600">
-                          {period.adCost > 0 ? `-${formatCurrency(period.adCost)}` : '-'}
-                        </TableCell>
-                        <TableCell className={`text-right font-medium ${period.netProfitAfterAd >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(period.netProfitAfterAd)}
-                        </TableCell>
-                        <TableCell className={`text-right ${period.roas >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>
-                          {period.adCost > 0 ? `${period.roas.toFixed(0)}%` : '-'}
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>기간</TableHead>
+                        <TableHead className="text-right">매출</TableHead>
+                        <TableHead className="text-right">순이익</TableHead>
+                        <TableHead className="text-right">광고비</TableHead>
+                        <TableHead className="text-right">운영비</TableHead>
+                        <TableHead className="text-right">최종 수익</TableHead>
+                        <TableHead className="text-right">ROAS</TableHead>
+                        <TableHead className="text-right">ROI</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {data.periodSummaries.map((p) => (
+                        <TableRow key={p.period}>
+                          <TableCell className="font-medium whitespace-nowrap">{formatPeriod(p.period)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(p.revenue)}</TableCell>
+                          <TableCell className={`text-right ${p.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(p.profit)}</TableCell>
+                          <TableCell className="text-right text-red-600">{p.adCost > 0 ? `-${formatCurrency(p.adCost)}` : '-'}</TableCell>
+                          <TableCell className="text-right text-orange-600">{p.operatingCost > 0 ? `-${formatCurrency(p.operatingCost)}` : '-'}</TableCell>
+                          <TableCell className={`text-right font-bold ${p.netProfitAfterAll >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(p.netProfitAfterAll)}
+                          </TableCell>
+                          <TableCell className={`text-right ${p.roas >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>
+                            {p.adCost > 0 ? `${p.roas.toFixed(0)}%` : '-'}
+                          </TableCell>
+                          <TableCell className={`text-right ${p.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {p.totalCost > 0 ? `${p.roi.toFixed(0)}%` : '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* 합계 행 */}
+                      <TableRow className="border-t-2 font-bold bg-gray-50">
+                        <TableCell>합계</TableCell>
+                        <TableCell className="text-right">{formatCurrency(ts!.revenue)}</TableCell>
+                        <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
+                        <TableCell className="text-right text-red-600">{ts!.adCost > 0 ? `-${formatCurrency(ts!.adCost)}` : '-'}</TableCell>
+                        <TableCell className="text-right text-orange-600">{ts!.operatingCost > 0 ? `-${formatCurrency(ts!.operatingCost)}` : '-'}</TableCell>
+                        <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(ts!.netProfitAfterAll)}</TableCell>
+                        <TableCell className={`text-right ${ts!.roas >= 100 ? 'text-green-600' : 'text-yellow-600'}`}>{ts!.adCost > 0 ? `${ts!.roas.toFixed(0)}%` : '-'}</TableCell>
+                        <TableCell className={`text-right ${ts!.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>{ts!.totalCost > 0 ? `${ts!.roi.toFixed(0)}%` : '-'}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
               </Card>
             )}
           </>

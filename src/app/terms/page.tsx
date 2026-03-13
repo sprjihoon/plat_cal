@@ -47,7 +47,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold mt-6 mb-3">제4조 (서비스의 제공)</h2>
             <p className="text-muted-foreground mb-2">서비스는 다음과 같은 기능을 제공합니다:</p>
             <ul className="list-disc list-inside text-muted-foreground mb-4 space-y-1">
-              <li>마진 계산기 (순이익 계산, 판매가 역산, 최대 원가 계산)</li>
+              <li>마진 계산기 (순이익 계산, 판매가 정하기, 원가 찾기)</li>
               <li>상품 관리 및 마켓별 설정</li>
               <li>판매 기록 관리</li>
               <li>광고비 및 운영비 관리</li>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -288,22 +288,7 @@ export default function ImportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">대시보드</Button>
-              </Link>
-              <Link href="/import">
-                <Button variant="ghost" size="sm" className="bg-gray-100">데이터 가져오기</Button>
-              </Link>
-            </nav>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-4">

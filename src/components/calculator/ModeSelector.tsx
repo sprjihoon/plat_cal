@@ -24,9 +24,9 @@ const modes = [
   },
   {
     id: 'max_cost' as const,
-    label: '허용 원가 기준',
+    label: '원가 찾기',
     icon: Package,
-    description: '현재 판매가에서 맞출 수 있는 최대 원가를 계산합니다',
+    description: '현재 판매가에서 맞출 수 있는 최대 원가를 찾습니다',
   },
 ];
 

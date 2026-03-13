@@ -73,7 +73,7 @@ export function Suggestions({ result, isValid }: SuggestionsProps) {
 
         {isMaxCostValid && (
           <SuggestionItem
-            label="허용 가능한 최대 원가"
+            label="맞출 수 있는 최대 원가"
             value={formatCurrency(result.maxAllowableCost)}
             description="현재 마진율을 유지하려면 원가가 이 금액 이하여야 합니다"
           />

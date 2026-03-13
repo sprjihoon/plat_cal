@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSales, useDeleteSale } from '@/lib/hooks/useSales';
-import { useProducts } from '@/lib/hooks/useProducts';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -26,10 +25,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Loader2, Receipt, Filter, Edit } from 'lucide-react';
+import { Plus, Trash2, Loader2, Receipt, Filter, Edit, LayoutList, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
+
+type ViewMode = 'list' | 'daily';
 
 export default function SalesPage() {
   const [page, setPage] = useState(1);
@@ -38,6 +39,7 @@ export default function SalesPage() {
   const [channel, setChannel] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
 
   const filters = {
     startDate: startDate || undefined,
@@ -45,7 +47,7 @@ export default function SalesPage() {
     channel: channel || undefined,
   };
 
-  const { data, isLoading, error } = useSales(page, 50, filters);
+  const { data, isLoading, error } = useSales(page, 200, filters);
   const deleteSale = useDeleteSale();
 
   const handleDelete = async () => {
@@ -65,7 +67,6 @@ export default function SalesPage() {
     setPage(1);
   };
 
-  // 요약 통계 계산
   const summary = data?.sales.reduce(
     (acc, sale) => ({
       totalRevenue: acc.totalRevenue + sale.total_revenue,
@@ -75,49 +76,75 @@ export default function SalesPage() {
     { totalRevenue: 0, totalProfit: 0, totalQuantity: 0 }
   ) || { totalRevenue: 0, totalProfit: 0, totalQuantity: 0 };
 
+  const dailySummary = useMemo(() => {
+    if (!data?.sales) return [];
+    const grouped: Record<string, {
+      date: string;
+      revenue: number;
+      profit: number;
+      quantity: number;
+      count: number;
+      channels: Record<string, number>;
+      sales: typeof data.sales;
+    }> = {};
+
+    data.sales.forEach((sale) => {
+      const d = sale.sale_date;
+      if (!grouped[d]) {
+        grouped[d] = { date: d, revenue: 0, profit: 0, quantity: 0, count: 0, channels: {}, sales: [] };
+      }
+      grouped[d].revenue += sale.total_revenue;
+      grouped[d].profit += sale.net_profit;
+      grouped[d].quantity += sale.quantity;
+      grouped[d].count += 1;
+      grouped[d].channels[sale.channel] = (grouped[d].channels[sale.channel] || 0) + sale.total_revenue;
+      grouped[d].sales.push(sale);
+    });
+
+    return Object.values(grouped).sort((a, b) => b.date.localeCompare(a.date));
+  }, [data?.sales]);
+
+  const marginRate = summary.totalRevenue > 0 ? (summary.totalProfit / summary.totalRevenue * 100) : 0;
+
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">대시보드</Button>
-              </Link>
-              <Link href="/products">
-                <Button variant="ghost" size="sm">상품 관리</Button>
-              </Link>
-              <Link href="/sales">
-                <Button variant="ghost" size="sm" className="bg-gray-100">판매 기록</Button>
-              </Link>
-              <Link href="/expenses">
-                <Button variant="ghost" size="sm">비용 관리</Button>
-              </Link>
-            </nav>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* 페이지 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">판매 기록</h1>
+            <h1 className="text-2xl font-bold">판매장부</h1>
             <p className="text-muted-foreground">일일 판매 내역을 기록하고 관리합니다</p>
           </div>
-          <Link href="/sales/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              판매 기록 추가
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <div className="flex border rounded-md overflow-hidden">
+              <Button
+                variant={viewMode === 'daily' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none"
+                onClick={() => setViewMode('daily')}
+              >
+                <CalendarDays className="h-4 w-4 mr-1" />일별
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                className="rounded-none"
+                onClick={() => setViewMode('list')}
+              >
+                <LayoutList className="h-4 w-4 mr-1" />목록
+              </Button>
+            </div>
+            <Link href="/sales/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />판매 기록
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 요약 카드 */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">총 매출</p>
@@ -134,21 +161,24 @@ export default function SalesPage() {
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">총 판매 수량</p>
+              <p className="text-sm text-muted-foreground">판매 수량</p>
               <p className="text-2xl font-bold">{summary.totalQuantity.toLocaleString()}개</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">마진율</p>
+              <p className={`text-2xl font-bold ${marginRate >= 20 ? 'text-green-600' : marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {summary.totalRevenue > 0 ? `${marginRate.toFixed(1)}%` : '-'}
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* 필터 */}
         <div className="space-y-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            필터 {showFilters ? '숨기기' : '보기'}
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
+            <Filter className="h-4 w-4 mr-2" />필터 {showFilters ? '숨기기' : '보기'}
           </Button>
 
           {showFilters && (
@@ -157,27 +187,15 @@ export default function SalesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
                     <label className="text-sm font-medium">시작일</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
+                    <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                   </div>
                   <div>
                     <label className="text-sm font-medium">종료일</label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
+                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                   </div>
                   <div>
                     <label className="text-sm font-medium">채널</label>
-                    <select
-                      className="w-full h-10 px-3 border rounded-md"
-                      value={channel}
-                      onChange={(e) => setChannel(e.target.value)}
-                    >
+                    <select className="w-full h-10 px-3 border rounded-md" value={channel} onChange={(e) => setChannel(e.target.value)}>
                       <option value="">전체</option>
                       {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
                         <option key={key} value={key}>{preset.name}</option>
@@ -185,9 +203,7 @@ export default function SalesPage() {
                     </select>
                   </div>
                   <div className="flex items-end">
-                    <Button variant="outline" onClick={clearFilters}>
-                      필터 초기화
-                    </Button>
+                    <Button variant="outline" onClick={clearFilters}>필터 초기화</Button>
                   </div>
                 </div>
               </CardContent>
@@ -201,25 +217,90 @@ export default function SalesPage() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              데이터를 불러오는데 실패했습니다
-            </CardContent>
-          </Card>
+          <Card><CardContent className="py-12 text-center text-muted-foreground">데이터를 불러오는데 실패했습니다</CardContent></Card>
         ) : data?.sales.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">판매 기록이 없습니다</p>
               <Link href="/sales/new">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  첫 판매 기록 추가하기
-                </Button>
+                <Button><Plus className="h-4 w-4 mr-2" />첫 판매 기록 추가하기</Button>
               </Link>
             </CardContent>
           </Card>
+        ) : viewMode === 'daily' ? (
+          /* 일별 요약 뷰 */
+          <div className="space-y-4">
+            {dailySummary.map((day) => (
+              <Card key={day.date}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-lg">
+                        {new Date(day.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+                      </CardTitle>
+                      <Badge variant="secondary">{day.count}건</Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">매출 </span>
+                        <span className="font-bold">{formatCurrency(day.revenue)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">이익 </span>
+                        <span className={`font-bold ${day.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(day.profit)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">수량 </span>
+                        <span className="font-bold">{day.quantity}개</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>상품</TableHead>
+                        <TableHead>채널</TableHead>
+                        <TableHead className="text-right">수량</TableHead>
+                        <TableHead className="text-right">단가</TableHead>
+                        <TableHead className="text-right">매출</TableHead>
+                        <TableHead className="text-right">순이익</TableHead>
+                        <TableHead className="w-[80px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {day.sales.map((sale) => (
+                        <TableRow key={sale.id}>
+                          <TableCell className="font-medium">{sale.products?.name || '-'}</TableCell>
+                          <TableCell><Badge variant="secondary">{getChannelName(sale.channel)}</Badge></TableCell>
+                          <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>
+                          <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(sale.net_profit)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Link href={`/sales/${sale.id}/edit`}>
+                                <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+                              </Link>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteId(sale.id)}>
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            ))}
+          </div>
         ) : (
+          /* 기존 목록 뷰 */
           <>
             <Card>
               <Table>
@@ -238,41 +319,21 @@ export default function SalesPage() {
                 <TableBody>
                   {data?.sales.map((sale) => (
                     <TableRow key={sale.id}>
-                      <TableCell>
-                        {new Date(sale.sale_date).toLocaleDateString('ko-KR')}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {sale.products?.name || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {getChannelName(sale.channel)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {sale.quantity.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(sale.unit_price)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(sale.total_revenue)}
-                      </TableCell>
+                      <TableCell>{new Date(sale.sale_date).toLocaleDateString('ko-KR')}</TableCell>
+                      <TableCell className="font-medium">{sale.products?.name || '-'}</TableCell>
+                      <TableCell><Badge variant="secondary">{getChannelName(sale.channel)}</Badge></TableCell>
+                      <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>
                       <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(sale.net_profit)}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Link href={`/sales/${sale.id}/edit`}>
-                            <Button variant="ghost" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
                           </Link>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteId(sale.id)}
-                          >
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(sale.id)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -283,51 +344,26 @@ export default function SalesPage() {
               </Table>
             </Card>
 
-            {/* 페이지네이션 */}
             {data && data.pagination.totalPages > 1 && (
               <div className="flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  이전
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {page} / {data.pagination.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                  disabled={page === data.pagination.totalPages}
-                >
-                  다음
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>이전</Button>
+                <span className="text-sm text-muted-foreground">{page} / {data.pagination.totalPages}</span>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))} disabled={page === data.pagination.totalPages}>다음</Button>
               </div>
             )}
           </>
         )}
       </main>
 
-      {/* 삭제 확인 */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>판매 기록 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 판매 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
+            <AlertDialogDescription>이 판매 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              삭제
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">삭제</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

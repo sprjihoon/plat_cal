@@ -13,128 +13,158 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
-  const groupBy = searchParams.get('groupBy') || 'day'; // day, week, month
+  const groupBy = searchParams.get('groupBy') || 'day';
 
   if (!startDate || !endDate) {
     return NextResponse.json({ error: '기간을 선택하세요' }, { status: 400 });
   }
 
-  // 판매 데이터 조회
-  const { data: sales, error: salesError } = await (supabase as any)
-    .from('sales_records')
-    .select('*')
-    .eq('user_id', user.id)
-    .gte('sale_date', startDate)
-    .lte('sale_date', endDate)
-    .order('sale_date', { ascending: true });
+  const [salesResult, adResult, opResult] = await Promise.all([
+    (supabase as any)
+      .from('sales_records')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('sale_date', startDate)
+      .lte('sale_date', endDate)
+      .order('sale_date', { ascending: true }),
+    (supabase as any)
+      .from('advertising_costs')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('ad_date', startDate)
+      .lte('ad_date', endDate)
+      .order('ad_date', { ascending: true }),
+    (supabase as any)
+      .from('operating_expenses')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('expense_date', startDate)
+      .lte('expense_date', endDate)
+      .order('expense_date', { ascending: true }),
+  ]);
 
-  if (salesError) {
-    return NextResponse.json({ error: salesError.message }, { status: 500 });
+  if (salesResult.error) {
+    return NextResponse.json({ error: salesResult.error.message }, { status: 500 });
+  }
+  if (adResult.error) {
+    return NextResponse.json({ error: adResult.error.message }, { status: 500 });
+  }
+  if (opResult.error) {
+    return NextResponse.json({ error: opResult.error.message }, { status: 500 });
   }
 
-  // 광고비 데이터 조회
-  const { data: advertising, error: adError } = await (supabase as any)
-    .from('advertising_costs')
-    .select('*')
-    .eq('user_id', user.id)
-    .gte('ad_date', startDate)
-    .lte('ad_date', endDate)
-    .order('ad_date', { ascending: true });
+  const sales = salesResult.data || [];
+  const advertising = adResult.data || [];
+  const operating = opResult.data || [];
 
-  if (adError) {
-    return NextResponse.json({ error: adError.message }, { status: 500 });
-  }
+  const getGroupKey = (dateStr: string) => {
+    const date = new Date(dateStr);
+    if (groupBy === 'day') return dateStr;
+    if (groupBy === 'week') {
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      return weekStart.toISOString().split('T')[0];
+    }
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  };
 
-  // 기간별 그룹핑
   const groupData = (data: any[], dateField: string) => {
     const grouped: Record<string, any[]> = {};
-    
     data.forEach((item) => {
-      const date = new Date(item[dateField]);
-      let key: string;
-      
-      if (groupBy === 'day') {
-        key = item[dateField];
-      } else if (groupBy === 'week') {
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        key = weekStart.toISOString().split('T')[0];
-      } else {
-        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      }
-      
-      if (!grouped[key]) {
-        grouped[key] = [];
-      }
+      const key = getGroupKey(item[dateField]);
+      if (!grouped[key]) grouped[key] = [];
       grouped[key].push(item);
     });
-    
     return grouped;
   };
 
-  const groupedSales = groupData(sales || [], 'sale_date');
-  const groupedAds = groupData(advertising || [], 'ad_date');
+  const groupedSales = groupData(sales, 'sale_date');
+  const groupedAds = groupData(advertising, 'ad_date');
+  const groupedOps = groupData(operating, 'expense_date');
 
-  // 모든 기간 키 수집
-  const allKeys = new Set([...Object.keys(groupedSales), ...Object.keys(groupedAds)]);
+  const allKeys = new Set([
+    ...Object.keys(groupedSales),
+    ...Object.keys(groupedAds),
+    ...Object.keys(groupedOps),
+  ]);
   const sortedKeys = Array.from(allKeys).sort();
 
-  // 기간별 요약 생성
   const periodSummaries = sortedKeys.map((key) => {
-    const periodSales = groupedSales[key] || [];
-    const periodAds = groupedAds[key] || [];
+    const pSales = groupedSales[key] || [];
+    const pAds = groupedAds[key] || [];
+    const pOps = groupedOps[key] || [];
 
-    const revenue = periodSales.reduce((sum: number, s: any) => sum + s.total_revenue, 0);
-    const profit = periodSales.reduce((sum: number, s: any) => sum + s.net_profit, 0);
-    const quantity = periodSales.reduce((sum: number, s: any) => sum + s.quantity, 0);
-    const adCost = periodAds.reduce((sum: number, a: any) => sum + a.cost, 0);
-    const impressions = periodAds.reduce((sum: number, a: any) => sum + a.impressions, 0);
-    const clicks = periodAds.reduce((sum: number, a: any) => sum + a.clicks, 0);
-    const conversions = periodAds.reduce((sum: number, a: any) => sum + a.conversions, 0);
+    const revenue = pSales.reduce((s: number, r: any) => s + r.total_revenue, 0);
+    const productCost = pSales.reduce((s: number, r: any) => s + (r.unit_price * r.quantity - r.total_revenue + r.net_profit), 0);
+    const profit = pSales.reduce((s: number, r: any) => s + r.net_profit, 0);
+    const quantity = pSales.reduce((s: number, r: any) => s + r.quantity, 0);
+    const platformFee = pSales.reduce((s: number, r: any) => s + (r.platform_fee || 0), 0);
+    const paymentFee = pSales.reduce((s: number, r: any) => s + (r.payment_fee || 0), 0);
+    const adCost = pAds.reduce((s: number, a: any) => s + a.cost, 0);
+    const operatingCost = pOps.reduce((s: number, o: any) => s + o.amount, 0);
+    const impressions = pAds.reduce((s: number, a: any) => s + a.impressions, 0);
+    const clicks = pAds.reduce((s: number, a: any) => s + a.clicks, 0);
+    const conversions = pAds.reduce((s: number, a: any) => s + a.conversions, 0);
 
-    const netProfitAfterAd = profit - adCost;
+    const totalCost = adCost + operatingCost;
+    const netProfitAfterAll = profit - adCost - operatingCost;
     const roas = adCost > 0 ? (revenue / adCost) * 100 : 0;
-    const roi = adCost > 0 ? ((profit - adCost) / adCost) * 100 : 0;
+    const roi = totalCost > 0 ? ((profit - totalCost) / totalCost) * 100 : 0;
 
     return {
       period: key,
       revenue,
       profit,
       quantity,
-      salesCount: periodSales.length,
+      salesCount: pSales.length,
+      platformFee,
+      paymentFee,
       adCost,
+      operatingCost,
+      totalCost,
       impressions,
       clicks,
       conversions,
-      netProfitAfterAd,
+      netProfitAfterAd: profit - adCost,
+      netProfitAfterAll,
       roas,
       roi,
     };
   });
 
-  // 전체 요약
-  const totalSummary = {
-    revenue: periodSummaries.reduce((sum, p) => sum + p.revenue, 0),
-    profit: periodSummaries.reduce((sum, p) => sum + p.profit, 0),
-    quantity: periodSummaries.reduce((sum, p) => sum + p.quantity, 0),
-    salesCount: periodSummaries.reduce((sum, p) => sum + p.salesCount, 0),
-    adCost: periodSummaries.reduce((sum, p) => sum + p.adCost, 0),
-    impressions: periodSummaries.reduce((sum, p) => sum + p.impressions, 0),
-    clicks: periodSummaries.reduce((sum, p) => sum + p.clicks, 0),
-    conversions: periodSummaries.reduce((sum, p) => sum + p.conversions, 0),
-    netProfitAfterAd: 0,
-    roas: 0,
-    roi: 0,
-  };
-  totalSummary.netProfitAfterAd = totalSummary.profit - totalSummary.adCost;
-  totalSummary.roas = totalSummary.adCost > 0 ? (totalSummary.revenue / totalSummary.adCost) * 100 : 0;
-  totalSummary.roi = totalSummary.adCost > 0 ? ((totalSummary.profit - totalSummary.adCost) / totalSummary.adCost) * 100 : 0;
+  const sum = (arr: typeof periodSummaries, key: keyof typeof periodSummaries[0]) =>
+    arr.reduce((s, p) => s + (p[key] as number), 0);
 
-  // 채널별 요약
+  const totalRevenue = sum(periodSummaries, 'revenue');
+  const totalProfit = sum(periodSummaries, 'profit');
+  const totalAdCost = sum(periodSummaries, 'adCost');
+  const totalOperatingCost = sum(periodSummaries, 'operatingCost');
+  const totalAllCost = totalAdCost + totalOperatingCost;
+
+  const totalSummary = {
+    revenue: totalRevenue,
+    profit: totalProfit,
+    quantity: sum(periodSummaries, 'quantity'),
+    salesCount: sum(periodSummaries, 'salesCount'),
+    platformFee: sum(periodSummaries, 'platformFee'),
+    paymentFee: sum(periodSummaries, 'paymentFee'),
+    adCost: totalAdCost,
+    operatingCost: totalOperatingCost,
+    totalCost: totalAllCost,
+    impressions: sum(periodSummaries, 'impressions'),
+    clicks: sum(periodSummaries, 'clicks'),
+    conversions: sum(periodSummaries, 'conversions'),
+    netProfitAfterAd: totalProfit - totalAdCost,
+    netProfitAfterAll: totalProfit - totalAllCost,
+    roas: totalAdCost > 0 ? (totalRevenue / totalAdCost) * 100 : 0,
+    roi: totalAllCost > 0 ? ((totalProfit - totalAllCost) / totalAllCost) * 100 : 0,
+    marginRate: totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0,
+  };
+
   const channelSummary: Record<string, any> = {};
-  (sales || []).forEach((sale: any) => {
+  sales.forEach((sale: any) => {
     if (!channelSummary[sale.channel]) {
-      channelSummary[sale.channel] = { revenue: 0, profit: 0, quantity: 0, count: 0 };
+      channelSummary[sale.channel] = { revenue: 0, profit: 0, quantity: 0, count: 0, adCost: 0, operatingCost: 0 };
     }
     channelSummary[sale.channel].revenue += sale.total_revenue;
     channelSummary[sale.channel].profit += sale.net_profit;
@@ -142,11 +172,16 @@ export async function GET(request: NextRequest) {
     channelSummary[sale.channel].count += 1;
   });
 
-  (advertising || []).forEach((ad: any) => {
+  advertising.forEach((ad: any) => {
     if (!channelSummary[ad.channel]) {
-      channelSummary[ad.channel] = { revenue: 0, profit: 0, quantity: 0, count: 0, adCost: 0 };
+      channelSummary[ad.channel] = { revenue: 0, profit: 0, quantity: 0, count: 0, adCost: 0, operatingCost: 0 };
     }
-    channelSummary[ad.channel].adCost = (channelSummary[ad.channel].adCost || 0) + ad.cost;
+    channelSummary[ad.channel].adCost += ad.cost;
+  });
+
+  const expenseCategorySummary: Record<string, number> = {};
+  operating.forEach((op: any) => {
+    expenseCategorySummary[op.category] = (expenseCategorySummary[op.category] || 0) + op.amount;
   });
 
   return NextResponse.json({
@@ -156,6 +191,10 @@ export async function GET(request: NextRequest) {
     channelSummary: Object.entries(channelSummary).map(([channel, data]) => ({
       channel,
       ...data,
+    })),
+    expenseCategorySummary: Object.entries(expenseCategorySummary).map(([category, amount]) => ({
+      category,
+      amount,
     })),
   });
 }

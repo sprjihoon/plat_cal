@@ -169,7 +169,7 @@ export function MarginCalculator() {
     }
   }, [getInputs]);
 
-  // 모드 2: 목표 마진율 → 판매가 역산
+  // 모드 2: 목표 마진율 → 판매가 정하기
   const handleCalculatePrice = useCallback(() => {
     const inputs = getInputs();
     
@@ -203,7 +203,7 @@ export function MarginCalculator() {
     }
   }, [getInputs]);
 
-  // 모드 3: 허용 가능한 최대 원가 계산
+  // 모드 3: 원가 찾기 (최대 원가 계산)
   const handleCalculateCost = useCallback(() => {
     const inputs = getInputs();
     
@@ -315,8 +315,8 @@ export function MarginCalculator() {
   const getButtonText = () => {
     switch (mode) {
       case 'profit': return '순이익 계산하기';
-      case 'price': return '판매가 역산하기';
-      case 'cost': return '허용 원가 계산하기';
+      case 'price': return '판매가 정하기';
+      case 'cost': return '원가 찾기';
     }
   };
 
@@ -325,7 +325,7 @@ export function MarginCalculator() {
     switch (mode) {
       case 'profit': return { line1: '판매가와 원가를 입력하고', line2: '순이익을 확인하세요' };
       case 'price': return { line1: '원가와 목표 마진율을 입력하고', line2: '필요한 판매가를 확인하세요' };
-      case 'cost': return { line1: '판매가와 목표 마진율을 입력하고', line2: '허용 가능한 최대 원가를 확인하세요' };
+      case 'cost': return { line1: '판매가와 목표 마진율을 입력하고', line2: '맞출 수 있는 최대 원가를 확인하세요' };
     }
   };
 
@@ -351,7 +351,7 @@ export function MarginCalculator() {
           className="flex flex-col h-auto py-2 gap-0.5"
         >
           <Target className="h-4 w-4" />
-          <span className="text-xs">판매가 역산</span>
+          <span className="text-xs">판매가 정하기</span>
         </Button>
         <Button
           variant={mode === 'cost' ? 'default' : 'outline'}
@@ -360,7 +360,7 @@ export function MarginCalculator() {
           className="flex flex-col h-auto py-2 gap-0.5"
         >
           <Package className="h-4 w-4" />
-          <span className="text-xs">허용 원가</span>
+          <span className="text-xs">원가 찾기</span>
         </Button>
       </div>
 
@@ -560,7 +560,7 @@ export function MarginCalculator() {
                   <Package className="h-5 w-5 text-purple-600" />
                   <span className="text-sm text-muted-foreground">목표 마진율 {targetMarginRate}% 달성을 위한</span>
                 </div>
-                <p className="text-sm text-muted-foreground">허용 가능한 최대 원가</p>
+                <p className="text-sm text-muted-foreground">맞출 수 있는 최대 원가</p>
                 <p className="text-4xl font-bold text-purple-600">
                   {formatCurrency(maxAllowableCost)}
                 </p>

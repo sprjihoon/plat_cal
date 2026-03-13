@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, Package, Store, Settings } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Package, Store, Settings, Receipt, DollarSign, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import type { User as SupabaseUser, SupabaseClient } from '@supabase/supabase-js';
 
@@ -110,6 +110,24 @@ export function UserMenu() {
           <DropdownMenuItem className="cursor-pointer">
             <Store className="mr-2 h-4 w-4" />
             마켓 관리
+          </DropdownMenuItem>
+        </Link>
+        <Link href="/sales">
+          <DropdownMenuItem className="cursor-pointer">
+            <Receipt className="mr-2 h-4 w-4" />
+            판매장부
+          </DropdownMenuItem>
+        </Link>
+        <Link href="/expenses">
+          <DropdownMenuItem className="cursor-pointer">
+            <DollarSign className="mr-2 h-4 w-4" />
+            광고비
+          </DropdownMenuItem>
+        </Link>
+        <Link href="/reports">
+          <DropdownMenuItem className="cursor-pointer">
+            <BarChart3 className="mr-2 h-4 w-4" />
+            결산 리포트
           </DropdownMenuItem>
         </Link>
         <Link href="/settings">

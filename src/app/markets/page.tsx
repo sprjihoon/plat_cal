@@ -19,6 +19,7 @@ import {
   Filter,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Header } from '@/components/layout/Header';
 import { PLATFORM_PRESETS } from '@/constants';
 import { calculateMargin, formatCurrency } from '@/lib/calculator';
 import type { CalculatorInputs, SalesChannel } from '@/types';
@@ -96,18 +97,7 @@ export default function MarketsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-1">
-              <Link href="/dashboard"><Button variant="ghost" size="sm">대시보드</Button></Link>
-              <Link href="/products"><Button variant="ghost" size="sm">상품 관리</Button></Link>
-              <Link href="/markets"><Button variant="ghost" size="sm" className="bg-gray-100">마켓 관리</Button></Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-4">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useOperatingExpenses, useDeleteOperatingExpense, EXPENSE_CATEGORIES, getCategoryName } from '@/lib/hooks/useOperatingExpenses';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -68,31 +68,7 @@ export default function OperatingExpensesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">대시보드</Button>
-              </Link>
-              <Link href="/products">
-                <Button variant="ghost" size="sm">상품 관리</Button>
-              </Link>
-              <Link href="/sales">
-                <Button variant="ghost" size="sm">판매 기록</Button>
-              </Link>
-              <Link href="/expenses">
-                <Button variant="ghost" size="sm">광고비</Button>
-              </Link>
-              <Link href="/expenses/operating">
-                <Button variant="ghost" size="sm" className="bg-gray-100">운영비</Button>
-              </Link>
-            </nav>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

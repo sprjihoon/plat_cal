@@ -19,9 +19,11 @@ const defaultNavItems: NavItem[] = [
   { href: '/dashboard', label: '대시보드' },
   { href: '/products', label: '상품 관리' },
   { href: '/markets', label: '마켓 관리' },
-  { href: '/sales', label: '판매 기록' },
-  { href: '/expenses', label: '비용 관리' },
+  { href: '/sales', label: '판매장부' },
+  { href: '/expenses', label: '광고비' },
+  { href: '/expenses/operating', label: '운영비' },
   { href: '/reports', label: '결산 리포트' },
+  { href: '/import', label: '데이터 가져오기' },
 ];
 
 export function Header({ navItems = defaultNavItems }: HeaderProps) {

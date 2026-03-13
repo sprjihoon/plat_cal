@@ -31,7 +31,7 @@ const navItems = [
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
   { href: '/products', label: '상품 관리', icon: Package },
   { href: '/markets', label: '마켓 관리', icon: Store },
-  { href: '/sales', label: '판매 기록', icon: Receipt },
+  { href: '/sales', label: '판매장부', icon: Receipt },
   { href: '/expenses', label: '광고비', icon: DollarSign },
   { href: '/expenses/operating', label: '운영비', icon: Wallet },
   { href: '/reports', label: '결산 리포트', icon: BarChart3 },

@@ -8,11 +8,16 @@ interface PeriodSummary {
   profit: number;
   quantity: number;
   salesCount: number;
+  platformFee: number;
+  paymentFee: number;
   adCost: number;
+  operatingCost: number;
+  totalCost: number;
   impressions: number;
   clicks: number;
   conversions: number;
   netProfitAfterAd: number;
+  netProfitAfterAll: number;
   roas: number;
   roi: number;
 }
@@ -24,6 +29,12 @@ interface ChannelSummary {
   quantity: number;
   count: number;
   adCost?: number;
+  operatingCost?: number;
+}
+
+interface ExpenseCategorySummary {
+  category: string;
+  amount: number;
 }
 
 interface ReportData {
@@ -37,16 +48,23 @@ interface ReportData {
     profit: number;
     quantity: number;
     salesCount: number;
+    platformFee: number;
+    paymentFee: number;
     adCost: number;
+    operatingCost: number;
+    totalCost: number;
     impressions: number;
     clicks: number;
     conversions: number;
     netProfitAfterAd: number;
+    netProfitAfterAll: number;
     roas: number;
     roi: number;
+    marginRate: number;
   };
   periodSummaries: PeriodSummary[];
   channelSummary: ChannelSummary[];
+  expenseCategorySummary: ExpenseCategorySummary[];
 }
 
 interface ReportFilters {
@@ -75,7 +93,6 @@ export function useReport(filters: ReportFilters) {
   });
 }
 
-// 날짜 유틸리티
 export function getDateRange(preset: string): { startDate: string; endDate: string } {
   const today = new Date();
   const endDate = today.toISOString().split('T')[0];
@@ -86,33 +103,49 @@ export function getDateRange(preset: string): { startDate: string; endDate: stri
       startDate = endDate;
       break;
     case 'yesterday': {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      startDate = yesterday.toISOString().split('T')[0];
+      const d = new Date(today);
+      d.setDate(d.getDate() - 1);
+      startDate = d.toISOString().split('T')[0];
       return { startDate, endDate: startDate };
     }
     case 'week': {
-      const weekAgo = new Date(today);
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      startDate = weekAgo.toISOString().split('T')[0];
+      const d = new Date(today);
+      d.setDate(d.getDate() - 7);
+      startDate = d.toISOString().split('T')[0];
+      break;
+    }
+    case '2weeks': {
+      const d = new Date(today);
+      d.setDate(d.getDate() - 14);
+      startDate = d.toISOString().split('T')[0];
       break;
     }
     case 'month': {
-      const monthAgo = new Date(today);
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      startDate = monthAgo.toISOString().split('T')[0];
+      const d = new Date(today);
+      d.setMonth(d.getMonth() - 1);
+      startDate = d.toISOString().split('T')[0];
       break;
     }
     case 'quarter': {
-      const quarterAgo = new Date(today);
-      quarterAgo.setMonth(quarterAgo.getMonth() - 3);
-      startDate = quarterAgo.toISOString().split('T')[0];
+      const d = new Date(today);
+      d.setMonth(d.getMonth() - 3);
+      startDate = d.toISOString().split('T')[0];
+      break;
+    }
+    case 'firstHalf': {
+      const year = today.getFullYear();
+      startDate = `${year}-01-01`;
+      return { startDate, endDate: `${year}-06-30` < endDate ? `${year}-06-30` : endDate };
+    }
+    case 'secondHalf': {
+      const year = today.getFullYear();
+      startDate = `${year}-07-01`;
       break;
     }
     case 'year': {
-      const yearAgo = new Date(today);
-      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-      startDate = yearAgo.toISOString().split('T')[0];
+      const d = new Date(today);
+      d.setFullYear(d.getFullYear() - 1);
+      startDate = d.toISOString().split('T')[0];
       break;
     }
     case 'thisMonth': {
@@ -123,8 +156,8 @@ export function getDateRange(preset: string): { startDate: string; endDate: stri
       const lastMonth = new Date(today);
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       startDate = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
-      const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-      return { startDate, endDate: lastDayOfLastMonth.toISOString().split('T')[0] };
+      const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { startDate, endDate: lastDay.toISOString().split('T')[0] };
     }
     default:
       startDate = endDate;

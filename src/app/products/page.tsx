@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Plus, Search, Pencil, Trash2, Package, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
@@ -57,23 +57,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      {/* 헤더 */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">대시보드</Button>
-              </Link>
-              <Link href="/products">
-                <Button variant="ghost" size="sm" className="bg-gray-100">상품 관리</Button>
-              </Link>
-            </nav>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* 페이지 헤더 */}

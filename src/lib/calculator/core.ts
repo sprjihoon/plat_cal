@@ -113,7 +113,7 @@ export function determineOperationJudgment(marginRate: number): OperationJudgmen
 
 /**
  * 손익분기 판매가 계산
- * 순이익 = 0이 되는 판매가를 역산
+ * 순이익 = 0이 되는 최소 판매가를 구함
  */
 export function calculateBreakEvenPrice(inputs: CalculatorInputs): number {
   const {
@@ -222,7 +222,7 @@ export function calculateRecommendedPrice(
   const targetRate = targetMarginRate / 100;
   const coefficient = targetRate - 10 / 11 + totalFeeRate;
 
-  // coefficient가 음수면 역산 가능
+  // coefficient가 음수면 산출 가능
   // 양수면 불가능 (목표 마진이 너무 높음)
   if (coefficient >= 0) {
     return Infinity;
@@ -237,7 +237,7 @@ export function calculateRecommendedPrice(
 }
 
 /**
- * 허용 가능한 최대 원가 계산
+ * 맞출 수 있는 최대 원가 계산 (원가 찾기)
  */
 export function calculateMaxAllowableCost(
   inputs: CalculatorInputs,
@@ -461,7 +461,7 @@ export function calculateMargin(inputs: CalculatorInputs): CalculationResult {
   // 12. 권장 판매가 (30% 마진 기준)
   const recommendedPrice = calculateRecommendedPrice(inputs, 30);
 
-  // 13. 허용 가능한 최대 원가 (현재 마진율 유지 기준)
+  // 13. 맞출 수 있는 최대 원가 (현재 마진율 유지 기준)
   const maxAllowableCost = calculateMaxAllowableCost(
     inputs,
     Math.max(marginRate, 0)
@@ -522,7 +522,7 @@ export function calculateByTargetMargin(
 }
 
 /**
- * 허용 원가 기준 모드 계산
+ * 원가 찾기 모드 계산
  */
 export function calculateByMaxCost(
   inputs: CalculatorInputs
@@ -532,7 +532,7 @@ export function calculateByMaxCost(
     inputs.targetMarginRate
   );
 
-  // 허용 원가로 다시 계산
+  // 찾은 원가로 다시 계산
   const modifiedInputs = {
     ...inputs,
     productCost: calculatedMaxCost,

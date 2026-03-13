@@ -19,10 +19,10 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Package className="h-4 w-4" />
-            허용 원가 기준 결과
+            원가 찾기 결과
           </CardTitle>
           <CardDescription>
-            현재 판매가에서 맞출 수 있는 최대 원가를 계산합니다
+            현재 판매가에서 맞출 수 있는 최대 원가를 찾습니다
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -41,7 +41,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Package className="h-4 w-4" />
-          허용 원가 기준 결과
+          원가 찾기 결과
         </CardTitle>
         <CardDescription>
           {formatPercent(targetMarginRate)} 마진율을 유지하기 위한 최대 원가입니다
@@ -51,7 +51,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
         {isValidCost ? (
           <>
             <div className="text-center p-6 bg-white/50 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">허용 가능한 최대 원가</p>
+              <p className="text-sm text-muted-foreground mb-2">맞출 수 있는 최대 원가</p>
               <p className="text-4xl font-bold text-orange-600">
                 {formatCurrency(result.calculatedMaxCost)}
               </p>
