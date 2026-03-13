@@ -18,6 +18,7 @@ interface HeaderProps {
 const defaultNavItems: NavItem[] = [
   { href: '/dashboard', label: '대시보드' },
   { href: '/products', label: '상품 관리' },
+  { href: '/markets', label: '마켓 관리' },
   { href: '/sales', label: '판매 기록' },
   { href: '/expenses', label: '비용 관리' },
   { href: '/reports', label: '결산 리포트' },

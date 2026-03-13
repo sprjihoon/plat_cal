@@ -16,22 +16,26 @@ import {
   Home,
   LayoutDashboard,
   Package,
+  Store,
   Receipt,
   DollarSign,
   Wallet,
   BarChart3,
   Settings,
   Calculator,
+  Upload,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: '계산기', icon: Calculator },
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
   { href: '/products', label: '상품 관리', icon: Package },
+  { href: '/markets', label: '마켓 관리', icon: Store },
   { href: '/sales', label: '판매 기록', icon: Receipt },
   { href: '/expenses', label: '광고비', icon: DollarSign },
   { href: '/expenses/operating', label: '운영비', icon: Wallet },
   { href: '/reports', label: '결산 리포트', icon: BarChart3 },
+  { href: '/import', label: '데이터 가져오기', icon: Upload },
   { href: '/settings', label: '설정', icon: Settings },
 ];
 
