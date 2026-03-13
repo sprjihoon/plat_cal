@@ -87,7 +87,6 @@ export default function EditProductPage({ params }: PageProps) {
     const updated = [...markets];
     updated[index] = { ...updated[index], [field]: value };
 
-    // 채널 변경 시 수수료 자동 업데이트
     if (field === 'channel') {
       const preset = PLATFORM_PRESETS[value as SalesChannel];
       if (preset) {
@@ -98,6 +97,30 @@ export default function EditProductPage({ params }: PageProps) {
     }
 
     setMarkets(updated);
+  };
+
+  const handleSubOptionChange = (index: number, subOptionId: string) => {
+    const updated = [...markets];
+    const preset = PLATFORM_PRESETS[updated[index].channel as SalesChannel];
+    const subOption = preset?.subOptions?.find(o => o.id === subOptionId);
+
+    if (subOption) {
+      updated[index] = {
+        ...updated[index],
+        sub_option_id: subOptionId,
+        platform_fee_rate: subOption.platformFeeRate,
+        payment_fee_rate: subOption.paymentFeeRate,
+      };
+    } else {
+      updated[index].sub_option_id = null;
+    }
+
+    setMarkets(updated);
+  };
+
+  const getSubOptions = (channel: string) => {
+    const preset = PLATFORM_PRESETS[channel as SalesChannel];
+    return preset?.subOptions || [];
   };
 
   const handleAdditionalCostChange = (index: number, costField: string, value: number) => {
@@ -251,11 +274,11 @@ export default function EditProductPage({ params }: PageProps) {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>판매 채널</Label>
                         <select
-                          className="w-full h-10 px-3 border rounded-md"
+                          className="w-full h-10 px-3 border rounded-md bg-white text-sm"
                           value={market.channel}
                           onChange={(e) =>
                             handleMarketChange(index, 'channel', e.target.value)
@@ -269,16 +292,43 @@ export default function EditProductPage({ params }: PageProps) {
                         </select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>판매가 (원)</Label>
-                        <Input
-                          type="number"
-                          value={market.selling_price}
-                          onChange={(e) =>
-                            handleMarketChange(index, 'selling_price', Number(e.target.value))
-                          }
-                        />
-                      </div>
+                      {getSubOptions(market.channel).length > 0 && (
+                        <div className="space-y-2">
+                          <Label>판매방식 / 카테고리</Label>
+                          <select
+                            className="w-full h-10 px-3 border rounded-md bg-white text-sm"
+                            value={market.sub_option_id || ''}
+                            onChange={(e) => handleSubOptionChange(index, e.target.value)}
+                          >
+                            <option value="">기본 수수료</option>
+                            {getSubOptions(market.channel).map((opt) => (
+                              <option key={opt.id} value={opt.id}>
+                                {opt.name} ({opt.platformFeeRate + opt.paymentFeeRate}%)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+
+                    {market.sub_option_id && (() => {
+                      const subOpt = getSubOptions(market.channel).find(o => o.id === market.sub_option_id);
+                      return subOpt?.description ? (
+                        <p className="text-xs text-muted-foreground bg-blue-50 px-3 py-2 rounded-md">
+                          {subOpt.description}
+                        </p>
+                      ) : null;
+                    })()}
+
+                    <div className="space-y-2">
+                      <Label>판매가 (원)</Label>
+                      <Input
+                        type="number"
+                        value={market.selling_price}
+                        onChange={(e) =>
+                          handleMarketChange(index, 'selling_price', Number(e.target.value))
+                        }
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

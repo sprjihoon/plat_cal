@@ -25,6 +25,12 @@ export default function ProductDetailPage({ params }: PageProps) {
     return PLATFORM_PRESETS[channel as keyof typeof PLATFORM_PRESETS]?.name || channel;
   };
 
+  const getSubOptionName = (channel: string, subOptionId: string | null) => {
+    if (!subOptionId) return null;
+    const preset = PLATFORM_PRESETS[channel as keyof typeof PLATFORM_PRESETS];
+    return preset?.subOptions?.find(o => o.id === subOptionId)?.name || null;
+  };
+
   const calculateProfit = (market: any, baseCost: number) => {
     const additionalCosts = market.additional_costs || {};
     
@@ -181,6 +187,11 @@ export default function ProductDetailPage({ params }: PageProps) {
                         <Badge variant={market.is_active ? 'default' : 'secondary'}>
                           {getChannelName(market.channel)}
                         </Badge>
+                        {getSubOptionName(market.channel, market.sub_option_id) && (
+                          <Badge variant="outline" className="text-xs">
+                            {getSubOptionName(market.channel, market.sub_option_id)}
+                          </Badge>
+                        )}
                         <span className="text-muted-foreground">
                           판매가: {formatCurrency(market.selling_price)}
                         </span>
