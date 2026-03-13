@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreateOperatingExpense, EXPENSE_CATEGORIES } from '@/lib/hooks/useOperatingExpenses';
-import { UserMenu } from '@/components/auth/UserMenu';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,14 +53,7 @@ export default function NewOperatingExpensePage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-lg font-bold">마진 계산기</Link>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-4">

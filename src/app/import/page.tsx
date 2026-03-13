@@ -31,6 +31,7 @@ import {
   BarChart3,
   Eye,
   Trash2,
+  Layers,
 } from 'lucide-react';
 import Link from 'next/link';
 import { readFile, getFileAcceptTypes, type SheetData } from '@/lib/excel-reader';
@@ -344,44 +345,78 @@ export default function ImportPage() {
             {/* 마켓 선택 */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">마켓 선택</CardTitle>
+                <CardTitle className="text-lg">마켓 / 솔루션 선택</CardTitle>
                 <CardDescription>
-                  정산 데이터를 가져올 마켓을 선택하세요. 파일 업로드 시 자동 감지도 됩니다.
+                  정산 데이터를 가져올 마켓 또는 통합 솔루션을 선택하세요. 파일 업로드 시 자동 감지도 됩니다.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {availableMarkets.map(market => (
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                    <Store className="h-3.5 w-3.5" />
+                    개별 마켓
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {availableMarkets.filter(m => !m.isSolution).map(market => (
+                      <button
+                        key={market.channel}
+                        onClick={() => {
+                          setSelectedMarket(market.channel);
+                          if (file) processFile(file);
+                        }}
+                        className={`p-3 rounded-lg border-2 text-center transition-all ${
+                          selectedMarket === market.channel
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-gray-200 hover:border-primary/50'
+                        }`}
+                      >
+                        <Store className="h-5 w-5 mx-auto mb-1" />
+                        <span className="text-sm font-medium">{market.name}</span>
+                      </button>
+                    ))}
                     <button
-                      key={market.channel}
                       onClick={() => {
-                        setSelectedMarket(market.channel);
+                        setSelectedMarket(null);
                         if (file) processFile(file);
                       }}
                       className={`p-3 rounded-lg border-2 text-center transition-all ${
-                        selectedMarket === market.channel
+                        selectedMarket === null
                           ? 'border-primary bg-primary/5 text-primary'
                           : 'border-gray-200 hover:border-primary/50'
                       }`}
                     >
-                      <Store className="h-5 w-5 mx-auto mb-1" />
-                      <span className="text-sm font-medium">{market.name}</span>
+                      <BarChart3 className="h-5 w-5 mx-auto mb-1" />
+                      <span className="text-sm font-medium">자동 감지</span>
                     </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      setSelectedMarket(null);
-                      if (file) processFile(file);
-                    }}
-                    className={`p-3 rounded-lg border-2 text-center transition-all ${
-                      selectedMarket === null
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-gray-200 hover:border-primary/50'
-                    }`}
-                  >
-                    <BarChart3 className="h-5 w-5 mx-auto mb-1" />
-                    <span className="text-sm font-medium">자동 감지</span>
-                  </button>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                    <Layers className="h-3.5 w-3.5" />
+                    통합 솔루션
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {availableMarkets.filter(m => m.isSolution).map(market => (
+                      <button
+                        key={market.channel}
+                        onClick={() => {
+                          setSelectedMarket(market.channel);
+                          if (file) processFile(file);
+                        }}
+                        className={`p-3 rounded-lg border-2 text-center transition-all ${
+                          selectedMarket === market.channel
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <Layers className="h-5 w-5 mx-auto mb-1" />
+                        <span className="text-sm font-medium">{market.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    통합 솔루션 파일은 여러 마켓 데이터를 포함하며, 판매처/쇼핑몰 컬럼을 기준으로 자동 분류됩니다.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -795,7 +830,9 @@ export default function ImportPage() {
               <li>마켓 정산 데이터는 각 마켓 셀러센터에서 다운로드하세요</li>
               <li>개인정보(주소, 전화번호, 이름 등)는 자동으로 감지하여 제거됩니다</li>
               <li>파일은 브라우저에서 처리되며, 개인정보가 포함된 원본은 서버로 전송되지 않습니다</li>
-              <li>지원 마켓: 쿠팡, 스마트스토어(네이버), 11번가, G마켓/옥션</li>
+              <li>지원 마켓: 쿠팡, 스마트스토어(네이버), 11번가, G마켓/옥션, 지그재그, 에이블리</li>
+              <li>지원 솔루션: 이지어드민, 셀메이트, 사방넷 (주문/정산 엑셀)</li>
+              <li>통합 솔루션 파일은 판매처/쇼핑몰 컬럼으로 채널을 자동 분류합니다</li>
               <li>마켓이 자동 감지되지 않을 경우 직접 선택해주세요</li>
             </ul>
           </CardContent>

@@ -5,16 +5,30 @@ import { elevenstParser } from './elevenst';
 import { gmarketParser } from './gmarket';
 import { zigzagParser } from './zigzag';
 import { ablyParser } from './ably';
+import { ezadminParser } from './ezadmin';
+import { sellmateParser } from './sellmate';
+import { sabangnetParser } from './sabangnet';
 
 export type { MarketParser, MarketOrderRow, MarketSettlementRow, ParsedMarketData } from './types';
 
-const parsers: MarketParser[] = [
+const marketParsers: MarketParser[] = [
   coupangParser,
   smartstoreParser,
   elevenstParser,
   gmarketParser,
   zigzagParser,
   ablyParser,
+];
+
+const solutionParsers: MarketParser[] = [
+  ezadminParser,
+  sellmateParser,
+  sabangnetParser,
+];
+
+const parsers: MarketParser[] = [
+  ...solutionParsers,
+  ...marketParsers,
 ];
 
 export function detectMarket(headers: string[]): MarketParser | null {
@@ -26,8 +40,11 @@ export function detectMarket(headers: string[]): MarketParser | null {
   return null;
 }
 
-export function getAvailableMarkets(): { name: string; channel: string }[] {
-  return parsers.map(p => ({ name: p.name, channel: p.channel }));
+export function getAvailableMarkets(): { name: string; channel: string; isSolution?: boolean }[] {
+  return [
+    ...marketParsers.map(p => ({ name: p.name, channel: p.channel })),
+    ...solutionParsers.map(p => ({ name: p.name, channel: p.channel, isSolution: true })),
+  ];
 }
 
 export function getParserByChannel(channel: string): MarketParser | null {

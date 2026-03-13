@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -6,16 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
-          <Link href="/auth/signup">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-lg font-bold">개인정보처리방침</h1>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <Card>
