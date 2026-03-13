@@ -403,34 +403,76 @@ export function MarginCalculator() {
 
       {/* 하위 옵션 선택 (판매 방식/카테고리) */}
       {currentSubOptions.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <ChevronRight className="h-3.5 w-3.5" />
             <span>판매 방식 / 카테고리 선택</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {currentSubOptions.map((option) => {
-              const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
-              return (
-                <Button
-                  key={option.id}
-                  variant={subOptionId === option.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleSubOptionChange(option.id)}
-                  className="text-xs"
-                >
-                  {option.name}
-                  <span className="ml-1 opacity-70">
-                    ({totalRate}%)
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
+          {(() => {
+            const tags = Array.from(new Set(currentSubOptions.map(o => o.tag).filter(Boolean)));
+            const hasGroups = tags.length > 1;
+            if (hasGroups) {
+              return tags.map(tag => (
+                <div key={tag} className="space-y-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{tag}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentSubOptions.filter(o => o.tag === tag).map((option) => {
+                      const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                      return (
+                        <Button
+                          key={option.id}
+                          variant={subOptionId === option.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleSubOptionChange(option.id)}
+                          className="text-xs h-7"
+                        >
+                          {option.name}
+                          <span className="ml-1 opacity-70">({totalRate}%)</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+            }
+            return (
+              <div className="flex flex-wrap gap-2">
+                {currentSubOptions.map((option) => {
+                  const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                  return (
+                    <Button
+                      key={option.id}
+                      variant={subOptionId === option.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleSubOptionChange(option.id)}
+                      className="text-xs"
+                    >
+                      {option.name}
+                      <span className="ml-1 opacity-70">({totalRate}%)</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            );
+          })()}
           {selectedSubOption?.description && (
             <p className="text-xs text-muted-foreground pl-5">
               {selectedSubOption.description}
             </p>
+          )}
+          {selectedSubOption?.logisticsCostNote && (
+            <div className="ml-5 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-xs text-amber-800 dark:text-amber-200">
+              <span className="font-medium">📦 물류비 참고:</span> {selectedSubOption.logisticsCostNote}
+            </div>
+          )}
+          {selectedSubOption?.extraFees && selectedSubOption.extraFees.length > 0 && (
+            <div className="ml-5 space-y-1">
+              {selectedSubOption.extraFees.map((fee, i) => (
+                <p key={i} className="text-xs text-muted-foreground">
+                  <span className="font-medium">{fee.label}:</span> {fee.description}
+                </p>
+              ))}
+            </div>
           )}
         </div>
       )}

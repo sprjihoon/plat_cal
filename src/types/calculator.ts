@@ -91,6 +91,12 @@ export interface PlatformSubOption {
   description?: string;
   platformFeeRate: number;
   paymentFeeRate: number;
+  /** 판매 구조 태그 (로켓그로스, 마켓플레이스 등) */
+  tag?: string;
+  /** 물류비 참고 정보 (건당 예상 비용) */
+  logisticsCostNote?: string;
+  /** 추가 수수료 항목 (배송비 수수료, 서버이용료 등) */
+  extraFees?: { label: string; description: string }[];
 }
 
 // 플랫폼 프리셋 인터페이스

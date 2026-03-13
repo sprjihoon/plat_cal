@@ -299,86 +299,105 @@ export default function AdminPage() {
                         </div>
                         
                         <div className="space-y-2">
-                          {platform.subOptions.map((option) => {
-                            const optionTotal = option.platformFeeRate + option.paymentFeeRate;
-                            return (
-                              <div
-                                key={option.id}
-                                className="p-3 border rounded-lg space-y-2"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Input
-                                      value={option.name}
-                                      onChange={(e) => handleSubOptionChange(
-                                        channelId as SalesChannel,
-                                        option.id,
-                                        'name',
-                                        e.target.value
+                          {(() => {
+                            const tags = Array.from(new Set(platform.subOptions!.map(o => o.tag).filter(Boolean)));
+                            const hasGroups = tags.length > 1;
+                            const renderOption = (option: PlatformSubOption) => {
+                              const optionTotal = option.platformFeeRate + option.paymentFeeRate;
+                              return (
+                                <div
+                                  key={option.id}
+                                  className="p-3 border rounded-lg space-y-2"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Input
+                                        value={option.name}
+                                        onChange={(e) => handleSubOptionChange(
+                                          channelId as SalesChannel,
+                                          option.id,
+                                          'name',
+                                          e.target.value
+                                        )}
+                                        className="h-8 w-40 font-medium"
+                                      />
+                                      <Badge variant="secondary" className="text-xs">
+                                        {optionTotal}%
+                                      </Badge>
+                                      {option.tag && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {option.tag}
+                                        </Badge>
                                       )}
-                                      className="h-8 w-40 font-medium"
-                                    />
-                                    <Badge variant="secondary" className="text-xs">
-                                      {optionTotal}%
-                                    </Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                      onClick={() => handleDeleteSubOption(channelId as SalesChannel, option.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleDeleteSubOption(channelId as SalesChannel, option.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  
+                                  <Input
+                                    value={option.description || ''}
+                                    onChange={(e) => handleSubOptionChange(
+                                      channelId as SalesChannel,
+                                      option.id,
+                                      'description',
+                                      e.target.value
+                                    )}
+                                    placeholder="설명 (선택)"
+                                    className="h-8 text-sm text-muted-foreground"
+                                  />
+                                  
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">플랫폼 (%)</label>
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={option.platformFeeRate}
+                                        onChange={(e) => handleSubOptionChange(
+                                          channelId as SalesChannel,
+                                          option.id,
+                                          'platformFeeRate',
+                                          e.target.value
+                                        )}
+                                        className="h-8"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">결제 (%)</label>
+                                      <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={option.paymentFeeRate}
+                                        onChange={(e) => handleSubOptionChange(
+                                          channelId as SalesChannel,
+                                          option.id,
+                                          'paymentFeeRate',
+                                          e.target.value
+                                        )}
+                                        className="h-8"
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
-                                
-                                <Input
-                                  value={option.description || ''}
-                                  onChange={(e) => handleSubOptionChange(
-                                    channelId as SalesChannel,
-                                    option.id,
-                                    'description',
-                                    e.target.value
-                                  )}
-                                  placeholder="설명 (선택)"
-                                  className="h-8 text-sm text-muted-foreground"
-                                />
-                                
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="text-xs text-muted-foreground">플랫폼 (%)</label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={option.platformFeeRate}
-                                      onChange={(e) => handleSubOptionChange(
-                                        channelId as SalesChannel,
-                                        option.id,
-                                        'platformFeeRate',
-                                        e.target.value
-                                      )}
-                                      className="h-8"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="text-xs text-muted-foreground">결제 (%)</label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={option.paymentFeeRate}
-                                      onChange={(e) => handleSubOptionChange(
-                                        channelId as SalesChannel,
-                                        option.id,
-                                        'paymentFeeRate',
-                                        e.target.value
-                                      )}
-                                      className="h-8"
-                                    />
-                                  </div>
+                              );
+                            };
+
+                            if (hasGroups) {
+                              return tags.map(tag => (
+                                <div key={tag} className="space-y-2">
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">{tag}</p>
+                                  {platform.subOptions!.filter(o => o.tag === tag).map(renderOption)}
                                 </div>
-                              </div>
-                            );
-                          })}
+                              ));
+                            }
+                            return platform.subOptions!.map(renderOption);
+                          })()}
                         </div>
                       </div>
                     )}
