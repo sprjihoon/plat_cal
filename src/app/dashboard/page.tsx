@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DateFilter, getToday } from '@/components/ui/date-filter';
 import {
   Table,
   TableBody,
@@ -32,16 +33,6 @@ import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { SalesChart, ChannelPieChart, BarChartComponent } from '@/components/charts';
 import { useCurrentGoal } from '@/lib/hooks/useGoals';
-
-const PERIOD_OPTIONS = [
-  { value: 'today', label: '오늘' },
-  { value: 'week', label: '1주일' },
-  { value: '2weeks', label: '2주일' },
-  { value: 'month', label: '1개월' },
-  { value: 'quarter', label: '분기' },
-  { value: 'half', label: '반기' },
-  { value: 'year', label: '1년' },
-];
 
 function ChangeIndicator({ value }: { value: number }) {
   if (Math.abs(value) < 0.5) {
@@ -74,8 +65,10 @@ function GoalProgress({ label, current, target, unit = '' }: { label: string; cu
 }
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState('month');
-  const { data, isLoading, error } = useDashboard(period);
+  const today = getToday();
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const { data, isLoading, error } = useDashboard({ startDate, endDate });
   const { data: currentGoal } = useCurrentGoal();
 
   const getChannelName = (channel: string) => {
@@ -92,18 +85,13 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold">대시보드</h1>
             <p className="text-muted-foreground">매출, 비용, 수익을 한눈에 확인합니다</p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {PERIOD_OPTIONS.map((opt) => (
-              <Button
-                key={opt.value}
-                variant={period === opt.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPeriod(opt.value)}
-              >
-                {opt.label}
-              </Button>
-            ))}
-          </div>
+          <DateFilter
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            defaultQuick={0}
+          />
         </div>
 
         {isLoading ? (

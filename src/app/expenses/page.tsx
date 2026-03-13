@@ -5,7 +5,6 @@ import { useAdvertising, useDeleteAdvertising, calculateROAS, calculateCPC, calc
 import { useSales } from '@/lib/hooks/useSales';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,11 +29,14 @@ import { Plus, Trash2, Loader2, TrendingUp, DollarSign, MousePointer, Target, Fi
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
+import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function ExpensesPage() {
+  const today = getToday();
   const [page, setPage] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [channel, setChannel] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -60,8 +62,8 @@ export default function ExpensesPage() {
   };
 
   const clearFilters = () => {
-    setStartDate('');
-    setEndDate('');
+    setStartDate(today);
+    setEndDate(today);
     setChannel('');
     setPage(1);
   };
@@ -187,7 +189,16 @@ export default function ExpensesPage() {
           </CardContent>
         </Card>
 
-        {/* 필터 */}
+        {/* 날짜 필터 */}
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
+          onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
+          defaultQuick={0}
+        />
+
+        {/* 추가 필터 */}
         <div className="space-y-4">
           <Button
             variant="outline"
@@ -201,29 +212,13 @@ export default function ExpensesPage() {
           {showFilters && (
             <Card>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">시작일</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">종료일</label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">채널</label>
                     <select
                       className="w-full h-10 px-3 border rounded-md"
                       value={channel}
-                      onChange={(e) => setChannel(e.target.value)}
+                      onChange={(e) => { setChannel(e.target.value); setPage(1); }}
                     >
                       <option value="">전체</option>
                       {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
@@ -267,71 +262,81 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>날짜</TableHead>
-                  <TableHead>채널</TableHead>
-                  <TableHead>캠페인</TableHead>
-                  <TableHead className="text-right">광고비</TableHead>
-                  <TableHead className="text-right">노출</TableHead>
-                  <TableHead className="text-right">클릭</TableHead>
-                  <TableHead className="text-right">전환</TableHead>
-                  <TableHead className="text-right">CPC</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {adData?.advertising.map((ad) => (
-                  <TableRow key={ad.id}>
-                    <TableCell>
-                      {new Date(ad.ad_date).toLocaleDateString('ko-KR')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {getChannelName(ad.channel)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {ad.campaign_name || '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(ad.cost)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {ad.impressions.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {ad.clicks.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {ad.conversions.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {formatCurrency(calculateCPC(ad.cost, ad.clicks))}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Link href={`/expenses/${ad.id}/edit`}>
-                          <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(ad.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          <>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>날짜</TableHead>
+                    <TableHead>채널</TableHead>
+                    <TableHead>캠페인</TableHead>
+                    <TableHead className="text-right">광고비</TableHead>
+                    <TableHead className="text-right">노출</TableHead>
+                    <TableHead className="text-right">클릭</TableHead>
+                    <TableHead className="text-right">전환</TableHead>
+                    <TableHead className="text-right">CPC</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                </TableHeader>
+                <TableBody>
+                  {adData?.advertising.map((ad) => (
+                    <TableRow key={ad.id}>
+                      <TableCell>
+                        {new Date(ad.ad_date).toLocaleDateString('ko-KR')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {getChannelName(ad.channel)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {ad.campaign_name || '-'}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(ad.cost)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {ad.impressions.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {ad.clicks.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {ad.conversions.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {formatCurrency(calculateCPC(ad.cost, ad.clicks))}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Link href={`/expenses/${ad.id}/edit`}>
+                            <Button variant="ghost" size="icon">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(ad.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+            {adData && (
+              <Pagination
+                page={page}
+                totalPages={adData.pagination.totalPages}
+                total={adData.pagination.total}
+                onPageChange={setPage}
+              />
+            )}
+          </>
         )}
       </main>
 

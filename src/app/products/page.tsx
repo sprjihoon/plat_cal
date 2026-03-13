@@ -29,6 +29,7 @@ import { Plus, Search, Pencil, Trash2, Package, Loader2, BarChart3, AlertTriangl
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
+import { Pagination } from '@/components/ui/pagination';
 
 function StockBadge({ quantity, threshold }: { quantity: number; threshold: number }) {
   if (quantity <= 0) return <Badge variant="destructive" className="text-xs">품절</Badge>;
@@ -204,29 +205,13 @@ export default function ProductsPage() {
               </Table>
             </Card>
 
-            {/* 페이지네이션 */}
-            {data && data.pagination.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  이전
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {page} / {data.pagination.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                  disabled={page === data.pagination.totalPages}
-                >
-                  다음
-                </Button>
-              </div>
+            {data && (
+              <Pagination
+                page={page}
+                totalPages={data.pagination.totalPages}
+                total={data.pagination.total}
+                onPageChange={setPage}
+              />
             )}
           </>
         )}

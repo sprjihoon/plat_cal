@@ -42,15 +42,28 @@ interface DashboardData {
   topProducts: { name: string; revenue: number; profit: number; quantity: number }[];
 }
 
-async function fetchDashboard(period: string): Promise<DashboardData> {
-  const res = await fetch(`/api/dashboard?period=${period}`);
+interface DashboardParams {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+async function fetchDashboard(params: DashboardParams): Promise<DashboardData> {
+  const sp = new URLSearchParams();
+  if (params.startDate && params.endDate) {
+    sp.set('startDate', params.startDate);
+    sp.set('endDate', params.endDate);
+  } else if (params.period) {
+    sp.set('period', params.period);
+  }
+  const res = await fetch(`/api/dashboard?${sp}`);
   if (!res.ok) throw new Error('Failed to fetch dashboard');
   return res.json();
 }
 
-export function useDashboard(period = 'month') {
+export function useDashboard(params: DashboardParams = { period: 'today' }) {
   return useQuery({
-    queryKey: ['dashboard', period],
-    queryFn: () => fetchDashboard(period),
+    queryKey: ['dashboard', params],
+    queryFn: () => fetchDashboard(params),
   });
 }

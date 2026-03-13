@@ -11,56 +11,62 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const period = searchParams.get('period') || 'month';
+  const period = searchParams.get('period') || 'today';
+  const customStart = searchParams.get('startDate');
+  const customEnd = searchParams.get('endDate');
 
   const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
   let startDate: string;
-  const endDate = today.toISOString().split('T')[0];
+  let endDate: string;
 
-  switch (period) {
-    case 'today':
-      startDate = endDate;
-      break;
-    case 'week': {
-      const d = new Date(today);
-      d.setDate(d.getDate() - 7);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    case '2weeks': {
-      const d = new Date(today);
-      d.setDate(d.getDate() - 14);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    case 'month': {
-      const d = new Date(today);
-      d.setMonth(d.getMonth() - 1);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    case 'quarter': {
-      const d = new Date(today);
-      d.setMonth(d.getMonth() - 3);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    case 'half': {
-      const d = new Date(today);
-      d.setMonth(d.getMonth() - 6);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    case 'year': {
-      const d = new Date(today);
-      d.setFullYear(d.getFullYear() - 1);
-      startDate = d.toISOString().split('T')[0];
-      break;
-    }
-    default: {
-      const d = new Date(today);
-      d.setMonth(d.getMonth() - 1);
-      startDate = d.toISOString().split('T')[0];
+  if (customStart && customEnd) {
+    startDate = customStart;
+    endDate = customEnd;
+  } else {
+    endDate = todayStr;
+    switch (period) {
+      case 'today':
+        startDate = endDate;
+        break;
+      case 'week': {
+        const d = new Date(today);
+        d.setDate(d.getDate() - 7);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      case '2weeks': {
+        const d = new Date(today);
+        d.setDate(d.getDate() - 14);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      case 'month': {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() - 1);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      case 'quarter': {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() - 3);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      case 'half': {
+        const d = new Date(today);
+        d.setMonth(d.getMonth() - 6);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      case 'year': {
+        const d = new Date(today);
+        d.setFullYear(d.getFullYear() - 1);
+        startDate = d.toISOString().split('T')[0];
+        break;
+      }
+      default:
+        startDate = endDate;
     }
   }
 

@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { useSales, useDeleteSale } from '@/lib/hooks/useSales';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,13 +30,16 @@ import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { useUpdateSale } from '@/lib/hooks/useSales';
 import type { SaleStatus } from '@/types/database';
+import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { Pagination } from '@/components/ui/pagination';
 
 type ViewMode = 'list' | 'daily';
 
 export default function SalesPage() {
+  const today = getToday();
   const [page, setPage] = useState(1);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [channel, setChannel] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -52,7 +54,7 @@ export default function SalesPage() {
     status: statusFilter || undefined,
   };
 
-  const { data, isLoading, error } = useSales(page, 200, filters);
+  const { data, isLoading, error } = useSales(page, 50, filters);
   const deleteSale = useDeleteSale();
 
   const handleDelete = async () => {
@@ -66,8 +68,8 @@ export default function SalesPage() {
   };
 
   const clearFilters = () => {
-    setStartDate('');
-    setEndDate('');
+    setStartDate(today);
+    setEndDate(today);
     setChannel('');
     setStatusFilter('');
     setPage(1);
@@ -185,7 +187,16 @@ export default function SalesPage() {
           </Card>
         </div>
 
-        {/* 필터 */}
+        {/* 날짜 필터 */}
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
+          onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
+          defaultQuick={0}
+        />
+
+        {/* 추가 필터 */}
         <div className="space-y-4">
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="h-4 w-4 mr-2" />필터 {showFilters ? '숨기기' : '보기'}
@@ -194,18 +205,10 @@ export default function SalesPage() {
           {showFilters && (
             <Card>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">시작일</label>
-                    <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">종료일</label>
-                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium">채널</label>
-                    <select className="w-full h-10 px-3 border rounded-md" value={channel} onChange={(e) => setChannel(e.target.value)}>
+                    <select className="w-full h-10 px-3 border rounded-md" value={channel} onChange={(e) => { setChannel(e.target.value); setPage(1); }}>
                       <option value="">전체</option>
                       {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
                         <option key={key} value={key}>{preset.name}</option>
@@ -214,7 +217,7 @@ export default function SalesPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium">상태</label>
-                    <select className="w-full h-10 px-3 border rounded-md" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <select className="w-full h-10 px-3 border rounded-md" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
                       <option value="">전체</option>
                       <option value="completed">완료</option>
                       <option value="returned">반품</option>
@@ -390,12 +393,13 @@ export default function SalesPage() {
               </Table>
             </Card>
 
-            {data && data.pagination.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>이전</Button>
-                <span className="text-sm text-muted-foreground">{page} / {data.pagination.totalPages}</span>
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))} disabled={page === data.pagination.totalPages}>다음</Button>
-              </div>
+            {data && (
+              <Pagination
+                page={page}
+                totalPages={data.pagination.totalPages}
+                total={data.pagination.total}
+                onPageChange={setPage}
+              />
             )}
           </>
         )}
