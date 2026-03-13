@@ -80,19 +80,18 @@ export default function DashboardPage() {
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">대시보드</h1>
-            <p className="text-muted-foreground">매출, 비용, 수익을 한눈에 확인합니다</p>
-          </div>
-          <DateFilter
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            defaultQuick={0}
-          />
+        <div>
+          <h1 className="text-2xl font-bold">대시보드</h1>
+          <p className="text-muted-foreground">매출, 비용, 수익을 한눈에 확인합니다</p>
         </div>
+
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          defaultQuick={0}
+        />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">

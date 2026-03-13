@@ -28,11 +28,12 @@ import { Plus, Trash2, Loader2, Wallet, Filter, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { DateFilter, getToday } from '@/components/ui/date-filter';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 export default function OperatingExpensesPage() {
   const today = getToday();
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(30);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [category, setCategory] = useState('');
@@ -45,7 +46,7 @@ export default function OperatingExpensesPage() {
     category: category || undefined,
   };
 
-  const { data, isLoading, error } = useOperatingExpenses(page, 50, filters);
+  const { data, isLoading, error } = useOperatingExpenses(page, pageSize, filters);
   const deleteExpense = useDeleteOperatingExpense();
 
   const handleDelete = async () => {
@@ -259,7 +260,9 @@ export default function OperatingExpensesPage() {
             page={page}
             totalPages={data.pagination.totalPages}
             total={data.pagination.total}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
           />
         )}
       </main>

@@ -29,7 +29,8 @@ import { Plus, Search, Pencil, Trash2, Package, Loader2, BarChart3, AlertTriangl
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination, type PageSize } from '@/components/ui/pagination';
+import { DateFilter, getToday } from '@/components/ui/date-filter';
 
 function StockBadge({ quantity, threshold }: { quantity: number; threshold: number }) {
   if (quantity <= 0) return <Badge variant="destructive" className="text-xs">품절</Badge>;
@@ -38,12 +39,20 @@ function StockBadge({ quantity, threshold }: { quantity: number; threshold: numb
 }
 
 export default function ProductsPage() {
+  const today = getToday();
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(30);
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
-  const { data, isLoading, error } = useProducts(page, 20, search);
+  const { data, isLoading, error } = useProducts(page, pageSize, {
+    search: search || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  });
   const deleteProduct = useDeleteProduct();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -88,6 +97,15 @@ export default function ProductsPage() {
             </Link>
           </div>
         </div>
+
+        {/* 날짜 필터 */}
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
+          onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
+          defaultQuick={0}
+        />
 
         {/* 검색 */}
         <form onSubmit={handleSearch} className="flex gap-2">
@@ -137,6 +155,7 @@ export default function ProductsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>등록일</TableHead>
                     <TableHead>상품명</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">원가</TableHead>
@@ -148,6 +167,9 @@ export default function ProductsPage() {
                 <TableBody>
                   {data?.products.map((product) => (
                     <TableRow key={product.id}>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(product.created_at).toLocaleDateString('ko-KR')}
+                      </TableCell>
                       <TableCell className="font-medium">
                         <Link href={`/products/${product.id}`} className="hover:underline">
                           {product.name}
@@ -210,7 +232,9 @@ export default function ProductsPage() {
                 page={page}
                 totalPages={data.pagination.totalPages}
                 total={data.pagination.total}
+                pageSize={pageSize}
                 onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
               />
             )}
           </>

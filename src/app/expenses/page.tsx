@@ -30,11 +30,12 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { DateFilter, getToday } from '@/components/ui/date-filter';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 export default function ExpensesPage() {
   const today = getToday();
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(30);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [channel, setChannel] = useState('');
@@ -47,7 +48,7 @@ export default function ExpensesPage() {
     channel: channel || undefined,
   };
 
-  const { data: adData, isLoading, error } = useAdvertising(page, 50, filters);
+  const { data: adData, isLoading, error } = useAdvertising(page, pageSize, filters);
   const { data: salesData } = useSales(1, 1000, filters);
   const deleteAd = useDeleteAdvertising();
 
@@ -333,7 +334,9 @@ export default function ExpensesPage() {
                 page={page}
                 totalPages={adData.pagination.totalPages}
                 total={adData.pagination.total}
+                pageSize={pageSize}
                 onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
               />
             )}
           </>

@@ -31,13 +31,14 @@ import { PLATFORM_PRESETS } from '@/constants';
 import { useUpdateSale } from '@/lib/hooks/useSales';
 import type { SaleStatus } from '@/types/database';
 import { DateFilter, getToday } from '@/components/ui/date-filter';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 type ViewMode = 'list' | 'daily';
 
 export default function SalesPage() {
   const today = getToday();
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(30);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [channel, setChannel] = useState('');
@@ -54,7 +55,7 @@ export default function SalesPage() {
     status: statusFilter || undefined,
   };
 
-  const { data, isLoading, error } = useSales(page, 50, filters);
+  const { data, isLoading, error } = useSales(page, pageSize, filters);
   const deleteSale = useDeleteSale();
 
   const handleDelete = async () => {
@@ -398,7 +399,9 @@ export default function SalesPage() {
                 page={page}
                 totalPages={data.pagination.totalPages}
                 total={data.pagination.total}
+                pageSize={pageSize}
                 onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
               />
             )}
           </>

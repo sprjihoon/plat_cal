@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '20');
   const search = searchParams.get('search') || '';
+  const startDate = searchParams.get('startDate') || '';
+  const endDate = searchParams.get('endDate') || '';
   
   const offset = (page - 1) * limit;
 
@@ -26,6 +28,13 @@ export async function GET(request: NextRequest) {
 
   if (search) {
     query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%`);
+  }
+
+  if (startDate) {
+    query = query.gte('created_at', `${startDate}T00:00:00`);
+  }
+  if (endDate) {
+    query = query.lte('created_at', `${endDate}T23:59:59`);
   }
 
   const { data, error, count } = await query;

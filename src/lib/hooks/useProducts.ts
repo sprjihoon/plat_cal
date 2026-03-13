@@ -17,9 +17,17 @@ interface ProductWithMarkets extends Product {
   product_markets: ProductMarket[];
 }
 
-async function fetchProducts(page = 1, limit = 20, search = ''): Promise<ProductsResponse> {
+interface ProductFilters {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+async function fetchProducts(page = 1, limit = 20, filters: ProductFilters = {}): Promise<ProductsResponse> {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (search) params.set('search', search);
+  if (filters.search) params.set('search', filters.search);
+  if (filters.startDate) params.set('startDate', filters.startDate);
+  if (filters.endDate) params.set('endDate', filters.endDate);
   
   const res = await fetch(`/api/products?${params}`);
   if (!res.ok) throw new Error('Failed to fetch products');
@@ -66,10 +74,11 @@ async function deleteProduct(id: string): Promise<void> {
   }
 }
 
-export function useProducts(page = 1, limit = 20, search = '') {
+export function useProducts(page = 1, limit = 20, filters: ProductFilters | string = {}) {
+  const normalizedFilters: ProductFilters = typeof filters === 'string' ? { search: filters } : filters;
   return useQuery({
-    queryKey: ['products', page, limit, search],
-    queryFn: () => fetchProducts(page, limit, search),
+    queryKey: ['products', page, limit, normalizedFilters],
+    queryFn: () => fetchProducts(page, limit, normalizedFilters),
   });
 }
 

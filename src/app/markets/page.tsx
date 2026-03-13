@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,13 +16,14 @@ import {
   TrendingDown,
   Minus,
   Package,
-  Filter,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { PLATFORM_PRESETS } from '@/constants';
 import { calculateMargin, formatCurrency } from '@/lib/calculator';
-import type { CalculatorInputs, SalesChannel } from '@/types';
+import type { CalculatorInputs } from '@/types';
+import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 function getChannelName(channel: string) {
   return PLATFORM_PRESETS[channel as keyof typeof PLATFORM_PRESETS]?.name || channel;
@@ -62,36 +63,49 @@ function calcProfit(market: any, baseCost: number) {
 }
 
 export default function MarketsPage() {
+  const today = getToday();
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<string>('all');
-  const { data, isLoading } = useProducts(1, 200);
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(30);
 
-  const allMarkets = (data?.products || []).flatMap(product =>
-    (product.product_markets || []).map(market => ({
-      ...market,
-      productName: product.name,
-      productSku: product.sku,
-      productId: product.id,
-      baseCost: product.base_cost,
-    }))
-  );
+  const { data, isLoading } = useProducts(1, 9999, {
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  });
 
-  const channels = [...new Set(allMarkets.map(m => m.channel))];
+  const allMarkets = useMemo(() =>
+    (data?.products || []).flatMap(product =>
+      (product.product_markets || []).map(market => ({
+        ...market,
+        productName: product.name,
+        productSku: product.sku,
+        productId: product.id,
+        baseCost: product.base_cost,
+      }))
+    ), [data?.products]);
 
-  const filteredMarkets = allMarkets.filter(market => {
+  const channels = useMemo(() => [...new Set(allMarkets.map(m => m.channel))], [allMarkets]);
+
+  const filteredMarkets = useMemo(() => allMarkets.filter(market => {
     const matchSearch = !search ||
       market.productName.toLowerCase().includes(search.toLowerCase()) ||
       (market.productSku && market.productSku.toLowerCase().includes(search.toLowerCase()));
     const matchChannel = channelFilter === 'all' || market.channel === channelFilter;
     return matchSearch && matchChannel;
-  });
+  }), [allMarkets, search, channelFilter]);
 
-  const channelStats = channels.map(channel => {
+  const totalFiltered = filteredMarkets.length;
+  const totalPages = Math.ceil(totalFiltered / pageSize);
+  const pagedMarkets = filteredMarkets.slice((page - 1) * pageSize, page * pageSize);
+
+  const channelStats = useMemo(() => channels.map(channel => {
     const items = allMarkets.filter(m => m.channel === channel);
-    const totalRevenue = items.reduce((sum, m) => sum + m.selling_price, 0);
     const activeCount = items.filter(m => m.is_active).length;
-    return { channel, count: items.length, activeCount, totalRevenue };
-  });
+    return { channel, count: items.length, activeCount };
+  }), [channels, allMarkets]);
 
   const totalActive = allMarkets.filter(m => m.is_active).length;
 
@@ -112,6 +126,15 @@ export default function MarketsPage() {
           </div>
         </div>
 
+        {/* 날짜 필터 */}
+        <DateFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
+          onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
+          defaultQuick={0}
+        />
+
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -120,7 +143,7 @@ export default function MarketsPage() {
           <>
             {/* 채널별 요약 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Card className="cursor-pointer hover:border-primary/50" onClick={() => setChannelFilter('all')}>
+              <Card className="cursor-pointer hover:border-primary/50" onClick={() => { setChannelFilter('all'); setPage(1); }}>
                 <CardContent className="pt-4 text-center">
                   <Store className="h-5 w-5 mx-auto mb-1 text-primary" />
                   <p className="text-2xl font-bold">{allMarkets.length}</p>
@@ -131,7 +154,7 @@ export default function MarketsPage() {
                 <Card
                   key={stat.channel}
                   className={`cursor-pointer transition-all ${channelFilter === stat.channel ? 'ring-2 ring-primary' : 'hover:border-primary/50'}`}
-                  onClick={() => setChannelFilter(channelFilter === stat.channel ? 'all' : stat.channel)}
+                  onClick={() => { setChannelFilter(channelFilter === stat.channel ? 'all' : stat.channel); setPage(1); }}
                 >
                   <CardContent className="pt-4 text-center">
                     <p className="text-sm font-medium">{getChannelName(stat.channel)}</p>
@@ -149,14 +172,14 @@ export default function MarketsPage() {
                 <Input
                   placeholder="상품명 또는 SKU로 검색..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   className="pl-10"
                 />
               </div>
               <select
                 className="h-10 px-3 border rounded-md bg-white text-sm"
                 value={channelFilter}
-                onChange={(e) => setChannelFilter(e.target.value)}
+                onChange={(e) => { setChannelFilter(e.target.value); setPage(1); }}
               >
                 <option value="all">전체 채널</option>
                 {channels.map(ch => (
@@ -187,89 +210,103 @@ export default function MarketsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
-                {filteredMarkets.map((market) => {
-                  const result = calcProfit(market, market.baseCost);
-                  const marginRate = result?.marginRate || 0;
+              <>
+                <div className="space-y-3">
+                  {pagedMarkets.map((market) => {
+                    const result = calcProfit(market, market.baseCost);
+                    const marginRate = result?.marginRate || 0;
 
-                  return (
-                    <Card key={market.id} className={!market.is_active ? 'opacity-60' : ''}>
-                      <CardContent className="py-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant={market.is_active ? 'default' : 'secondary'}>
-                                {getChannelName(market.channel)}
-                              </Badge>
-                              {getSubOptionName(market.channel, market.sub_option_id) && (
-                                <Badge variant="outline" className="text-xs">
-                                  {getSubOptionName(market.channel, market.sub_option_id)}
+                    return (
+                      <Card key={market.id} className={!market.is_active ? 'opacity-60' : ''}>
+                        <CardContent className="py-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant={market.is_active ? 'default' : 'secondary'}>
+                                  {getChannelName(market.channel)}
                                 </Badge>
-                              )}
-                              {!market.is_active && (
-                                <Badge variant="secondary" className="text-xs">비활성</Badge>
-                              )}
+                                {getSubOptionName(market.channel, market.sub_option_id) && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {getSubOptionName(market.channel, market.sub_option_id)}
+                                  </Badge>
+                                )}
+                                {!market.is_active && (
+                                  <Badge variant="secondary" className="text-xs">비활성</Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(market.created_at).toLocaleDateString('ko-KR')}
+                                </span>
+                              </div>
+                              <Link
+                                href={`/products/${market.productId}`}
+                                className="text-sm font-medium mt-1 block hover:underline truncate"
+                              >
+                                {market.productName}
+                                {market.productSku && (
+                                  <span className="text-muted-foreground ml-1">({market.productSku})</span>
+                                )}
+                              </Link>
+                              <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                                <span>판매가: {formatCurrency(market.selling_price)}</span>
+                                <span>수수료: {(market.platform_fee_rate + market.payment_fee_rate).toFixed(1)}%</span>
+                                <span>원가: {formatCurrency(market.baseCost)}</span>
+                              </div>
                             </div>
-                            <Link
-                              href={`/products/${market.productId}`}
-                              className="text-sm font-medium mt-1 block hover:underline truncate"
-                            >
-                              {market.productName}
-                              {market.productSku && (
-                                <span className="text-muted-foreground ml-1">({market.productSku})</span>
-                              )}
-                            </Link>
-                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                              <span>판매가: {formatCurrency(market.selling_price)}</span>
-                              <span>수수료: {(market.platform_fee_rate + market.payment_fee_rate).toFixed(1)}%</span>
-                              <span>원가: {formatCurrency(market.baseCost)}</span>
-                            </div>
-                          </div>
 
-                          <div className="flex items-center gap-4">
-                            {result ? (
-                              <>
-                                <div className="text-right">
-                                  <p className="text-xs text-muted-foreground">순이익</p>
-                                  <p className={`text-sm font-bold ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {formatCurrency(result.netProfit)}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-xs text-muted-foreground">마진율</p>
-                                  <div className="flex items-center gap-1">
-                                    {marginRate > 20 ? (
-                                      <TrendingUp className="h-3 w-3 text-green-600" />
-                                    ) : marginRate > 0 ? (
-                                      <Minus className="h-3 w-3 text-yellow-600" />
-                                    ) : (
-                                      <TrendingDown className="h-3 w-3 text-red-600" />
-                                    )}
-                                    <p className={`text-sm font-bold ${
-                                      marginRate > 20 ? 'text-green-600' :
-                                      marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
-                                    }`}>
-                                      {marginRate.toFixed(1)}%
+                            <div className="flex items-center gap-4">
+                              {result ? (
+                                <>
+                                  <div className="text-right">
+                                    <p className="text-xs text-muted-foreground">순이익</p>
+                                    <p className={`text-sm font-bold ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {formatCurrency(result.netProfit)}
                                     </p>
                                   </div>
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">계산 불가</span>
-                            )}
+                                  <div className="text-right">
+                                    <p className="text-xs text-muted-foreground">마진율</p>
+                                    <div className="flex items-center gap-1">
+                                      {marginRate > 20 ? (
+                                        <TrendingUp className="h-3 w-3 text-green-600" />
+                                      ) : marginRate > 0 ? (
+                                        <Minus className="h-3 w-3 text-yellow-600" />
+                                      ) : (
+                                        <TrendingDown className="h-3 w-3 text-red-600" />
+                                      )}
+                                      <p className={`text-sm font-bold ${
+                                        marginRate > 20 ? 'text-green-600' :
+                                        marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
+                                      }`}>
+                                        {marginRate.toFixed(1)}%
+                                      </p>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">계산 불가</span>
+                              )}
 
-                            <Link href={`/products/${market.productId}/edit`}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                            </Link>
+                              <Link href={`/products/${market.productId}/edit`}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  total={totalFiltered}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                />
+              </>
             )}
           </>
         )}
