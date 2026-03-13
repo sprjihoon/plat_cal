@@ -1,20 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod/v4';
+import { withAuth, withRateLimit, validateBody } from '@/lib/api/validate';
+
+const createSaleSchema = z.object({
+  product_id: z.string().uuid('올바른 상품을 선택하세요'),
+  product_market_id: z.string().uuid().nullable().optional(),
+  channel: z.string().min(1, '채널을 선택하세요'),
+  sale_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '날짜 형식이 올바르지 않습니다'),
+  quantity: z.number().int().min(1, '수량은 1 이상이어야 합니다'),
+  unit_price: z.number().min(0, '단가는 0 이상이어야 합니다'),
+  platform_fee: z.number().min(0).optional(),
+  payment_fee: z.number().min(0).optional(),
+  net_profit: z.number().optional(),
+  status: z.enum(['completed', 'returned', 'cancelled', 'exchanged']).optional(),
+  notes: z.string().nullable().optional(),
+});
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await withAuth();
+  if (auth instanceof NextResponse) return auth;
+  const { user, supabase } = auth;
+
+  const rateLimited = withRateLimit(user.id, 'sales:get', 60);
+  if (rateLimited) return rateLimited;
 
   const searchParams = request.nextUrl.searchParams;
   const startDate = searchParams.get('startDate');
   const endDate = searchParams.get('endDate');
   const channel = searchParams.get('channel');
   const productId = searchParams.get('productId');
+  const status = searchParams.get('status');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
   
@@ -27,18 +42,11 @@ export async function GET(request: NextRequest) {
     .order('sale_date', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (startDate) {
-    query = query.gte('sale_date', startDate);
-  }
-  if (endDate) {
-    query = query.lte('sale_date', endDate);
-  }
-  if (channel) {
-    query = query.eq('channel', channel);
-  }
-  if (productId) {
-    query = query.eq('product_id', productId);
-  }
+  if (startDate) query = query.gte('sale_date', startDate);
+  if (endDate) query = query.lte('sale_date', endDate);
+  if (channel) query = query.eq('channel', channel);
+  if (productId) query = query.eq('product_id', productId);
+  if (status) query = query.eq('status', status);
 
   const { data, error, count } = await query;
 
@@ -58,33 +66,19 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await withAuth();
+  if (auth instanceof NextResponse) return auth;
+  const { user, supabase } = auth;
+
+  const rateLimited = withRateLimit(user.id, 'sales:post', 20);
+  if (rateLimited) return rateLimited;
 
   try {
     const body = await request.json();
-    const {
-      product_id,
-      product_market_id,
-      channel,
-      sale_date,
-      quantity,
-      unit_price,
-      platform_fee,
-      payment_fee,
-      net_profit,
-      notes,
-    } = body;
+    const validation = validateBody(body, createSaleSchema);
+    if (!validation.success) return validation.response;
 
-    if (!product_id || !channel || !sale_date || !quantity || !unit_price) {
-      return NextResponse.json({ error: '필수 항목을 입력하세요' }, { status: 400 });
-    }
-
+    const { product_id, product_market_id, channel, sale_date, quantity, unit_price, platform_fee, payment_fee, net_profit, status, notes } = validation.data;
     const total_revenue = quantity * unit_price;
 
     const { data, error } = await (supabase as any)
@@ -101,6 +95,7 @@ export async function POST(request: NextRequest) {
         platform_fee: platform_fee || 0,
         payment_fee: payment_fee || 0,
         net_profit: net_profit || 0,
+        status: status || 'completed',
         notes: notes || null,
       })
       .select('*, products(name, sku)')
@@ -111,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(data, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }

@@ -18,6 +18,7 @@ interface SalesFilters {
   endDate?: string;
   channel?: string;
   productId?: string;
+  status?: string;
 }
 
 async function fetchSales(
@@ -30,6 +31,7 @@ async function fetchSales(
   if (filters.endDate) params.set('endDate', filters.endDate);
   if (filters.channel) params.set('channel', filters.channel);
   if (filters.productId) params.set('productId', filters.productId);
+  if (filters.status) params.set('status', filters.status);
 
   const res = await fetch(`/api/sales?${params}`);
   if (!res.ok) throw new Error('Failed to fetch sales');

@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
         sku: sku || null,
         base_cost: base_cost || 0,
         image_url: image_url || null,
+        stock_quantity: body.stock_quantity || 0,
+        low_stock_threshold: body.low_stock_threshold || 10,
       })
       .select()
       .single();

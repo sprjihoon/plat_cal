@@ -71,6 +71,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (payment_fee !== undefined) updateData.payment_fee = payment_fee;
     if (net_profit !== undefined) updateData.net_profit = net_profit;
     if (notes !== undefined) updateData.notes = notes;
+    if (body.status !== undefined) updateData.status = body.status;
 
     const { data, error } = await (supabase as any)
       .from('sales_records')

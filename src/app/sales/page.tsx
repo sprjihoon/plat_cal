@@ -29,6 +29,8 @@ import { Plus, Trash2, Loader2, Receipt, Filter, Edit, LayoutList, CalendarDays 
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
+import { useUpdateSale } from '@/lib/hooks/useSales';
+import type { SaleStatus } from '@/types/database';
 
 type ViewMode = 'list' | 'daily';
 
@@ -37,14 +39,17 @@ export default function SalesPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [channel, setChannel] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  const updateSale = useUpdateSale();
 
   const filters = {
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     channel: channel || undefined,
+    status: statusFilter || undefined,
   };
 
   const { data, isLoading, error } = useSales(page, 200, filters);
@@ -64,7 +69,12 @@ export default function SalesPage() {
     setStartDate('');
     setEndDate('');
     setChannel('');
+    setStatusFilter('');
     setPage(1);
+  };
+
+  const handleStatusChange = async (saleId: string, newStatus: SaleStatus) => {
+    await updateSale.mutateAsync({ id: saleId, data: { status: newStatus } });
   };
 
   const summary = data?.sales.reduce(
@@ -202,6 +212,16 @@ export default function SalesPage() {
                       ))}
                     </select>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium">상태</label>
+                    <select className="w-full h-10 px-3 border rounded-md" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                      <option value="">전체</option>
+                      <option value="completed">완료</option>
+                      <option value="returned">반품</option>
+                      <option value="cancelled">취소</option>
+                      <option value="exchanged">교환</option>
+                    </select>
+                  </div>
                   <div className="flex items-end">
                     <Button variant="outline" onClick={clearFilters}>필터 초기화</Button>
                   </div>
@@ -263,6 +283,7 @@ export default function SalesPage() {
                       <TableRow>
                         <TableHead>상품</TableHead>
                         <TableHead>채널</TableHead>
+                        <TableHead>상태</TableHead>
                         <TableHead className="text-right">수량</TableHead>
                         <TableHead className="text-right">단가</TableHead>
                         <TableHead className="text-right">매출</TableHead>
@@ -272,9 +293,21 @@ export default function SalesPage() {
                     </TableHeader>
                     <TableBody>
                       {day.sales.map((sale) => (
-                        <TableRow key={sale.id}>
+                        <TableRow key={sale.id} className={(sale as any).status === 'returned' || (sale as any).status === 'cancelled' ? 'opacity-60' : ''}>
                           <TableCell className="font-medium">{sale.products?.name || '-'}</TableCell>
                           <TableCell><Badge variant="secondary">{getChannelName(sale.channel)}</Badge></TableCell>
+                          <TableCell>
+                            <select
+                              className="text-xs border rounded px-1 py-0.5"
+                              value={(sale as any).status || 'completed'}
+                              onChange={(e) => handleStatusChange(sale.id, e.target.value as SaleStatus)}
+                            >
+                              <option value="completed">완료</option>
+                              <option value="returned">반품</option>
+                              <option value="cancelled">취소</option>
+                              <option value="exchanged">교환</option>
+                            </select>
+                          </TableCell>
                           <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
                           <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
                           <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>
@@ -309,6 +342,7 @@ export default function SalesPage() {
                     <TableHead>날짜</TableHead>
                     <TableHead>상품</TableHead>
                     <TableHead>채널</TableHead>
+                    <TableHead>상태</TableHead>
                     <TableHead className="text-right">수량</TableHead>
                     <TableHead className="text-right">단가</TableHead>
                     <TableHead className="text-right">매출</TableHead>
@@ -318,10 +352,22 @@ export default function SalesPage() {
                 </TableHeader>
                 <TableBody>
                   {data?.sales.map((sale) => (
-                    <TableRow key={sale.id}>
+                    <TableRow key={sale.id} className={(sale as any).status === 'returned' || (sale as any).status === 'cancelled' ? 'opacity-60' : ''}>
                       <TableCell>{new Date(sale.sale_date).toLocaleDateString('ko-KR')}</TableCell>
                       <TableCell className="font-medium">{sale.products?.name || '-'}</TableCell>
                       <TableCell><Badge variant="secondary">{getChannelName(sale.channel)}</Badge></TableCell>
+                      <TableCell>
+                        <select
+                          className="text-xs border rounded px-1 py-0.5"
+                          value={(sale as any).status || 'completed'}
+                          onChange={(e) => handleStatusChange(sale.id, e.target.value as SaleStatus)}
+                        >
+                          <option value="completed">완료</option>
+                          <option value="returned">반품</option>
+                          <option value="cancelled">취소</option>
+                          <option value="exchanged">교환</option>
+                        </select>
+                      </TableCell>
                       <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>

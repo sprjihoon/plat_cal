@@ -349,9 +349,18 @@ export default function SettingsPage() {
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                // TODO: 계정 삭제 API 구현
-                alert('계정 삭제 기능은 관리자에게 문의해주세요.');
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/profile', { method: 'DELETE' });
+                  if (!res.ok) {
+                    const data = await res.json();
+                    alert(data.error || '계정 삭제에 실패했습니다');
+                    return;
+                  }
+                  router.push('/auth/login');
+                } catch {
+                  alert('계정 삭제 중 오류가 발생했습니다');
+                }
               }}
             >
               삭제

@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +19,19 @@ export const metadata: Metadata = {
   title: "쇼핑몰 수익 관리 시스템",
   description: "스마트스토어, 쿠팡, 에이블리 등 판매 채널별 마진율과 순이익을 계산하고 상품을 관리하세요.",
   keywords: ["마진 계산기", "쇼핑몰", "스마트스토어", "쿠팡", "에이블리", "순이익", "마진율", "상품관리"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "쇼핑몰 수익 관리",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3b82f6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -32,7 +46,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <TooltipProvider>
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </TooltipProvider>
         </QueryProvider>
       </body>

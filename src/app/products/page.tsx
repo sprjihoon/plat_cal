@@ -25,10 +25,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Header } from '@/components/layout/Header';
-import { Plus, Search, Pencil, Trash2, Package, Loader2 } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Loader2, BarChart3, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
+
+function StockBadge({ quantity, threshold }: { quantity: number; threshold: number }) {
+  if (quantity <= 0) return <Badge variant="destructive" className="text-xs">품절</Badge>;
+  if (quantity <= threshold) return <Badge className="text-xs bg-amber-100 text-amber-800 hover:bg-amber-100">{quantity}개</Badge>;
+  return <span className="text-sm text-muted-foreground">{quantity}개</span>;
+}
 
 export default function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -66,12 +72,20 @@ export default function ProductsPage() {
             <h1 className="text-2xl font-bold">상품 관리</h1>
             <p className="text-muted-foreground">등록된 상품과 마켓별 수익을 관리합니다</p>
           </div>
-          <Link href="/products/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              상품 등록
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/products/analytics">
+              <Button variant="outline">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                수익 분석
+              </Button>
+            </Link>
+            <Link href="/products/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                상품 등록
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* 검색 */}
@@ -125,6 +139,7 @@ export default function ProductsPage() {
                     <TableHead>상품명</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">원가</TableHead>
+                    <TableHead className="text-right">재고</TableHead>
                     <TableHead>판매 마켓</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
@@ -142,6 +157,12 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(product.base_cost)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <StockBadge
+                          quantity={(product as any).stock_quantity || 0}
+                          threshold={(product as any).low_stock_threshold || 10}
+                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

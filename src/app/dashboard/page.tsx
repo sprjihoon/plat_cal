@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { SalesChart, ChannelPieChart, BarChartComponent } from '@/components/charts';
+import { useCurrentGoal } from '@/lib/hooks/useGoals';
 
 const PERIOD_OPTIONS = [
   { value: 'today', label: '오늘' },
@@ -52,9 +53,30 @@ function ChangeIndicator({ value }: { value: number }) {
   return <span className="text-xs text-red-600 flex items-center gap-0.5"><ArrowDownRight className="h-3 w-3" /> {value.toFixed(1)}%</span>;
 }
 
+function GoalProgress({ label, current, target, unit = '' }: { label: string; current: number; target: number; unit?: string }) {
+  const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  const color = pct >= 100 ? 'bg-green-500' : pct >= 70 ? 'bg-blue-500' : pct >= 40 ? 'bg-yellow-500' : 'bg-red-500';
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium">{pct.toFixed(0)}%</span>
+      </div>
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{unit === '%' ? `${current.toFixed(1)}%` : formatCurrency(current)}</span>
+        <span>목표: {unit === '%' ? `${target}%` : formatCurrency(target)}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [period, setPeriod] = useState('month');
   const { data, isLoading, error } = useDashboard(period);
+  const { data: currentGoal } = useCurrentGoal();
 
   const getChannelName = (channel: string) => {
     return PLATFORM_PRESETS[channel as keyof typeof PLATFORM_PRESETS]?.name || channel;
@@ -198,6 +220,45 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* 목표 달성률 */}
+            {currentGoal && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-base">목표 달성률</CardTitle>
+                  <Link href="/goals">
+                    <Button variant="ghost" size="sm">목표 관리</Button>
+                  </Link>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {currentGoal.target_revenue > 0 && (
+                      <GoalProgress
+                        label="매출 목표"
+                        current={data.summary.revenue}
+                        target={currentGoal.target_revenue}
+                      />
+                    )}
+                    {currentGoal.target_margin_rate > 0 && (
+                      <GoalProgress
+                        label="마진율 목표"
+                        current={data.summary.marginRate}
+                        target={currentGoal.target_margin_rate}
+                        unit="%"
+                      />
+                    )}
+                    {currentGoal.target_roas > 0 && (
+                      <GoalProgress
+                        label="ROAS 목표"
+                        current={data.summary.roas}
+                        target={currentGoal.target_roas}
+                        unit="%"
+                      />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 매출/비용 추이 차트 */}
             {data.dailyTrend.length > 1 && (

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { MobileNav } from './MobileNav';
+import { NotificationBell } from './NotificationBell';
 
 interface NavItem {
   href: string;
@@ -22,6 +23,7 @@ const defaultNavItems: NavItem[] = [
   { href: '/sales', label: '판매장부' },
   { href: '/expenses', label: '광고비' },
   { href: '/expenses/operating', label: '운영비' },
+  { href: '/settlements', label: '정산' },
   { href: '/reports', label: '결산 리포트' },
   { href: '/import', label: '데이터 가져오기' },
 ];
@@ -56,7 +58,10 @@ export function Header({ navItems = defaultNavItems }: HeaderProps) {
             })}
           </nav>
         </div>
-        <UserMenu />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

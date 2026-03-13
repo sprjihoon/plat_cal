@@ -43,6 +43,8 @@ export interface Database {
           sku: string | null;
           base_cost: number;
           image_url: string | null;
+          stock_quantity: number;
+          low_stock_threshold: number;
           created_at: string;
           updated_at: string;
         };
@@ -53,6 +55,8 @@ export interface Database {
           sku?: string | null;
           base_cost: number;
           image_url?: string | null;
+          stock_quantity?: number;
+          low_stock_threshold?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -63,6 +67,8 @@ export interface Database {
           sku?: string | null;
           base_cost?: number;
           image_url?: string | null;
+          stock_quantity?: number;
+          low_stock_threshold?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -142,6 +148,7 @@ export interface Database {
           platform_fee: number;
           payment_fee: number;
           net_profit: number;
+          status: string;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -159,6 +166,7 @@ export interface Database {
           platform_fee?: number;
           payment_fee?: number;
           net_profit?: number;
+          status?: string;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -176,6 +184,7 @@ export interface Database {
           platform_fee?: number;
           payment_fee?: number;
           net_profit?: number;
+          status?: string;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -263,6 +272,117 @@ export interface Database {
           updated_at?: string;
         };
       };
+      goals: {
+        Row: {
+          id: string;
+          user_id: string;
+          period_start: string;
+          period_end: string;
+          target_revenue: number;
+          target_margin_rate: number;
+          target_roas: number;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          period_start: string;
+          period_end: string;
+          target_revenue?: number;
+          target_margin_rate?: number;
+          target_roas?: number;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          period_start?: string;
+          period_end?: string;
+          target_revenue?: number;
+          target_margin_rate?: number;
+          target_roas?: number;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          data: Json | null;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          data?: Json | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: string;
+          title?: string;
+          message?: string;
+          data?: Json | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+      };
+      settlement_schedules: {
+        Row: {
+          id: string;
+          user_id: string;
+          channel: string;
+          settlement_cycle: string;
+          next_settlement_date: string | null;
+          expected_amount: number;
+          actual_amount: number | null;
+          is_confirmed: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          channel: string;
+          settlement_cycle: string;
+          next_settlement_date?: string | null;
+          expected_amount?: number;
+          actual_amount?: number | null;
+          is_confirmed?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          channel?: string;
+          settlement_cycle?: string;
+          next_settlement_date?: string | null;
+          expected_amount?: number;
+          actual_amount?: number | null;
+          is_confirmed?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -294,3 +414,16 @@ export type AdvertisingCostInsert = Database['public']['Tables']['advertising_co
 export type AdvertisingCostUpdate = Database['public']['Tables']['advertising_costs']['Update'];
 export type OperatingExpenseInsert = Database['public']['Tables']['operating_expenses']['Insert'];
 export type OperatingExpenseUpdate = Database['public']['Tables']['operating_expenses']['Update'];
+
+export type Goal = Database['public']['Tables']['goals']['Row'];
+export type GoalInsert = Database['public']['Tables']['goals']['Insert'];
+export type GoalUpdate = Database['public']['Tables']['goals']['Update'];
+
+export type Notification = Database['public']['Tables']['notifications']['Row'];
+export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
+
+export type SettlementSchedule = Database['public']['Tables']['settlement_schedules']['Row'];
+export type SettlementScheduleInsert = Database['public']['Tables']['settlement_schedules']['Insert'];
+export type SettlementScheduleUpdate = Database['public']['Tables']['settlement_schedules']['Update'];
+
+export type SaleStatus = 'completed' | 'returned' | 'cancelled' | 'exchanged';

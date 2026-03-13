@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export async function GET() {
   const supabase = await createClient();
@@ -51,4 +51,29 @@ export async function PUT(request: NextRequest) {
   }
 
   return NextResponse.json(profile);
+}
+
+export async function DELETE() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const serviceClient = await createServiceClient();
+
+    const { error } = await serviceClient.auth.admin.deleteUser(user.id);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json(
+      { error: '계정 삭제에 실패했습니다. 관리자에게 문의해주세요.' },
+      { status: 500 }
+    );
+  }
 }
