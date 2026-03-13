@@ -66,7 +66,8 @@ export default function LoginPage() {
       }
       setIsLoading(null);
     } else {
-      router.push('/dashboard');
+      router.refresh();
+      window.location.href = '/dashboard';
     }
   };
 
