@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,13 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, Package } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, Package, Store, Settings } from 'lucide-react';
 import Link from 'next/link';
 import type { User as SupabaseUser, SupabaseClient } from '@supabase/supabase-js';
 
 export function UserMenu() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
   const supabaseRef = useRef<SupabaseClient | null>(null);
 
   useEffect(() => {
@@ -40,6 +41,13 @@ export function UserMenu() {
     );
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    if (!supabaseRef.current) return;
+    setSigningOut(true);
+    await supabaseRef.current.auth.signOut();
+    window.location.href = '/';
   }, []);
 
   if (loading) {
@@ -98,13 +106,27 @@ export function UserMenu() {
             상품 관리
           </DropdownMenuItem>
         </Link>
-        <DropdownMenuSeparator />
-        <Link href="/auth/signout">
-          <DropdownMenuItem className="cursor-pointer text-red-600">
-            <LogOut className="mr-2 h-4 w-4" />
-            로그아웃
+        <Link href="/markets">
+          <DropdownMenuItem className="cursor-pointer">
+            <Store className="mr-2 h-4 w-4" />
+            마켓 관리
           </DropdownMenuItem>
         </Link>
+        <Link href="/settings">
+          <DropdownMenuItem className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            설정
+          </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="cursor-pointer text-red-600"
+          disabled={signingOut}
+          onClick={handleSignOut}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          {signingOut ? '로그아웃 중...' : '로그아웃'}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
