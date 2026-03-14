@@ -11,19 +11,19 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const period = searchParams.get('period') || 'today';
+  const period = searchParams.get('period') || '';
   const customStart = searchParams.get('startDate');
   const customEnd = searchParams.get('endDate');
 
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  let startDate: string;
-  let endDate: string;
+  let startDate = '';
+  let endDate = '';
 
   if (customStart && customEnd) {
     startDate = customStart;
     endDate = customEnd;
-  } else {
+  } else if (period) {
     endDate = todayStr;
     switch (period) {
       case 'today':
@@ -70,23 +70,37 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const prevDuration = new Date(endDate).getTime() - new Date(startDate).getTime();
-  const prevEndDate = new Date(new Date(startDate).getTime() - 86400000).toISOString().split('T')[0];
-  const prevStartDate = new Date(new Date(startDate).getTime() - prevDuration).toISOString().split('T')[0];
+  const hasDateFilter = startDate && endDate;
+
+  let salesQuery = (supabase as any).from('sales_records').select('*').eq('user_id', user.id);
+  let adQuery = (supabase as any).from('advertising_costs').select('*').eq('user_id', user.id);
+  let opQuery = (supabase as any).from('operating_expenses').select('*').eq('user_id', user.id);
+
+  if (hasDateFilter) {
+    salesQuery = salesQuery.gte('sale_date', startDate).lte('sale_date', endDate);
+    adQuery = adQuery.gte('ad_date', startDate).lte('ad_date', endDate);
+    opQuery = opQuery.gte('expense_date', startDate).lte('expense_date', endDate);
+  }
+
+  let prevSalesQuery = (supabase as any).from('sales_records').select('total_revenue, net_profit, quantity').eq('user_id', user.id);
+  let prevAdQuery = (supabase as any).from('advertising_costs').select('cost').eq('user_id', user.id);
+  let prevOpQuery = (supabase as any).from('operating_expenses').select('amount').eq('user_id', user.id);
+
+  if (hasDateFilter) {
+    const prevDuration = new Date(endDate).getTime() - new Date(startDate).getTime();
+    const prevEndDate = new Date(new Date(startDate).getTime() - 86400000).toISOString().split('T')[0];
+    const prevStartDate = new Date(new Date(startDate).getTime() - prevDuration).toISOString().split('T')[0];
+    prevSalesQuery = prevSalesQuery.gte('sale_date', prevStartDate).lte('sale_date', prevEndDate);
+    prevAdQuery = prevAdQuery.gte('ad_date', prevStartDate).lte('ad_date', prevEndDate);
+    prevOpQuery = prevOpQuery.gte('expense_date', prevStartDate).lte('expense_date', prevEndDate);
+  } else {
+    prevSalesQuery = prevSalesQuery.eq('user_id', 'none');
+    prevAdQuery = prevAdQuery.eq('user_id', 'none');
+    prevOpQuery = prevOpQuery.eq('user_id', 'none');
+  }
 
   const [salesResult, adResult, opResult, prevSalesResult, prevAdResult, prevOpResult] = await Promise.all([
-    (supabase as any).from('sales_records').select('*').eq('user_id', user.id)
-      .gte('sale_date', startDate).lte('sale_date', endDate),
-    (supabase as any).from('advertising_costs').select('*').eq('user_id', user.id)
-      .gte('ad_date', startDate).lte('ad_date', endDate),
-    (supabase as any).from('operating_expenses').select('*').eq('user_id', user.id)
-      .gte('expense_date', startDate).lte('expense_date', endDate),
-    (supabase as any).from('sales_records').select('total_revenue, net_profit, quantity').eq('user_id', user.id)
-      .gte('sale_date', prevStartDate).lte('sale_date', prevEndDate),
-    (supabase as any).from('advertising_costs').select('cost').eq('user_id', user.id)
-      .gte('ad_date', prevStartDate).lte('ad_date', prevEndDate),
-    (supabase as any).from('operating_expenses').select('amount').eq('user_id', user.id)
-      .gte('expense_date', prevStartDate).lte('expense_date', prevEndDate),
+    salesQuery, adQuery, opQuery, prevSalesQuery, prevAdQuery, prevOpQuery,
   ]);
 
   const sales = salesResult.data || [];
@@ -163,7 +177,7 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json({
-    period: { startDate, endDate, label: period },
+    period: { startDate: startDate || 'all', endDate: endDate || todayStr, label: period || 'all' },
     summary: {
       revenue,
       profit,
