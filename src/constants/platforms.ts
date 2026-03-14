@@ -167,19 +167,6 @@ export const PLATFORM_PRESETS: Record<SalesChannel, PlatformPreset> = {
           { label: '반품 회수비', description: '소형 2,000원 / 중형 3,000원' },
         ],
       },
-      // ── 로켓배송 (직매입) ──
-      {
-        id: 'coupang_rd_general',
-        name: '일반 카테고리',
-        tag: '로켓배송(직매입)',
-        description: '쿠팡이 직접 매입 · 판매수수료 없음 (매입가 협상)',
-        platformFeeRate: 0,
-        paymentFeeRate: 0,
-        logisticsCostNote: '물류/배송비 쿠팡 부담 · 매입가에서 마진 결정',
-        extraFees: [
-          { label: '매입 구조', description: '쿠팡이 매입 후 판매, 판매가는 쿠팡이 결정' },
-        ],
-      },
     ],
   },
 
