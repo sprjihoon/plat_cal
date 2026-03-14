@@ -41,6 +41,8 @@ export function MarginCalculator() {
   const [mode, setMode] = useState<CalculationMode>('profit');
   const [channel, setChannel] = useState<SalesChannel>('smartstore');
   const [subOptionId, setSubOptionId] = useState<string | null>(null);
+  const [sourceOptionId, setSourceOptionId] = useState<string | null>(null);
+  const [tierOptionId, setTierOptionId] = useState<string | null>(null);
   const [platformPresets, setPlatformPresets] = useState<Record<SalesChannel, PlatformPreset>>(PLATFORM_PRESETS);
 
   // 로컬스토리지에서 커스텀 설정 불러오기
@@ -93,10 +95,55 @@ export function MarginCalculator() {
     return currentSubOptions.find(opt => opt.id === subOptionId) || null;
   }, [currentSubOptions, subOptionId]);
 
+  const COMBO_TAGS: Record<string, { sourceTag: string; tierTag: string }> = {
+    smartstore: { sourceTag: '유입경로', tierTag: '매출등급' },
+  };
+
+  const isComboChannel = channel in COMBO_TAGS;
+  const comboConfig = COMBO_TAGS[channel];
+
+  const sourceOptions = useMemo(() => {
+    if (!isComboChannel || !comboConfig) return [];
+    return currentSubOptions.filter(o => o.tag === comboConfig.sourceTag);
+  }, [isComboChannel, comboConfig, currentSubOptions]);
+
+  const tierOptions = useMemo(() => {
+    if (!isComboChannel || !comboConfig) return [];
+    return currentSubOptions.filter(o => o.tag === comboConfig.tierTag);
+  }, [isComboChannel, comboConfig, currentSubOptions]);
+
+  const otherGroupOptions = useMemo(() => {
+    if (!isComboChannel || !comboConfig) return currentSubOptions;
+    return currentSubOptions.filter(o => o.tag !== comboConfig.sourceTag && o.tag !== comboConfig.tierTag);
+  }, [isComboChannel, comboConfig, currentSubOptions]);
+
+  const selectedSourceOption = useMemo(() => {
+    if (!sourceOptionId) return null;
+    return sourceOptions.find(o => o.id === sourceOptionId) || null;
+  }, [sourceOptions, sourceOptionId]);
+
+  const selectedTierOption = useMemo(() => {
+    if (!tierOptionId) return null;
+    return tierOptions.find(o => o.id === tierOptionId) || null;
+  }, [tierOptions, tierOptionId]);
+
+  const applyComboFees = useCallback(() => {
+    const sourceFee = selectedSourceOption?.platformFeeRate ?? platformPresets[channel]?.platformFeeRate ?? 0;
+    const tierFee = selectedTierOption?.paymentFeeRate ?? platformPresets[channel]?.paymentFeeRate ?? 0;
+    setPlatformFeeRate(sourceFee.toString());
+    setPaymentFeeRate(tierFee.toString());
+    setResult(null);
+    setRecommendedPrice(null);
+    setMaxAllowableCost(null);
+    setHasCalculated(false);
+  }, [selectedSourceOption, selectedTierOption, platformPresets, channel]);
+
   // 채널 변경 시 수수료율 업데이트
   const handleChannelChange = useCallback((newChannel: SalesChannel) => {
     setChannel(newChannel);
     setSubOptionId(null);
+    setSourceOptionId(null);
+    setTierOptionId(null);
     const preset = platformPresets[newChannel];
     if (preset) {
       setPlatformFeeRate(preset.platformFeeRate.toString());
@@ -121,6 +168,22 @@ export function MarginCalculator() {
     setMaxAllowableCost(null);
     setHasCalculated(false);
   }, [platformPresets, channel]);
+
+  const handleSourceChange = useCallback((optionId: string) => {
+    setSourceOptionId(optionId);
+    setSubOptionId(null);
+  }, []);
+
+  const handleTierChange = useCallback((optionId: string) => {
+    setTierOptionId(optionId);
+    setSubOptionId(null);
+  }, []);
+
+  useEffect(() => {
+    if (isComboChannel && (sourceOptionId || tierOptionId)) {
+      applyComboFees();
+    }
+  }, [isComboChannel, sourceOptionId, tierOptionId, applyComboFees]);
 
   // 공통 입력값 생성
   const getInputs = useCallback((): CalculatorInputs => {
@@ -274,6 +337,8 @@ export function MarginCalculator() {
     setMaxAllowableCost(null);
     setHasCalculated(false);
     setSubOptionId(null);
+    setSourceOptionId(null);
+    setTierOptionId(null);
     const preset = platformPresets[channel];
     if (preset) {
       setPlatformFeeRate(preset.platformFeeRate.toString());
@@ -406,17 +471,134 @@ export function MarginCalculator() {
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <ChevronRight className="h-3.5 w-3.5" />
-            <span>판매 방식 / 카테고리 선택</span>
+            <span>{isComboChannel ? '유입경로 + 매출등급 선택' : '판매 방식 / 카테고리 선택'}</span>
           </div>
-          {(() => {
-            const tags = Array.from(new Set(currentSubOptions.map(o => o.tag).filter(Boolean)));
-            const hasGroups = tags.length > 1;
-            if (hasGroups) {
-              return tags.map(tag => (
-                <div key={tag} className="space-y-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{tag}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {currentSubOptions.filter(o => o.tag === tag).map((option) => {
+
+          {isComboChannel && comboConfig ? (
+            <>
+              {/* 유입경로 선택 → platformFeeRate 결정 */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                  {comboConfig.sourceTag} <span className="normal-case font-normal">(판매수수료)</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {sourceOptions.map((option) => (
+                    <Button
+                      key={option.id}
+                      variant={sourceOptionId === option.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleSourceChange(option.id)}
+                      className="text-xs h-7"
+                    >
+                      {option.name}
+                      <span className="ml-1 opacity-70">({option.platformFeeRate}%)</span>
+                    </Button>
+                  ))}
+                </div>
+                {selectedSourceOption?.description && (
+                  <p className="text-xs text-muted-foreground pl-5">{selectedSourceOption.description}</p>
+                )}
+              </div>
+
+              {/* 매출등급 선택 → paymentFeeRate 결정 */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">
+                  {comboConfig.tierTag} <span className="normal-case font-normal">(결제수수료)</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {tierOptions.map((option) => (
+                    <Button
+                      key={option.id}
+                      variant={tierOptionId === option.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleTierChange(option.id)}
+                      className="text-xs h-7"
+                    >
+                      {option.name}
+                      <span className="ml-1 opacity-70">({option.paymentFeeRate}%)</span>
+                    </Button>
+                  ))}
+                </div>
+                {selectedTierOption?.description && (
+                  <p className="text-xs text-muted-foreground pl-5">{selectedTierOption.description}</p>
+                )}
+              </div>
+
+              {/* 조합 결과 표시 */}
+              {(sourceOptionId || tierOptionId) && (
+                <div className="ml-5 p-2.5 bg-[#D6F74C]/10 border border-[#D6F74C]/30 rounded-xl text-xs">
+                  <span className="font-medium">적용 수수료:</span>{' '}
+                  판매 {selectedSourceOption?.platformFeeRate ?? platformPresets[channel]?.platformFeeRate}% + 결제 {selectedTierOption?.paymentFeeRate ?? platformPresets[channel]?.paymentFeeRate}% ={' '}
+                  <span className="font-bold">
+                    합계 {((selectedSourceOption?.platformFeeRate ?? platformPresets[channel]?.platformFeeRate ?? 0) + (selectedTierOption?.paymentFeeRate ?? platformPresets[channel]?.paymentFeeRate ?? 0)).toFixed(2)}%
+                  </span>
+                </div>
+              )}
+
+              {/* 특수채널 (N배송관 등) */}
+              {otherGroupOptions.length > 0 && (
+                <div className="space-y-1.5">
+                  {Array.from(new Set(otherGroupOptions.map(o => o.tag).filter(Boolean))).map(tag => (
+                    <div key={tag} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{tag}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {otherGroupOptions.filter(o => o.tag === tag).map((option) => {
+                          const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                          return (
+                            <Button
+                              key={option.id}
+                              variant={subOptionId === option.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => {
+                                setSourceOptionId(null);
+                                setTierOptionId(null);
+                                handleSubOptionChange(option.id);
+                              }}
+                              className="text-xs h-7"
+                            >
+                              {option.name}
+                              <span className="ml-1 opacity-70">({totalRate}%)</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {(() => {
+                const tags = Array.from(new Set(currentSubOptions.map(o => o.tag).filter(Boolean)));
+                const hasGroups = tags.length > 1;
+                if (hasGroups) {
+                  return tags.map(tag => (
+                    <div key={tag} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{tag}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentSubOptions.filter(o => o.tag === tag).map((option) => {
+                          const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                          return (
+                            <Button
+                              key={option.id}
+                              variant={subOptionId === option.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleSubOptionChange(option.id)}
+                              className="text-xs h-7"
+                            >
+                              {option.name}
+                              <span className="ml-1 opacity-70">({totalRate}%)</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                }
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {currentSubOptions.map((option) => {
                       const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
                       return (
                         <Button
@@ -424,7 +606,7 @@ export function MarginCalculator() {
                           variant={subOptionId === option.id ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => handleSubOptionChange(option.id)}
-                          className="text-xs h-7"
+                          className="text-xs"
                         >
                           {option.name}
                           <span className="ml-1 opacity-70">({totalRate}%)</span>
@@ -432,47 +614,28 @@ export function MarginCalculator() {
                       );
                     })}
                   </div>
-                </div>
-              ));
-            }
-            return (
-              <div className="flex flex-wrap gap-2">
-                {currentSubOptions.map((option) => {
-                  const totalRate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
-                  return (
-                    <Button
-                      key={option.id}
-                      variant={subOptionId === option.id ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleSubOptionChange(option.id)}
-                      className="text-xs"
-                    >
-                      {option.name}
-                      <span className="ml-1 opacity-70">({totalRate}%)</span>
-                    </Button>
-                  );
-                })}
-              </div>
-            );
-          })()}
-          {selectedSubOption?.description && (
-            <p className="text-xs text-muted-foreground pl-5">
-              {selectedSubOption.description}
-            </p>
-          )}
-          {selectedSubOption?.logisticsCostNote && (
-            <div className="ml-5 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-xs text-amber-800 dark:text-amber-200">
-              <span className="font-medium">📦 물류비 참고:</span> {selectedSubOption.logisticsCostNote}
-            </div>
-          )}
-          {selectedSubOption?.extraFees && selectedSubOption.extraFees.length > 0 && (
-            <div className="ml-5 space-y-1">
-              {selectedSubOption.extraFees.map((fee, i) => (
-                <p key={i} className="text-xs text-muted-foreground">
-                  <span className="font-medium">{fee.label}:</span> {fee.description}
+                );
+              })()}
+              {selectedSubOption?.description && (
+                <p className="text-xs text-muted-foreground pl-5">
+                  {selectedSubOption.description}
                 </p>
-              ))}
-            </div>
+              )}
+              {selectedSubOption?.logisticsCostNote && (
+                <div className="ml-5 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-xs text-amber-800 dark:text-amber-200">
+                  <span className="font-medium">물류비 참고:</span> {selectedSubOption.logisticsCostNote}
+                </div>
+              )}
+              {selectedSubOption?.extraFees && selectedSubOption.extraFees.length > 0 && (
+                <div className="ml-5 space-y-1">
+                  {selectedSubOption.extraFees.map((fee, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">
+                      <span className="font-medium">{fee.label}:</span> {fee.description}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
