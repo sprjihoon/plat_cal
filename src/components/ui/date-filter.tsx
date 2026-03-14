@@ -110,30 +110,32 @@ export function DateFilter({
   ];
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       {showQuickRanges && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {quickButtons.map((btn) => (
-            <Button
+            <button
               key={btn.key}
-              variant={activeKey === btn.key ? 'default' : 'outline'}
-              size="sm"
-              className="h-7 text-xs"
+              type="button"
+              className={`h-8 px-4 text-xs font-medium rounded-full transition-all duration-200 ${
+                activeKey === btn.key
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
               onClick={btn.action}
             >
               {btn.label}
-            </Button>
+            </button>
           ))}
           {hasFilter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-muted-foreground"
+            <button
+              type="button"
+              className="h-8 px-3 text-xs font-medium rounded-full text-muted-foreground hover:bg-muted/60 transition-colors flex items-center gap-1"
               onClick={handleClear}
             >
-              <X className="h-3 w-3 mr-1" />
+              <X className="h-3 w-3" />
               전체
-            </Button>
+            </button>
           )}
         </div>
       )}
@@ -143,14 +145,14 @@ export function DateFilter({
           type="date"
           value={startDate}
           onChange={(e) => handleManualChange('start', e.target.value)}
-          className="h-8 text-sm w-[140px]"
+          className="h-8 text-sm w-[140px] rounded-xl"
         />
-        <span className="text-muted-foreground text-sm">~</span>
+        <span className="text-muted-foreground text-xs">~</span>
         <Input
           type="date"
           value={endDate}
           onChange={(e) => handleManualChange('end', e.target.value)}
-          className="h-8 text-sm w-[140px]"
+          className="h-8 text-sm w-[140px] rounded-xl"
         />
       </div>
     </div>

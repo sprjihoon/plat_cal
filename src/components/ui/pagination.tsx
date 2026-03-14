@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 export const PAGE_SIZE_OPTIONS = [30, 50, 100] as const;
@@ -46,21 +45,35 @@ export function Pagination({
     return pages;
   };
 
+  const navBtn = (onClick: () => void, disabled: boolean, children: React.ReactNode) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="h-8 w-8 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors"
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
       {onPageSizeChange && pageSize ? (
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground whitespace-nowrap">표시</span>
           {PAGE_SIZE_OPTIONS.map((size) => (
-            <Button
+            <button
               key={size}
-              variant={pageSize === size ? 'default' : 'outline'}
-              size="sm"
-              className="h-7 text-xs px-2.5"
+              type="button"
+              className={`h-7 px-3 text-xs font-medium rounded-full transition-all duration-200 ${
+                pageSize === size
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
               onClick={() => onPageSizeChange(size)}
             >
               {size}
-            </Button>
+            </button>
           ))}
           <span className="text-xs text-muted-foreground whitespace-nowrap">건</span>
         </div>
@@ -68,67 +81,38 @@ export function Pagination({
         <div />
       )}
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {totalPages > 1 && (
           <>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onPageChange(1)}
-              disabled={page === 1}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+            {navBtn(() => onPageChange(1), page === 1, <ChevronsLeft className="h-4 w-4" />)}
+            {navBtn(() => onPageChange(page - 1), page === 1, <ChevronLeft className="h-4 w-4" />)}
 
             {getPageNumbers().map((p, i) =>
               p === '...' ? (
-                <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm">...</span>
+                <span key={`ellipsis-${i}`} className="px-1.5 text-muted-foreground text-xs">...</span>
               ) : (
-                <Button
+                <button
                   key={p}
-                  variant={p === page ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-8 w-8 p-0 text-xs"
-                  onClick={() => onPageChange(p)}
+                  type="button"
+                  className={`h-8 w-8 flex items-center justify-center rounded-xl text-xs font-medium transition-all duration-200 ${
+                    p === page
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                  onClick={() => onPageChange(p as number)}
                 >
                   {p}
-                </Button>
+                </button>
               )
             )}
 
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page === totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onPageChange(totalPages)}
-              disabled={page === totalPages}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
+            {navBtn(() => onPageChange(page + 1), page === totalPages, <ChevronRight className="h-4 w-4" />)}
+            {navBtn(() => onPageChange(totalPages), page === totalPages, <ChevronsRight className="h-4 w-4" />)}
           </>
         )}
 
         {total !== undefined && (
-          <span className="ml-2 text-xs text-muted-foreground">
+          <span className="ml-3 text-xs text-muted-foreground font-medium">
             총 {total.toLocaleString()}건
           </span>
         )}
