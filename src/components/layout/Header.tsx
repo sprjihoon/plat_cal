@@ -41,8 +41,10 @@ export function Header({ navItems = defaultNavItems }: HeaderProps) {
           </Link>
           <nav className="hidden sm:flex items-center gap-0.5 ml-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || 
-                (item.href !== '/' && pathname.startsWith(item.href));
+              const hasMoreSpecific = navItems.some(
+                (other) => other.href !== item.href && other.href.startsWith(item.href + '/') && (pathname === other.href || pathname.startsWith(other.href + '/'))
+              );
+              const isActive = !hasMoreSpecific && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/')));
               
               return (
                 <Link key={item.href} href={item.href}>

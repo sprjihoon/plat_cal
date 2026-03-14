@@ -58,8 +58,10 @@ export function MobileNav() {
         <nav className="flex flex-col p-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || 
-              (item.href !== '/' && pathname.startsWith(item.href));
+            const hasMoreSpecific = navItems.some(
+              (other) => other.href !== item.href && other.href.startsWith(item.href + '/') && (pathname === other.href || pathname.startsWith(other.href + '/'))
+            );
+            const isActive = !hasMoreSpecific && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/')));
             
             return (
               <Link
