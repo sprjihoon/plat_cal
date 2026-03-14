@@ -120,17 +120,17 @@ export default function SalesPage() {
   const marginRate = summary.totalRevenue > 0 ? (summary.totalProfit / summary.totalRevenue * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">판매장부</h1>
-            <p className="text-muted-foreground">일일 판매 내역을 기록하고 관리합니다</p>
+            <h1 className="text-2xl font-bold tracking-tight">판매장부</h1>
+            <p className="text-muted-foreground mt-1">일일 판매 내역을 기록하고 관리합니다</p>
           </div>
           <div className="flex gap-2">
-            <div className="flex border rounded-md overflow-hidden">
+            <div className="flex border rounded-xl overflow-hidden">
               <Button
                 variant={viewMode === 'daily' ? 'default' : 'ghost'}
                 size="sm"
@@ -149,7 +149,7 @@ export default function SalesPage() {
               </Button>
             </div>
             <Link href="/sales/new">
-              <Button>
+              <Button className="rounded-xl">
                 <Plus className="h-4 w-4 mr-2" />판매 기록
               </Button>
             </Link>
@@ -158,30 +158,30 @@ export default function SalesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">총 매출</p>
-              <p className="text-2xl font-bold">{formatCurrency(summary.totalRevenue)}</p>
+          <Card className="bg-blue-50 ring-0 border-0">
+            <CardContent className="pt-5 pb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-1">총 매출</p>
+              <p className="text-lg font-bold text-blue-700">{formatCurrency(summary.totalRevenue)}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">총 순이익</p>
-              <p className={`text-2xl font-bold ${summary.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <Card className={`${summary.totalProfit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} ring-0 border-0`}>
+            <CardContent className="pt-5 pb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-1">총 순이익</p>
+              <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {formatCurrency(summary.totalProfit)}
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">판매 수량</p>
-              <p className="text-2xl font-bold">{summary.totalQuantity.toLocaleString()}개</p>
+          <Card className="bg-violet-50 ring-0 border-0">
+            <CardContent className="pt-5 pb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-1">판매 수량</p>
+              <p className="text-lg font-bold text-violet-700">{summary.totalQuantity.toLocaleString()}개</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">마진율</p>
-              <p className={`text-2xl font-bold ${marginRate >= 20 ? 'text-green-600' : marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+          <Card className="bg-amber-50 ring-0 border-0">
+            <CardContent className="pt-5 pb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-1">마진율</p>
+              <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-amber-700' : marginRate >= 10 ? 'text-amber-600' : 'text-rose-600'}`}>
                 {summary.totalRevenue > 0 ? `${marginRate.toFixed(1)}%` : '-'}
               </p>
             </CardContent>

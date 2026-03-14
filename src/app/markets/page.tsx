@@ -110,17 +110,17 @@ export default function MarketsPage() {
   const totalActive = allMarkets.filter(m => m.is_active).length;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" className="rounded-xl"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">마켓 관리</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">마켓 관리</h1>
+            <p className="text-muted-foreground mt-1">
               등록된 모든 마켓 설정을 한눈에 관리합니다
             </p>
           </div>

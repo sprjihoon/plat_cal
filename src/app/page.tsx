@@ -3,7 +3,7 @@ import { Header } from '@/components/layout/Header';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50/50">
+    <main className="min-h-screen bg-background">
       <Header />
       <div className="px-4 py-6">
         <MarginCalculator />

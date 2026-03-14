@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
   // 세션 확인 중
   if (isValidSession === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
   // 유효하지 않은 세션 (직접 URL 접근 등)
   if (!isValidSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -131,7 +131,7 @@ export default function ResetPasswordPage() {
   // 비밀번호 변경 성공
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">새 비밀번호 설정</CardTitle>

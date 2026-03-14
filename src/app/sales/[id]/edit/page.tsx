@@ -142,7 +142,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">

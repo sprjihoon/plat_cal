@@ -72,25 +72,24 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* 페이지 헤더 */}
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">상품 관리</h1>
-            <p className="text-muted-foreground">등록된 상품과 마켓별 수익을 관리합니다</p>
+            <h1 className="text-2xl font-bold tracking-tight">상품 관리</h1>
+            <p className="text-muted-foreground mt-1">등록된 상품과 마켓별 수익을 관리합니다</p>
           </div>
           <div className="flex gap-2">
             <Link href="/products/analytics">
-              <Button variant="outline">
+              <Button variant="outline" className="rounded-xl">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 수익 분석
               </Button>
             </Link>
             <Link href="/products/new">
-              <Button>
+              <Button className="rounded-xl">
                 <Plus className="h-4 w-4 mr-2" />
                 상품 등록
               </Button>

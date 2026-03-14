@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDashboard } from '@/lib/hooks/useDashboard';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
@@ -86,12 +86,23 @@ export default function DashboardPage() {
   const today = getToday();
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
+  const [userName, setUserName] = useState('');
   const { data, isLoading, error } = useDashboard({ startDate, endDate });
   const { data: currentGoal } = useCurrentGoal();
+
+  useEffect(() => {
+    fetch('/api/profile')
+      .then(res => res.ok ? res.json() : null)
+      .then(profile => { if (profile?.name) setUserName(profile.name); })
+      .catch(() => {});
+  }, []);
 
   const getChannelName = (channel: string) => {
     return PLATFORM_PRESETS[channel as keyof typeof PLATFORM_PRESETS]?.name || channel;
   };
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '좋은 오후예요' : '좋은 저녁이에요';
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,7 +110,13 @@ export default function DashboardPage() {
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
+          {userName ? (
+            <h1 className="text-2xl font-bold tracking-tight">
+              {userName} 대표님, {greeting} 👋
+            </h1>
+          ) : (
+            <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
+          )}
           <p className="text-muted-foreground mt-1">매출, 비용, 수익을 한눈에 확인합니다</p>
         </div>
 

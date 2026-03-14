@@ -70,17 +70,17 @@ export default function OperatingExpensesPage() {
   }, {} as Record<string, number>) || {};
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">운영비 관리</h1>
-            <p className="text-muted-foreground">포장비, 인건비, 창고비 등 운영비를 관리합니다</p>
+            <h1 className="text-2xl font-bold tracking-tight">운영비 관리</h1>
+            <p className="text-muted-foreground mt-1">포장비, 인건비, 창고비 등 운영비를 관리합니다</p>
           </div>
           <Link href="/expenses/operating/new">
-            <Button>
+            <Button className="rounded-xl">
               <Plus className="h-4 w-4 mr-2" />
               운영비 추가
             </Button>
@@ -89,23 +89,23 @@ export default function OperatingExpensesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
+          <Card className="bg-orange-50 ring-0 border-0">
+            <CardContent className="pt-5 pb-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-orange-100 rounded-xl">
                   <Wallet className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">총 운영비</p>
-                  <p className="text-xl font-bold">{formatCurrency(totalAmount)}</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">총 운영비</p>
+                  <p className="text-lg font-bold text-orange-700">{formatCurrency(totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-2">기록 수</p>
-              <p className="text-2xl font-bold">{data?.pagination.total || 0}건</p>
+          <Card className="bg-sky-50 ring-0 border-0">
+            <CardContent className="pt-5 pb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-1">기록 수</p>
+              <p className="text-lg font-bold text-sky-700">{data?.pagination.total || 0}건</p>
             </CardContent>
           </Card>
         </div>
@@ -119,9 +119,9 @@ export default function OperatingExpensesPage() {
                 {Object.entries(categoryTotals)
                   .sort((a, b) => b[1] - a[1])
                   .map(([cat, amount]) => (
-                    <div key={cat} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">{getCategoryName(cat)}</p>
-                      <p className="font-semibold">{formatCurrency(amount)}</p>
+                    <div key={cat} className="p-3.5 bg-muted/40 rounded-xl">
+                      <p className="text-xs font-medium text-muted-foreground">{getCategoryName(cat)}</p>
+                      <p className="font-semibold mt-0.5">{formatCurrency(amount)}</p>
                     </div>
                   ))}
               </div>
