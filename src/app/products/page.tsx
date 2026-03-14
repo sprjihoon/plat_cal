@@ -30,7 +30,7 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
-import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { DateFilter } from '@/components/ui/date-filter';
 
 function StockBadge({ quantity, threshold }: { quantity: number; threshold: number }) {
   if (quantity <= 0) return <Badge variant="destructive" className="text-xs">품절</Badge>;
@@ -39,11 +39,10 @@ function StockBadge({ quantity, threshold }: { quantity: number; threshold: numb
 }
 
 export default function ProductsPage() {
-  const today = getToday();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(30);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -103,7 +102,6 @@ export default function ProductsPage() {
           endDate={endDate}
           onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
           onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
-          defaultQuick={0}
         />
 
         {/* 검색 */}

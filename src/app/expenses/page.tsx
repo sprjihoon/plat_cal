@@ -29,15 +29,14 @@ import { Plus, Trash2, Loader2, TrendingUp, DollarSign, MousePointer, Target, Fi
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
-import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { DateFilter } from '@/components/ui/date-filter';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 export default function ExpensesPage() {
-  const today = getToday();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(30);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [channel, setChannel] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -63,8 +62,8 @@ export default function ExpensesPage() {
   };
 
   const clearFilters = () => {
-    setStartDate(today);
-    setEndDate(today);
+    setStartDate('');
+    setEndDate('');
     setChannel('');
     setPage(1);
   };
@@ -106,29 +105,29 @@ export default function ExpensesPage() {
 
         {/* 성과 지표 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-rose-50 ring-0 border-0">
+          <Card className="bg-[#F06038]/10 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-rose-100 rounded-xl">
-                  <DollarSign className="h-5 w-5 text-rose-600" />
+                <div className="p-2.5 bg-[#F06038]/20 rounded-xl">
+                  <DollarSign className="h-5 w-5 text-[#c04020]" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">총 광고비</p>
-                  <p className="text-lg font-bold text-rose-700">{formatCurrency(adSummary.totalCost)}</p>
+                  <p className="text-lg font-bold text-[#a03018]">{formatCurrency(adSummary.totalCost)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className={`${roas >= 100 ? 'bg-emerald-50' : 'bg-amber-50'} ring-0 border-0`}>
+          <Card className={`${roas >= 100 ? 'bg-[#D6F74C]/20' : 'bg-[#FCD9BE]/30'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-                  <TrendingUp className={`h-5 w-5 ${roas >= 100 ? 'text-emerald-600' : 'text-amber-600'}`} />
+                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#D6F74C]/40' : 'bg-[#FCD9BE]/60'}`}>
+                  <TrendingUp className={`h-5 w-5 ${roas >= 100 ? 'text-[#4a6b00]' : 'text-[#b06020]'}`} />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">ROAS</p>
-                  <p className={`text-lg font-bold ${roas >= 100 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  <p className={`text-lg font-bold ${roas >= 100 ? 'text-[#3d5800]' : 'text-[#8c4d1a]'}`}>
                     {roas.toFixed(0)}%
                   </p>
                 </div>
@@ -136,29 +135,29 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-sky-50 ring-0 border-0">
+          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-sky-100 rounded-xl">
-                  <MousePointer className="h-5 w-5 text-sky-600" />
+                <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
+                  <MousePointer className="h-5 w-5 text-[#3d4db7]" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">CPC (클릭당 비용)</p>
-                  <p className="text-lg font-bold text-sky-700">{formatCurrency(cpc)}</p>
+                  <p className="text-lg font-bold text-[#2d3a8c]">{formatCurrency(cpc)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-violet-50 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-violet-100 rounded-xl">
-                  <Target className="h-5 w-5 text-violet-600" />
+                <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
+                  <Target className="h-5 w-5 text-[#4a6b00]" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">전환율 (CVR)</p>
-                  <p className="text-lg font-bold text-violet-700">{cvr.toFixed(1)}%</p>
+                  <p className="text-lg font-bold text-[#3d5800]">{cvr.toFixed(1)}%</p>
                 </div>
               </div>
             </CardContent>
@@ -167,21 +166,21 @@ export default function ExpensesPage() {
 
         {/* 추가 지표 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-slate-50 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-slate-500 mb-1">총 노출수</p>
-            <p className="text-lg font-bold text-slate-700">{adSummary.totalImpressions.toLocaleString()}</p>
+          <div className="bg-[#D6F74C]/10 rounded-2xl p-4 text-center">
+            <p className="text-xs font-medium text-[#4a6b00] mb-1">총 노출수</p>
+            <p className="text-lg font-bold text-[#3d5800]">{adSummary.totalImpressions.toLocaleString()}</p>
           </div>
-          <div className="bg-indigo-50 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-indigo-500 mb-1">총 클릭수</p>
-            <p className="text-lg font-bold text-indigo-700">{adSummary.totalClicks.toLocaleString()}</p>
+          <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
+            <p className="text-xs font-medium text-[#3d4db7] mb-1">총 클릭수</p>
+            <p className="text-lg font-bold text-[#2d3a8c]">{adSummary.totalClicks.toLocaleString()}</p>
           </div>
-          <div className="bg-teal-50 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-teal-500 mb-1">CTR (클릭률)</p>
-            <p className="text-lg font-bold text-teal-700">{ctr.toFixed(2)}%</p>
+          <div className="bg-[#FCD9BE]/25 rounded-2xl p-4 text-center">
+            <p className="text-xs font-medium text-[#b06020] mb-1">CTR (클릭률)</p>
+            <p className="text-lg font-bold text-[#8c4d1a]">{ctr.toFixed(2)}%</p>
           </div>
-          <div className="bg-fuchsia-50 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-fuchsia-500 mb-1">총 전환수</p>
-            <p className="text-lg font-bold text-fuchsia-700">{adSummary.totalConversions.toLocaleString()}</p>
+          <div className="bg-[#F06038]/8 rounded-2xl p-4 text-center">
+            <p className="text-xs font-medium text-[#c04020] mb-1">총 전환수</p>
+            <p className="text-lg font-bold text-[#a03018]">{adSummary.totalConversions.toLocaleString()}</p>
           </div>
         </div>
 
@@ -191,7 +190,6 @@ export default function ExpensesPage() {
           endDate={endDate}
           onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
           onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
-          defaultQuick={0}
         />
 
         {/* 추가 필터 */}

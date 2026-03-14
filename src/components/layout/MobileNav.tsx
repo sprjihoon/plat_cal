@@ -71,7 +71,7 @@ export function MobileNav() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-gray-100'
+                    : 'hover:bg-muted'
                 }`}
               >
                 <Icon className="h-5 w-5" />

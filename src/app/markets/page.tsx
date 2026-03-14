@@ -22,7 +22,7 @@ import { Header } from '@/components/layout/Header';
 import { PLATFORM_PRESETS } from '@/constants';
 import { calculateMargin, formatCurrency } from '@/lib/calculator';
 import type { CalculatorInputs } from '@/types';
-import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { DateFilter } from '@/components/ui/date-filter';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 function getChannelName(channel: string) {
@@ -63,11 +63,10 @@ function calcProfit(market: any, baseCost: number) {
 }
 
 export default function MarketsPage() {
-  const today = getToday();
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<string>('all');
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(30);
 
@@ -132,7 +131,6 @@ export default function MarketsPage() {
           endDate={endDate}
           onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
           onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
-          defaultQuick={0}
         />
 
         {isLoading ? (

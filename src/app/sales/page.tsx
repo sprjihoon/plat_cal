@@ -30,17 +30,16 @@ import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { useUpdateSale } from '@/lib/hooks/useSales';
 import type { SaleStatus } from '@/types/database';
-import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { DateFilter } from '@/components/ui/date-filter';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 type ViewMode = 'list' | 'daily';
 
 export default function SalesPage() {
-  const today = getToday();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(30);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [channel, setChannel] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -69,8 +68,8 @@ export default function SalesPage() {
   };
 
   const clearFilters = () => {
-    setStartDate(today);
-    setEndDate(today);
+    setStartDate('');
+    setEndDate('');
     setChannel('');
     setStatusFilter('');
     setPage(1);
@@ -158,30 +157,30 @@ export default function SalesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-blue-50 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/20 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-muted-foreground mb-1">총 매출</p>
-              <p className="text-lg font-bold text-blue-700">{formatCurrency(summary.totalRevenue)}</p>
+              <p className="text-lg font-bold text-[#3d5800]">{formatCurrency(summary.totalRevenue)}</p>
             </CardContent>
           </Card>
-          <Card className={`${summary.totalProfit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} ring-0 border-0`}>
+          <Card className={`${summary.totalProfit >= 0 ? 'bg-[#D6F74C]/15' : 'bg-[#F06038]/10'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-muted-foreground mb-1">총 순이익</p>
-              <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+              <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-[#4a6b00]' : 'text-[#c04020]'}`}>
                 {formatCurrency(summary.totalProfit)}
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-violet-50 ring-0 border-0">
+          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-muted-foreground mb-1">판매 수량</p>
-              <p className="text-lg font-bold text-violet-700">{summary.totalQuantity.toLocaleString()}개</p>
+              <p className="text-lg font-bold text-[#2d3a8c]">{summary.totalQuantity.toLocaleString()}개</p>
             </CardContent>
           </Card>
-          <Card className="bg-amber-50 ring-0 border-0">
+          <Card className="bg-[#FCD9BE]/30 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-muted-foreground mb-1">마진율</p>
-              <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-amber-700' : marginRate >= 10 ? 'text-amber-600' : 'text-rose-600'}`}>
+              <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-[#8c4d1a]' : marginRate >= 10 ? 'text-[#b06020]' : 'text-[#F06038]'}`}>
                 {summary.totalRevenue > 0 ? `${marginRate.toFixed(1)}%` : '-'}
               </p>
             </CardContent>
@@ -194,7 +193,6 @@ export default function SalesPage() {
           endDate={endDate}
           onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
           onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
-          defaultQuick={0}
         />
 
         {/* 추가 필터 */}

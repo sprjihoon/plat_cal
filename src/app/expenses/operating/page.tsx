@@ -27,15 +27,14 @@ import {
 import { Plus, Trash2, Loader2, Wallet, Filter, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
-import { DateFilter, getToday } from '@/components/ui/date-filter';
+import { DateFilter } from '@/components/ui/date-filter';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
 
 export default function OperatingExpensesPage() {
-  const today = getToday();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSize>(30);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [category, setCategory] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -56,8 +55,8 @@ export default function OperatingExpensesPage() {
   };
 
   const clearFilters = () => {
-    setStartDate(today);
-    setEndDate(today);
+    setStartDate('');
+    setEndDate('');
     setCategory('');
     setPage(1);
   };
@@ -89,23 +88,23 @@ export default function OperatingExpensesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-orange-50 ring-0 border-0">
+          <Card className="bg-[#FCD9BE]/30 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-orange-100 rounded-xl">
-                  <Wallet className="h-5 w-5 text-orange-600" />
+                <div className="p-2.5 bg-[#FCD9BE]/60 rounded-xl">
+                  <Wallet className="h-5 w-5 text-[#b06020]" />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1">총 운영비</p>
-                  <p className="text-lg font-bold text-orange-700">{formatCurrency(totalAmount)}</p>
+                  <p className="text-lg font-bold text-[#8c4d1a]">{formatCurrency(totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-sky-50 ring-0 border-0">
+          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-muted-foreground mb-1">기록 수</p>
-              <p className="text-lg font-bold text-sky-700">{data?.pagination.total || 0}건</p>
+              <p className="text-lg font-bold text-[#2d3a8c]">{data?.pagination.total || 0}건</p>
             </CardContent>
           </Card>
         </div>
@@ -135,7 +134,6 @@ export default function OperatingExpensesPage() {
           endDate={endDate}
           onStartDateChange={(d) => { setStartDate(d); setPage(1); }}
           onEndDateChange={(d) => { setEndDate(d); setPage(1); }}
-          defaultQuick={0}
         />
 
         {/* 추가 필터 */}
