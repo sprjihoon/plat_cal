@@ -48,27 +48,28 @@
 }
 
 :root {
-  /* 메인: Chartreuse #D6F74C (70%) — primary, background tint */
-  /* 보조: Vista Blue #8C9EFF (20%) — secondary, accent */
-  /* 포인트: Apricot #FCD9BE (7%) — muted, warm accent */
-  /* 강조: Tomato #F06038 (3%) — destructive, CTA */
-  --background: oklch(0.98 0.02 120);
-  --foreground: oklch(0.18 0.03 260);
+  /* 메인: Chartreuse #D6F74C (70%) — primary 버튼/액센트 */
+  /* 보조: Vista Blue #8C9EFF (20%) — secondary 카드/배지 */
+  /* 포인트: Apricot #FCD9BE (7%) — 따뜻한 강조 */
+  /* 강조: Tomato #F06038 (3%) — destructive/CTA */
+  /* 글씨: 검정 #111 / 회색 #666 #999 / 흰색 #fff 만 사용 */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.03 260);
+  --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.03 260);
+  --popover-foreground: oklch(0.15 0 0);
   --primary: oklch(0.42 0.12 130);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary-foreground: oklch(0.15 0 0);
   --secondary: oklch(0.72 0.12 275);
-  --secondary-foreground: oklch(0.99 0 0);
-  --muted: oklch(0.95 0.02 75);
-  --muted-foreground: oklch(0.48 0.03 260);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.75 0.1 275);
-  --accent-foreground: oklch(0.99 0 0);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.6 0.2 30);
-  --border: oklch(0.91 0.02 120);
-  --input: oklch(0.91 0.02 120);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
   --ring: oklch(0.55 0.15 130);
   --chart-1: oklch(0.88 0.2 120);
   --chart-2: oklch(0.72 0.12 275);
@@ -76,13 +77,13 @@
   --chart-4: oklch(0.6 0.2 30);
   --chart-5: oklch(0.5 0.1 260);
   --radius: 0.875rem;
-  --sidebar: oklch(0.99 0.01 120);
-  --sidebar-foreground: oklch(0.18 0.03 260);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
   --sidebar-primary: oklch(0.42 0.12 130);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-primary-foreground: oklch(0.15 0 0);
   --sidebar-accent: oklch(0.75 0.1 275);
-  --sidebar-accent-foreground: oklch(0.99 0 0);
-  --sidebar-border: oklch(0.91 0.02 120);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.55 0.15 130);
 }
 

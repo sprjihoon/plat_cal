@@ -6,6 +6,10 @@ export type SalesChannel =
   | 'zigzag'
   | 'coupang'
   | 'open_market'
+  | 'musinsa'
+  | 'brandi'
+  | 'wconcept'
+  | '29cm'
   | 'custom';
 
 // 계산 모드 타입

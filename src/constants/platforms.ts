@@ -545,6 +545,143 @@ export const PLATFORM_PRESETS: Record<SalesChannel, PlatformPreset> = {
     ],
   },
 
+  musinsa: {
+    id: 'musinsa',
+    name: '무신사',
+    platformFeeRate: 28,
+    paymentFeeRate: 0,
+    subOptions: [
+      {
+        id: 'musinsa_standard',
+        name: '일반 입점 (명목)',
+        tag: '수수료 기준',
+        description: '명목 수수료 기준 — 결제수수료, 서버비, 마케팅/할인 비용 포함',
+        platformFeeRate: 28,
+        paymentFeeRate: 0,
+      },
+      {
+        id: 'musinsa_effective',
+        name: '실질 수수료',
+        tag: '수수료 기준',
+        description: '무신사 마케팅 지원·쿠폰/적립금 부담 차감 후 실질 수수료 (2024 기준 평균)',
+        platformFeeRate: 12.2,
+        paymentFeeRate: 0,
+      },
+      {
+        id: 'musinsa_boutique',
+        name: '무신사 부티크',
+        tag: '채널',
+        description: '프리미엄/럭셔리 브랜드 전용 채널 (수수료 개별 협의)',
+        platformFeeRate: 25,
+        paymentFeeRate: 0,
+      },
+      {
+        id: 'musinsa_global',
+        name: '무신사 글로벌',
+        tag: '채널',
+        description: '해외 판매 채널 (수수료 개별 협의)',
+        platformFeeRate: 30,
+        paymentFeeRate: 0,
+      },
+    ],
+  },
+
+  brandi: {
+    id: 'brandi',
+    name: '브랜디',
+    platformFeeRate: 30,
+    paymentFeeRate: 0,
+    subOptions: [
+      {
+        id: 'brandi_general',
+        name: '일반 셀러',
+        tag: '자체배송',
+        description: '동대문 사입/자체 브랜드 판매 (수수료 약 30%)',
+        platformFeeRate: 30,
+        paymentFeeRate: 0,
+      },
+      {
+        id: 'brandi_helpi',
+        name: '헬피 (풀필먼트)',
+        tag: '위탁배송',
+        description: '브랜디 풀필먼트 서비스 이용 시 (물류비 포함 통합 수수료)',
+        platformFeeRate: 35,
+        paymentFeeRate: 0,
+        logisticsCostNote: '풀필먼트 물류비 포함된 통합 수수료',
+      },
+      {
+        id: 'brandi_hiver',
+        name: '하이버 (남성)',
+        tag: '채널',
+        description: '브랜디 남성 패션 플랫폼 (10~30대 남성 타깃)',
+        platformFeeRate: 30,
+        paymentFeeRate: 0,
+        extraFees: [
+          { label: '쿠폰 부담', description: '20% 이하 쿠폰: 셀러 50% / 20% 초과: 셀러 최대 10%' },
+          { label: '배송비', description: '전 상품 무료배송 (셀러 부담)' },
+        ],
+      },
+    ],
+  },
+
+  wconcept: {
+    id: 'wconcept',
+    name: 'W컨셉',
+    platformFeeRate: 28.3,
+    paymentFeeRate: 0,
+    subOptions: [
+      {
+        id: 'wconcept_general',
+        name: '일반 입점',
+        tag: '입점 유형',
+        description: '디자이너/자체 브랜드 입점 (평균 수수료 28.3%)',
+        platformFeeRate: 28.3,
+        paymentFeeRate: 0,
+        extraFees: [
+          { label: '정산', description: '월 1회 (매달 28일), 정산까지 약 40~60일' },
+          { label: '입점 조건', description: '자체 디자인·생산 브랜드만 허용, 사입품 택갈이 불가' },
+        ],
+      },
+      {
+        id: 'wconcept_premium',
+        name: '프리미엄 브랜드',
+        tag: '입점 유형',
+        description: '프리미엄 브랜드 별도 협의 수수료',
+        platformFeeRate: 25,
+        paymentFeeRate: 0,
+      },
+    ],
+  },
+
+  '29cm': {
+    id: '29cm',
+    name: '29CM',
+    platformFeeRate: 27,
+    paymentFeeRate: 0,
+    subOptions: [
+      {
+        id: '29cm_general',
+        name: '일반 입점',
+        tag: '입점 유형',
+        description: '감도 높은 브랜드 입점 (수수료 개별 협의, 평균 25~30%)',
+        platformFeeRate: 27,
+        paymentFeeRate: 0,
+        extraFees: [
+          { label: '정산', description: '월 1회 (매월 말일), 약 2개월 소요' },
+          { label: '입점 조건', description: '정품만 입점, 브랜드 이미지컷·룩북·스타일링컷 필요' },
+        ],
+      },
+      {
+        id: '29cm_consignment',
+        name: '위탁 판매',
+        tag: '입점 유형',
+        description: '29CM 위탁 판매 방식 (수수료 별도 협의)',
+        platformFeeRate: 30,
+        paymentFeeRate: 0,
+      },
+    ],
+  },
+
   custom: {
     id: 'custom',
     name: '직접입력',

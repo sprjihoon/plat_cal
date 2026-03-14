@@ -109,11 +109,11 @@ export default function ExpensesPage() {
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
                 <div className="p-2.5 bg-[#F06038]/20 rounded-xl">
-                  <DollarSign className="h-5 w-5 text-[#c04020]" />
+                  <DollarSign className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">총 광고비</p>
-                  <p className="text-lg font-bold text-[#a03018]">{formatCurrency(adSummary.totalCost)}</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">총 광고비</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(adSummary.totalCost)}</p>
                 </div>
               </div>
             </CardContent>
@@ -123,11 +123,11 @@ export default function ExpensesPage() {
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
                 <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#D6F74C]/40' : 'bg-[#FCD9BE]/60'}`}>
-                  <TrendingUp className={`h-5 w-5 ${roas >= 100 ? 'text-[#4a6b00]' : 'text-[#b06020]'}`} />
+                  <TrendingUp className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">ROAS</p>
-                  <p className={`text-lg font-bold ${roas >= 100 ? 'text-[#3d5800]' : 'text-[#8c4d1a]'}`}>
+                  <p className="text-xs font-medium text-gray-500 mb-1">ROAS</p>
+                  <p className="text-lg font-bold text-gray-900">
                     {roas.toFixed(0)}%
                   </p>
                 </div>
@@ -139,11 +139,11 @@ export default function ExpensesPage() {
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
                 <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
-                  <MousePointer className="h-5 w-5 text-[#3d4db7]" />
+                  <MousePointer className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">CPC (클릭당 비용)</p>
-                  <p className="text-lg font-bold text-[#2d3a8c]">{formatCurrency(cpc)}</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">CPC (클릭당 비용)</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(cpc)}</p>
                 </div>
               </div>
             </CardContent>
@@ -153,11 +153,11 @@ export default function ExpensesPage() {
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
                 <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
-                  <Target className="h-5 w-5 text-[#4a6b00]" />
+                  <Target className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">전환율 (CVR)</p>
-                  <p className="text-lg font-bold text-[#3d5800]">{cvr.toFixed(1)}%</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">전환율 (CVR)</p>
+                  <p className="text-lg font-bold text-gray-900">{cvr.toFixed(1)}%</p>
                 </div>
               </div>
             </CardContent>
@@ -167,20 +167,20 @@ export default function ExpensesPage() {
         {/* 추가 지표 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-[#D6F74C]/10 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-[#4a6b00] mb-1">총 노출수</p>
-            <p className="text-lg font-bold text-[#3d5800]">{adSummary.totalImpressions.toLocaleString()}</p>
+            <p className="text-xs font-medium text-gray-500 mb-1">총 노출수</p>
+            <p className="text-lg font-bold text-gray-900">{adSummary.totalImpressions.toLocaleString()}</p>
           </div>
           <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-[#3d4db7] mb-1">총 클릭수</p>
-            <p className="text-lg font-bold text-[#2d3a8c]">{adSummary.totalClicks.toLocaleString()}</p>
+            <p className="text-xs font-medium text-gray-500 mb-1">총 클릭수</p>
+            <p className="text-lg font-bold text-gray-900">{adSummary.totalClicks.toLocaleString()}</p>
           </div>
           <div className="bg-[#FCD9BE]/25 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-[#b06020] mb-1">CTR (클릭률)</p>
-            <p className="text-lg font-bold text-[#8c4d1a]">{ctr.toFixed(2)}%</p>
+            <p className="text-xs font-medium text-gray-500 mb-1">CTR (클릭률)</p>
+            <p className="text-lg font-bold text-gray-900">{ctr.toFixed(2)}%</p>
           </div>
           <div className="bg-[#F06038]/8 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-[#c04020] mb-1">총 전환수</p>
-            <p className="text-lg font-bold text-[#a03018]">{adSummary.totalConversions.toLocaleString()}</p>
+            <p className="text-xs font-medium text-gray-500 mb-1">총 전환수</p>
+            <p className="text-lg font-bold text-gray-900">{adSummary.totalConversions.toLocaleString()}</p>
           </div>
         </div>
 

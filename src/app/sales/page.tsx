@@ -159,28 +159,28 @@ export default function SalesPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-[#D6F74C]/20 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">총 매출</p>
-              <p className="text-lg font-bold text-[#3d5800]">{formatCurrency(summary.totalRevenue)}</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">총 매출</p>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(summary.totalRevenue)}</p>
             </CardContent>
           </Card>
           <Card className={`${summary.totalProfit >= 0 ? 'bg-[#D6F74C]/15' : 'bg-[#F06038]/10'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">총 순이익</p>
-              <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-[#4a6b00]' : 'text-[#c04020]'}`}>
+              <p className="text-xs font-medium text-gray-500 mb-1">총 순이익</p>
+              <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-gray-900' : 'text-gray-700'}`}>
                 {formatCurrency(summary.totalProfit)}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">판매 수량</p>
-              <p className="text-lg font-bold text-[#2d3a8c]">{summary.totalQuantity.toLocaleString()}개</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">판매 수량</p>
+              <p className="text-lg font-bold text-gray-900">{summary.totalQuantity.toLocaleString()}개</p>
             </CardContent>
           </Card>
           <Card className="bg-[#FCD9BE]/30 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">마진율</p>
-              <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-[#8c4d1a]' : marginRate >= 10 ? 'text-[#b06020]' : 'text-[#F06038]'}`}>
+              <p className="text-xs font-medium text-gray-500 mb-1">마진율</p>
+              <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-gray-900' : marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
                 {summary.totalRevenue > 0 ? `${marginRate.toFixed(1)}%` : '-'}
               </p>
             </CardContent>

@@ -92,19 +92,19 @@ export default function OperatingExpensesPage() {
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
                 <div className="p-2.5 bg-[#FCD9BE]/60 rounded-xl">
-                  <Wallet className="h-5 w-5 text-[#b06020]" />
+                  <Wallet className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">총 운영비</p>
-                  <p className="text-lg font-bold text-[#8c4d1a]">{formatCurrency(totalAmount)}</p>
+                  <p className="text-xs font-medium text-gray-500 mb-1">총 운영비</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
-              <p className="text-xs font-medium text-muted-foreground mb-1">기록 수</p>
-              <p className="text-lg font-bold text-[#2d3a8c]">{data?.pagination.total || 0}건</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">기록 수</p>
+              <p className="text-lg font-bold text-gray-900">{data?.pagination.total || 0}건</p>
             </CardContent>
           </Card>
         </div>
