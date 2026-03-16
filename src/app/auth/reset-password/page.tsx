@@ -134,8 +134,8 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#D6F74C]/15 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-[#6b7a1a]" />
             </div>
             <CardTitle className="text-2xl">비밀번호 변경 완료</CardTitle>
             <CardDescription>

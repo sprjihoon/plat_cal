@@ -163,7 +163,7 @@ export default function SalesPage() {
               <p className="text-lg font-bold text-gray-900">{formatCurrency(summary.totalRevenue)}</p>
             </CardContent>
           </Card>
-          <Card className={`${summary.totalProfit >= 0 ? 'bg-[#D6F74C]/15' : 'bg-[#F06038]/10'} ring-0 border-0`}>
+          <Card className={`${summary.totalProfit >= 0 ? 'bg-[#D6F74C]/15' : 'bg-[#8C9EFF]/12'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-gray-500 mb-1">총 순이익</p>
               <p className={`text-lg font-bold ${summary.totalProfit >= 0 ? 'text-gray-900' : 'text-gray-700'}`}>
@@ -177,7 +177,7 @@ export default function SalesPage() {
               <p className="text-lg font-bold text-gray-900">{summary.totalQuantity.toLocaleString()}개</p>
             </CardContent>
           </Card>
-          <Card className="bg-[#FCD9BE]/30 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-gray-500 mb-1">마진율</p>
               <p className={`text-lg font-bold ${marginRate >= 20 ? 'text-gray-900' : marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
@@ -270,7 +270,7 @@ export default function SalesPage() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">이익 </span>
-                        <span className={`font-bold ${day.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(day.profit)}</span>
+                        <span className={`font-bold ${day.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(day.profit)}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">수량 </span>
@@ -313,7 +313,7 @@ export default function SalesPage() {
                           <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
                           <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
                           <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>
-                          <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
                             {formatCurrency(sale.net_profit)}
                           </TableCell>
                           <TableCell>
@@ -373,7 +373,7 @@ export default function SalesPage() {
                       <TableCell className="text-right">{sale.quantity.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{formatCurrency(sale.unit_price)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(sale.total_revenue)}</TableCell>
-                      <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <TableCell className={`text-right font-medium ${sale.net_profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
                         {formatCurrency(sale.net_profit)}
                       </TableCell>
                       <TableCell>

@@ -80,7 +80,7 @@ export function numberToInputString(value: number): string {
  * 마진율에 따른 색상 클래스 반환
  */
 export function getMarginColorClass(marginRate: number): string {
-  if (marginRate >= 40) return 'text-green-600';
+  if (marginRate >= 40) return 'text-[#6b7a1a]';
   if (marginRate >= 25) return 'text-blue-600';
   if (marginRate >= 15) return 'text-yellow-600';
   return 'text-red-600';
@@ -90,7 +90,7 @@ export function getMarginColorClass(marginRate: number): string {
  * 마진율에 따른 배경 색상 클래스 반환
  */
 export function getMarginBgClass(marginRate: number): string {
-  if (marginRate >= 40) return 'bg-green-50 border-green-200';
+  if (marginRate >= 40) return 'bg-[#D6F74C]/10 border-[#D6F74C]/30';
   if (marginRate >= 25) return 'bg-blue-50 border-blue-200';
   if (marginRate >= 15) return 'bg-yellow-50 border-yellow-200';
   return 'bg-red-50 border-red-200';

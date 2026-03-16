@@ -44,7 +44,7 @@ function ChangeIndicator({ value }: { value: number }) {
   }
   if (value > 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#6b7a1a] bg-[#D6F74C]/20 px-2 py-0.5 rounded-full">
         <ArrowUpRight className="h-3 w-3" /> +{value.toFixed(1)}%
       </span>
     );
@@ -62,7 +62,7 @@ function GoalProgress({ label, current, target, unit = '', color }: { label: str
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
         <span className="font-medium">{label}</span>
-        <span className={`font-bold ${pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-blue-600' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
+        <span className={`font-bold ${pct >= 100 ? 'text-[#6b7a1a]' : pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
       </div>
       <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
@@ -78,8 +78,8 @@ function GoalProgress({ label, current, target, unit = '', color }: { label: str
 const KPI_STYLES = [
   { bg: 'bg-[#D6F74C]/20', iconBg: 'bg-[#D6F74C]/40', iconColor: 'text-gray-700', accent: 'text-gray-900' },
   { bg: 'bg-[#8C9EFF]/15', iconBg: 'bg-[#8C9EFF]/30', iconColor: 'text-gray-700', accent: 'text-gray-900' },
-  { bg: 'bg-[#FCD9BE]/30', iconBg: 'bg-[#FCD9BE]/60', iconColor: 'text-gray-700', accent: 'text-gray-900' },
-  { bg: 'bg-[#F06038]/10', iconBg: 'bg-[#F06038]/20', iconColor: 'text-gray-700', accent: 'text-gray-900' },
+  { bg: 'bg-[#D6F74C]/15', iconBg: 'bg-[#D6F74C]/30', iconColor: 'text-gray-700', accent: 'text-gray-900' },
+  { bg: 'bg-[#8C9EFF]/12', iconBg: 'bg-[#8C9EFF]/25', iconColor: 'text-gray-700', accent: 'text-gray-900' },
 ];
 
 export default function DashboardPage() {
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-muted-foreground mb-1">순수익</p>
-                      <p className={`text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      <p className={`text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-rose-700'}`}>
                         {formatCurrency(data.summary.netProfitAfterAll)}
                       </p>
                       <div className="mt-1.5"><ChangeIndicator value={data.changes.netProfitAfterAll} /></div>
@@ -221,14 +221,14 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">(순이익-비용)/비용</p>
               </div>
-              <div className="bg-[#FCD9BE]/30 rounded-2xl p-4 text-center">
+              <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">마진율</p>
                 <p className={`text-2xl font-bold ${data.summary.marginRate >= 20 ? 'text-gray-900' : data.summary.marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
                   {data.summary.revenue > 0 ? `${data.summary.marginRate.toFixed(1)}%` : '-'}
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">순이익/매출</p>
               </div>
-              <div className="bg-[#F06038]/10 rounded-2xl p-4 text-center">
+              <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">건당 평균</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {data.summary.salesCount > 0 ? formatCurrency(data.summary.revenue / data.summary.salesCount) : '-'}
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                         current={data.summary.roas}
                         target={currentGoal.target_roas}
                         unit="%"
-                        color="bg-gradient-to-r from-[#FCD9BE] to-[#F06038]"
+                        color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
                       />
                     )}
                   </div>
@@ -314,9 +314,9 @@ export default function DashboardPage() {
                       </div>
                       <span className="font-bold text-gray-900">{formatCurrency(data.summary.adCost)}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3.5 bg-[#FCD9BE]/30 rounded-xl">
+                    <div className="flex items-center justify-between p-3.5 bg-[#D6F74C]/15 rounded-xl">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 bg-[#FCD9BE]/60 rounded-lg">
+                        <div className="p-1.5 bg-[#D6F74C]/30 rounded-lg">
                           <Wallet className="h-4 w-4 text-gray-600" />
                         </div>
                         <span className="font-medium text-sm">운영비</span>
@@ -397,7 +397,7 @@ export default function DashboardPage() {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">상품 순이익 (수수료 차감 후)</TableCell>
-                        <TableCell className={`text-right ${data.summary.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(data.summary.profit)}</TableCell>
+                        <TableCell className={`text-right ${data.summary.profit >= 0 ? 'text-[#6b7a1a]' : 'text-rose-600'}`}>{formatCurrency(data.summary.profit)}</TableCell>
                         <TableCell className="text-right">{data.summary.revenue > 0 ? `${(data.summary.profit / data.summary.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
                       </TableRow>
                       <TableRow>
@@ -412,7 +412,7 @@ export default function DashboardPage() {
                       </TableRow>
                       <TableRow className="border-t-2 font-bold">
                         <TableCell>최종 순수익</TableCell>
-                        <TableCell className={`text-right text-lg ${data.summary.netProfitAfterAll >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <TableCell className={`text-right text-lg ${data.summary.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-rose-600'}`}>
                           {formatCurrency(data.summary.netProfitAfterAll)}
                         </TableCell>
                         <TableCell className="text-right">{data.summary.revenue > 0 ? `${(data.summary.netProfitAfterAll / data.summary.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
@@ -446,9 +446,9 @@ export default function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/expenses/operating/new">
-                <Card className="bg-[#FCD9BE]/30 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#D6F74C]/15 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#FCD9BE]/60 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#D6F74C]/30 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <Wallet className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">운영비 등록</p>
@@ -456,9 +456,9 @@ export default function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/reports">
-                <Card className="bg-[#F06038]/10 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#8C9EFF]/12 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#F06038]/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <BarChart3 className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">상세 리포트</p>

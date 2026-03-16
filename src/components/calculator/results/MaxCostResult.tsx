@@ -64,7 +64,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
               <div className="grid grid-cols-2 gap-3">
                 <div className="text-center p-3 bg-white/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">예상 순이익</p>
-                  <p className="text-xl font-semibold text-green-600">
+                  <p className="text-xl font-semibold text-[#6b7a1a]">
                     {formatCurrency(result.netProfit)}
                   </p>
                 </div>

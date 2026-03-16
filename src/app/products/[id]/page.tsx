@@ -180,7 +180,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                         <div className="flex items-center gap-6">
                           <div className="text-right">
                             <p className="text-sm text-muted-foreground">순이익</p>
-                            <p className={`text-lg font-bold ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <p className={`text-lg font-bold ${result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
                               {formatCurrency(result.netProfit)}
                             </p>
                           </div>
@@ -188,14 +188,14 @@ export default function ProductDetailPage({ params }: PageProps) {
                             <p className="text-sm text-muted-foreground">마진율</p>
                             <div className="flex items-center gap-1">
                               {marginRate > 20 ? (
-                                <TrendingUp className="h-4 w-4 text-green-600" />
+                                <TrendingUp className="h-4 w-4 text-[#6b7a1a]" />
                               ) : marginRate > 0 ? (
                                 <Minus className="h-4 w-4 text-yellow-600" />
                               ) : (
                                 <TrendingDown className="h-4 w-4 text-red-600" />
                               )}
                               <p className={`text-lg font-bold ${
-                                marginRate > 20 ? 'text-green-600' : 
+                                marginRate > 20 ? 'text-[#6b7a1a]' : 
                                 marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
                               }`}>
                                 {marginRate.toFixed(1)}%

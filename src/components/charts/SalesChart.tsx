@@ -63,7 +63,7 @@ export function SalesChart({ data }: SalesChartProps) {
           type="monotone"
           dataKey="revenue"
           name="매출"
-          stroke="#3b82f6"
+          stroke="#8C9EFF"
           strokeWidth={2}
           dot={{ r: 4 }}
           activeDot={{ r: 6 }}
@@ -72,7 +72,7 @@ export function SalesChart({ data }: SalesChartProps) {
           type="monotone"
           dataKey="profit"
           name="순이익"
-          stroke="#22c55e"
+          stroke="#a8c030"
           strokeWidth={2}
           dot={{ r: 4 }}
           activeDot={{ r: 6 }}

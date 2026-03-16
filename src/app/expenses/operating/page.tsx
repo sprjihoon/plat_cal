@@ -88,10 +88,10 @@ export default function OperatingExpensesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-[#FCD9BE]/30 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#FCD9BE]/60 rounded-xl">
+                <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
                   <Wallet className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>

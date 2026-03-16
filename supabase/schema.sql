@@ -27,6 +27,7 @@ create table if not exists public.products (
   name text not null,
   sku text,
   base_cost numeric default 0 not null,
+  
   image_url text,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null

@@ -227,7 +227,7 @@ export default function SettingsPage() {
                   )}
 
                   {success && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm flex items-center gap-2">
+                    <div className="p-3 bg-[#D6F74C]/10 border border-[#D6F74C]/30 rounded-lg text-[#6b7a1a] text-sm flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       {success}
                     </div>
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                     )}
 
                     {passwordSuccess && (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm flex items-center gap-2">
+                      <div className="p-3 bg-[#D6F74C]/10 border border-[#D6F74C]/30 rounded-lg text-[#6b7a1a] text-sm flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
                         비밀번호가 변경되었습니다
                       </div>

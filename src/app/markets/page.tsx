@@ -256,7 +256,7 @@ export default function MarketsPage() {
                                 <>
                                   <div className="text-right">
                                     <p className="text-xs text-muted-foreground">순이익</p>
-                                    <p className={`text-sm font-bold ${result.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    <p className={`text-sm font-bold ${result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
                                       {formatCurrency(result.netProfit)}
                                     </p>
                                   </div>
@@ -264,14 +264,14 @@ export default function MarketsPage() {
                                     <p className="text-xs text-muted-foreground">마진율</p>
                                     <div className="flex items-center gap-1">
                                       {marginRate > 20 ? (
-                                        <TrendingUp className="h-3 w-3 text-green-600" />
+                                        <TrendingUp className="h-3 w-3 text-[#6b7a1a]" />
                                       ) : marginRate > 0 ? (
                                         <Minus className="h-3 w-3 text-yellow-600" />
                                       ) : (
                                         <TrendingDown className="h-3 w-3 text-red-600" />
                                       )}
                                       <p className={`text-sm font-bold ${
-                                        marginRate > 20 ? 'text-green-600' :
+                                        marginRate > 20 ? 'text-[#6b7a1a]' :
                                         marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
                                       }`}>
                                         {marginRate.toFixed(1)}%

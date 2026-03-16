@@ -105,10 +105,10 @@ export default function ExpensesPage() {
 
         {/* 성과 지표 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-[#F06038]/10 ring-0 border-0">
+          <Card className="bg-[#8C9EFF]/12 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#F06038]/20 rounded-xl">
+                <div className="p-2.5 bg-[#8C9EFF]/25 rounded-xl">
                   <DollarSign className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
@@ -119,10 +119,10 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
 
-          <Card className={`${roas >= 100 ? 'bg-[#D6F74C]/20' : 'bg-[#FCD9BE]/30'} ring-0 border-0`}>
+          <Card className={`${roas >= 100 ? 'bg-[#D6F74C]/20' : 'bg-[#D6F74C]/15'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#D6F74C]/40' : 'bg-[#FCD9BE]/60'}`}>
+                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#D6F74C]/40' : 'bg-[#D6F74C]/30'}`}>
                   <TrendingUp className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
@@ -174,11 +174,11 @@ export default function ExpensesPage() {
             <p className="text-xs font-medium text-gray-500 mb-1">총 클릭수</p>
             <p className="text-lg font-bold text-gray-900">{adSummary.totalClicks.toLocaleString()}</p>
           </div>
-          <div className="bg-[#FCD9BE]/25 rounded-2xl p-4 text-center">
+          <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
             <p className="text-xs font-medium text-gray-500 mb-1">CTR (클릭률)</p>
             <p className="text-lg font-bold text-gray-900">{ctr.toFixed(2)}%</p>
           </div>
-          <div className="bg-[#F06038]/8 rounded-2xl p-4 text-center">
+          <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
             <p className="text-xs font-medium text-gray-500 mb-1">총 전환수</p>
             <p className="text-lg font-bold text-gray-900">{adSummary.totalConversions.toLocaleString()}</p>
           </div>

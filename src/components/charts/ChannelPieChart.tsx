@@ -20,14 +20,14 @@ interface ChannelPieChartProps {
 }
 
 const COLORS = [
-  '#3b82f6', // blue
-  '#22c55e', // green
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
+  '#8C9EFF', // vista blue
+  '#D6F74C', // chartreuse
+  '#6b7fef', // vista blue dark
+  '#a8c030', // chartreuse dark
+  '#b3bfff', // vista blue light
+  '#c5e040', // chartreuse mid
+  '#5a6abf', // vista blue deeper
+  '#8da020', // chartreuse deeper
 ];
 
 export function ChannelPieChart({ data }: ChannelPieChartProps) {

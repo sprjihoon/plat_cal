@@ -117,7 +117,7 @@ export default function SettlementsPage() {
           <Card>
             <CardContent className="pt-6 text-center">
               <p className="text-sm text-muted-foreground">확인된 입금</p>
-              <p className="text-xl font-bold text-green-600">{formatCurrency(totalConfirmed)}</p>
+              <p className="text-xl font-bold text-[#6b7a1a]">{formatCurrency(totalConfirmed)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -211,7 +211,7 @@ export default function SettlementsPage() {
                           <div
                             key={s.id}
                             className={`text-xs p-1 rounded truncate cursor-pointer ${
-                              s.is_confirmed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                              s.is_confirmed ? 'bg-[#D6F74C]/15 text-[#6b7a1a]' : 'bg-blue-100 text-blue-800'
                             }`}
                             title={`${getChannelName(s.channel)} - ${formatCurrency(s.expected_amount)}`}
                           >
@@ -235,10 +235,10 @@ export default function SettlementsPage() {
             <CardContent>
               <div className="space-y-3">
                 {data.settlements.map((s) => (
-                  <div key={s.id} className={`flex items-center justify-between p-3 border rounded-lg ${s.is_confirmed ? 'bg-green-50 border-green-200' : ''}`}>
+                  <div key={s.id} className={`flex items-center justify-between p-3 border rounded-lg ${s.is_confirmed ? 'bg-[#D6F74C]/10 border-[#D6F74C]/30' : ''}`}>
                     <div className="flex items-center gap-3">
                       {s.is_confirmed ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-[#6b7a1a]" />
                       ) : (
                         <Clock className="h-5 w-5 text-blue-600" />
                       )}
@@ -257,7 +257,7 @@ export default function SettlementsPage() {
                       <div className="text-right">
                         <p className="font-medium">{formatCurrency(s.expected_amount)}</p>
                         {s.is_confirmed && s.actual_amount !== null && (
-                          <p className="text-xs text-green-600">실제: {formatCurrency(s.actual_amount)}</p>
+                          <p className="text-xs text-[#6b7a1a]">실제: {formatCurrency(s.actual_amount)}</p>
                         )}
                       </div>
                       {!s.is_confirmed && (

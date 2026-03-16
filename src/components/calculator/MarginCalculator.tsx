@@ -367,7 +367,7 @@ export function MarginCalculator() {
   const getJudgmentInfo = () => {
     if (!result) return null;
     const rate = result.marginRate;
-    if (rate >= 40) return { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', message: '안정적' };
+    if (rate >= 40) return { color: 'text-[#6b7a1a]', bg: 'bg-[#D6F74C]/10', border: 'border-[#D6F74C]/30', message: '안정적' };
     if (rate >= 25) return { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', message: '양호' };
     if (rate >= 15) return { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200', message: '주의' };
     return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', message: '위험' };
@@ -776,7 +776,7 @@ export function MarginCalculator() {
             <div className="text-center mb-4">
               <div className="flex items-center justify-center gap-2 mb-1">
                 {result.netProfit >= 0 ? (
-                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  <TrendingUp className="h-5 w-5 text-[#6b7a1a]" />
                 ) : (
                   <TrendingDown className="h-5 w-5 text-red-600" />
                 )}
@@ -785,7 +785,7 @@ export function MarginCalculator() {
                   {judgment?.message}
                 </Badge>
               </div>
-              <p className={cn('text-4xl font-bold', result.netProfit >= 0 ? 'text-green-600' : 'text-red-600')}>
+              <p className={cn('text-4xl font-bold', result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600')}>
                 {result.netProfit >= 0 ? '+' : ''}{formatCurrency(result.netProfit)}
               </p>
               <p className={cn('text-lg font-medium mt-1', getMarginColorClass(result.marginRate))}>
