@@ -204,6 +204,20 @@ export default function MarketResearchPage() {
     setItems([]);
   }, []);
 
+  const handleDownloadTemplate = useCallback(async () => {
+    const XLSX = await import('xlsx');
+    const template = [
+      { '상품명': '니트 가디건', '원가': 8000, '판매가': 25000, '배송비': 3000 },
+      { '상품명': '린넨 셔츠', '원가': 12000, '판매가': 35000, '배송비': 3000 },
+      { '상품명': '코튼 팬츠', '원가': 10000, '판매가': 29000, '배송비': 0 },
+    ];
+    const ws = XLSX.utils.json_to_sheet(template);
+    ws['!cols'] = [{ wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '시장조사');
+    XLSX.writeFile(wb, '시장조사_템플릿.xlsx');
+  }, []);
+
   const handleExportExcel = useCallback(async () => {
     if (analyzed.length === 0) return;
     const XLSX = await import('xlsx');
@@ -307,6 +321,10 @@ export default function MarketResearchPage() {
           <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
             {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
             엑셀 업로드
+          </Button>
+          <Button variant="outline" onClick={handleDownloadTemplate}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            양식 다운로드
           </Button>
           <Button variant="outline" onClick={handleAddManual}>
             <Plus className="h-4 w-4 mr-2" />
@@ -459,9 +477,6 @@ export default function MarketResearchPage() {
           </Card>
         )}
 
-        <p className="text-xs text-center text-muted-foreground">
-          판정 기준: 적합 (마진율 {goodThreshold}% 이상) / 보통 ({normalThreshold}%~{goodThreshold}%) / 부적합 ({normalThreshold}% 미만)
-        </p>
       </main>
     </div>
   );
