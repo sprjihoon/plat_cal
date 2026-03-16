@@ -24,7 +24,6 @@ const defaultNavItems: NavItem[] = [
   { href: '/sales', label: '판매장부' },
   { href: '/expenses', label: '광고비' },
   { href: '/expenses/operating', label: '운영비' },
-  { href: '/settlements', label: '정산' },
   { href: '/reports', label: '리포트' },
   { href: '/goals', label: '목표' },
   { href: '/import', label: '가져오기' },

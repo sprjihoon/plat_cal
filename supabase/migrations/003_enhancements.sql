@@ -78,35 +78,5 @@ create policy "Users can update own notifications"
 create policy "Users can delete own notifications"
   on public.notifications for delete using (auth.uid() = user_id);
 
--- 7. 정산 일정 테이블
-create table if not exists public.settlement_schedules (
-  id uuid default uuid_generate_v4() primary key,
-  user_id uuid references auth.users on delete cascade not null,
-  channel text not null,
-  settlement_cycle text not null,
-  next_settlement_date date,
-  expected_amount numeric default 0,
-  actual_amount numeric,
-  is_confirmed boolean default false not null,
-  notes text,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
-create index if not exists idx_settlement_user_id on public.settlement_schedules(user_id);
-create index if not exists idx_settlement_next_date on public.settlement_schedules(user_id, next_settlement_date);
-
-alter table public.settlement_schedules enable row level security;
-
-create policy "Users can view own settlements"
-  on public.settlement_schedules for select using (auth.uid() = user_id);
-create policy "Users can insert own settlements"
-  on public.settlement_schedules for insert with check (auth.uid() = user_id);
-create policy "Users can update own settlements"
-  on public.settlement_schedules for update using (auth.uid() = user_id);
-create policy "Users can delete own settlements"
-  on public.settlement_schedules for delete using (auth.uid() = user_id);
-
-drop trigger if exists set_updated_at on public.settlement_schedules;
-create trigger set_updated_at before update on public.settlement_schedules
-  for each row execute procedure public.handle_updated_at();
+-- 7. 정산 일정 테이블 (제거됨 — 가벼운 구조 유지를 위해 사용하지 않음)
+-- create table if not exists public.settlement_schedules (...);

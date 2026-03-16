@@ -336,47 +336,6 @@ export interface Database {
           created_at?: string;
         };
       };
-      settlement_schedules: {
-        Row: {
-          id: string;
-          user_id: string;
-          channel: string;
-          settlement_cycle: string;
-          next_settlement_date: string | null;
-          expected_amount: number;
-          actual_amount: number | null;
-          is_confirmed: boolean;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          channel: string;
-          settlement_cycle: string;
-          next_settlement_date?: string | null;
-          expected_amount?: number;
-          actual_amount?: number | null;
-          is_confirmed?: boolean;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          channel?: string;
-          settlement_cycle?: string;
-          next_settlement_date?: string | null;
-          expected_amount?: number;
-          actual_amount?: number | null;
-          is_confirmed?: boolean;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
     };
     Views: {
       [_ in never]: never;
@@ -415,9 +374,5 @@ export type GoalUpdate = Database['public']['Tables']['goals']['Update'];
 
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
-
-export type SettlementSchedule = Database['public']['Tables']['settlement_schedules']['Row'];
-export type SettlementScheduleInsert = Database['public']['Tables']['settlement_schedules']['Insert'];
-export type SettlementScheduleUpdate = Database['public']['Tables']['settlement_schedules']['Update'];
 
 export type SaleStatus = 'completed' | 'returned' | 'cancelled' | 'exchanged';

@@ -7,7 +7,6 @@ import { Bell, CheckCheck } from 'lucide-react';
 
 const TYPE_ICONS: Record<string, string> = {
   margin_alert: '⚠️',
-  settlement: '💰',
   goal_achieved: '🎯',
   info: 'ℹ️',
 };

@@ -26,7 +26,6 @@ import {
   Upload,
   Search,
   Target,
-  CalendarCheck,
 } from 'lucide-react';
 
 const navItems = [
@@ -37,7 +36,6 @@ const navItems = [
   { href: '/sales', label: '판매장부', icon: Receipt },
   { href: '/expenses', label: '광고비', icon: DollarSign },
   { href: '/expenses/operating', label: '운영비', icon: Wallet },
-  { href: '/settlements', label: '정산', icon: CalendarCheck },
   { href: '/reports', label: '결산 리포트', icon: BarChart3 },
   { href: '/goals', label: '목표 관리', icon: Target },
   { href: '/import', label: '데이터 가져오기', icon: Upload },
