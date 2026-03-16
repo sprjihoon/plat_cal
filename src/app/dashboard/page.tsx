@@ -59,21 +59,46 @@ function ChangeIndicator({ value }: { value: number }) {
   );
 }
 
-function GoalProgress({ label, current, target, unit = '', color }: { label: string; current: number; target: number; unit?: string; color: string }) {
+function GoalProgress({ label, current, target, unit = '', color, remainDays }: { label: string; current: number; target: number; unit?: string; color: string; remainDays?: number }) {
   const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  const achieved = pct >= 100;
+  const gap = target - current;
+  const dailyNeeded = remainDays && remainDays > 0 && gap > 0 ? gap / remainDays : 0;
+  const isPercent = unit === '%';
+
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="font-medium">{label}</span>
-        <span className={`font-bold ${pct >= 100 ? 'text-[#6b7a1a]' : pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
+    <div className="space-y-2.5">
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium">{label}</span>
+        {achieved ? (
+          <Badge className="bg-[#D6F74C]/20 text-[#6b7a1a] border-0 text-xs">달성!</Badge>
+        ) : (
+          <span className={`text-sm font-bold ${pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
+        )}
       </div>
       <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#D6F74C]' : color}`} style={{ width: `${pct}%` }} />
       </div>
       <div className="flex justify-between text-xs text-muted-foreground">
-        <span>{unit === '%' ? `${current.toFixed(1)}%` : formatCurrency(current)}</span>
-        <span>목표: {unit === '%' ? `${target}%` : formatCurrency(target)}</span>
+        <span>현재 {isPercent ? `${current.toFixed(1)}%` : formatCurrency(current)}</span>
+        <span>목표 {isPercent ? `${target}%` : formatCurrency(target)}</span>
       </div>
+      {!achieved && gap > 0 && (
+        <div className="bg-muted/60 rounded-lg p-2.5 space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">부족</span>
+            <span className="font-semibold text-amber-600">
+              {isPercent ? `${gap.toFixed(1)}%p` : formatCurrency(gap)}
+            </span>
+          </div>
+          {!isPercent && dailyNeeded > 0 && remainDays && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">일평균 필요</span>
+              <span className="font-medium">{formatCurrency(dailyNeeded)}/일 ({remainDays}일 남음)</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -296,46 +321,73 @@ export default function DashboardPage() {
             </div>
 
             {/* 목표 달성률 */}
-            {currentGoal && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-base font-semibold">목표 달성률</CardTitle>
-                  <Link href="/goals">
-                    <Button variant="ghost" size="sm" className="text-primary">목표 관리</Button>
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    {currentGoal.target_revenue > 0 && (
-                      <GoalProgress
-                        label="매출 목표"
-                        current={data.summary.revenue}
-                        target={currentGoal.target_revenue}
-                        color="bg-gradient-to-r from-[#D6F74C] to-[#b8d940]"
-                      />
-                    )}
-                    {currentGoal.target_margin_rate > 0 && (
-                      <GoalProgress
-                        label="마진율 목표"
-                        current={data.summary.marginRate}
-                        target={currentGoal.target_margin_rate}
-                        unit="%"
-                        color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
-                      />
-                    )}
-                    {currentGoal.target_roas > 0 && (
-                      <GoalProgress
-                        label="ROAS 목표"
-                        current={data.summary.roas}
-                        target={currentGoal.target_roas}
-                        unit="%"
-                        color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
-                      />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {currentGoal && (() => {
+              const today = new Date();
+              const endDate = new Date(currentGoal.period_end);
+              const remainDays = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+              const activeTargets = [
+                currentGoal.target_revenue > 0,
+                currentGoal.target_margin_rate > 0,
+                currentGoal.target_roas > 0,
+              ].filter(Boolean).length;
+              const achievedCount = [
+                currentGoal.target_revenue > 0 && data.summary.revenue >= currentGoal.target_revenue,
+                currentGoal.target_margin_rate > 0 && data.summary.marginRate >= currentGoal.target_margin_rate,
+                currentGoal.target_roas > 0 && data.summary.roas >= currentGoal.target_roas,
+              ].filter(Boolean).length;
+
+              return (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div>
+                      <CardTitle className="text-base font-semibold">목표 달성률</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {remainDays > 0
+                          ? `${currentGoal.period_start} ~ ${currentGoal.period_end} (${remainDays}일 남음)`
+                          : `기간 종료 (${currentGoal.period_start} ~ ${currentGoal.period_end})`}
+                        {activeTargets > 0 && ` · ${achievedCount}/${activeTargets} 달성`}
+                      </p>
+                    </div>
+                    <Link href="/goals">
+                      <Button variant="ghost" size="sm" className="text-primary">목표 관리</Button>
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      {currentGoal.target_revenue > 0 && (
+                        <GoalProgress
+                          label="매출 목표"
+                          current={data.summary.revenue}
+                          target={currentGoal.target_revenue}
+                          color="bg-gradient-to-r from-[#D6F74C] to-[#b8d940]"
+                          remainDays={remainDays}
+                        />
+                      )}
+                      {currentGoal.target_margin_rate > 0 && (
+                        <GoalProgress
+                          label="마진율 목표"
+                          current={data.summary.marginRate}
+                          target={currentGoal.target_margin_rate}
+                          unit="%"
+                          color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
+                          remainDays={remainDays}
+                        />
+                      )}
+                      {currentGoal.target_roas > 0 && (
+                        <GoalProgress
+                          label="ROAS 목표"
+                          current={data.summary.roas}
+                          target={currentGoal.target_roas}
+                          unit="%"
+                          color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
+                          remainDays={remainDays}
+                        />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* 매출/수익 추이 차트 */}
             {data.dailyTrend.length > 1 && (

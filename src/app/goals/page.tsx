@@ -12,9 +12,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Plus, Trash2, Loader2, Target } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, Target, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
+import { useDashboard } from '@/lib/hooks/useDashboard';
 
 export default function GoalsPage() {
   const { data, isLoading, error: fetchError } = useGoals();
@@ -68,6 +69,13 @@ export default function GoalsPage() {
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  const activeGoal = data?.goals.find((g) => g.period_start <= today && g.period_end >= today);
+  const { data: dashData } = useDashboard(
+    activeGoal
+      ? { startDate: activeGoal.period_start, endDate: activeGoal.period_end }
+      : { period: 'today' }
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +174,10 @@ export default function GoalsPage() {
             {data.goals.map((goal) => {
               const isActive = goal.period_start <= today && goal.period_end >= today;
               const isPast = goal.period_end < today;
+              const endDate = new Date(goal.period_end);
+              const remainDays = Math.max(0, Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+              const summary = isActive && dashData ? dashData.summary : null;
+
               return (
                 <Card key={goal.id} className={isActive ? 'ring-2 ring-primary' : ''}>
                   <CardHeader className="flex flex-row items-start justify-between">
@@ -177,6 +189,11 @@ export default function GoalsPage() {
                         {isActive && <Badge>진행 중</Badge>}
                         {isPast && <Badge variant="secondary">종료</Badge>}
                         {!isActive && !isPast && <Badge variant="outline">예정</Badge>}
+                        {isActive && remainDays > 0 && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />{remainDays}일 남음
+                          </span>
+                        )}
                       </div>
                       {goal.notes && <CardDescription>{goal.notes}</CardDescription>}
                     </div>
@@ -184,21 +201,52 @@ export default function GoalsPage() {
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">매출 목표</p>
-                        <p className="text-lg font-bold">{goal.target_revenue > 0 ? formatCurrency(goal.target_revenue) : '-'}</p>
+                  <CardContent className="space-y-4">
+                    {summary && isActive ? (
+                      <div className="space-y-4">
+                        {goal.target_revenue > 0 && (
+                          <GoalProgressBar
+                            label="매출"
+                            current={summary.revenue}
+                            target={goal.target_revenue}
+                            remainDays={remainDays}
+                          />
+                        )}
+                        {goal.target_margin_rate > 0 && (
+                          <GoalProgressBar
+                            label="마진율"
+                            current={summary.marginRate}
+                            target={goal.target_margin_rate}
+                            unit="%"
+                            remainDays={remainDays}
+                          />
+                        )}
+                        {goal.target_roas > 0 && (
+                          <GoalProgressBar
+                            label="ROAS"
+                            current={summary.roas}
+                            target={goal.target_roas}
+                            unit="%"
+                            remainDays={remainDays}
+                          />
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">마진율 목표</p>
-                        <p className="text-lg font-bold">{goal.target_margin_rate > 0 ? `${goal.target_margin_rate}%` : '-'}</p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-sm text-muted-foreground">매출 목표</p>
+                          <p className="text-lg font-bold">{goal.target_revenue > 0 ? formatCurrency(goal.target_revenue) : '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">마진율 목표</p>
+                          <p className="text-lg font-bold">{goal.target_margin_rate > 0 ? `${goal.target_margin_rate}%` : '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">ROAS 목표</p>
+                          <p className="text-lg font-bold">{goal.target_roas > 0 ? `${goal.target_roas}%` : '-'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">ROAS 목표</p>
-                        <p className="text-lg font-bold">{goal.target_roas > 0 ? `${goal.target_roas}%` : '-'}</p>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -225,6 +273,55 @@ export default function GoalsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function GoalProgressBar({ label, current, target, unit, remainDays }: { label: string; current: number; target: number; unit?: string; remainDays: number }) {
+  const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  const achieved = pct >= 100;
+  const gap = target - current;
+  const isPercent = unit === '%';
+  const dailyNeeded = remainDays > 0 && gap > 0 ? gap / remainDays : 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{label}</span>
+        <div className="flex items-center gap-2">
+          {achieved ? (
+            <Badge className="bg-[#D6F74C]/20 text-[#6b7a1a] border-0 text-xs">달성!</Badge>
+          ) : (
+            <span className={`text-sm font-bold ${pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
+          )}
+        </div>
+      </div>
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#D6F74C]' : 'bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]'}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>현재 {isPercent ? `${current.toFixed(1)}%` : formatCurrency(current)}</span>
+        <span>목표 {isPercent ? `${target}%` : formatCurrency(target)}</span>
+      </div>
+      {!achieved && gap > 0 && (
+        <div className="bg-muted/60 rounded-lg p-2.5 space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">부족</span>
+            <span className="font-semibold text-amber-600">
+              {isPercent ? `${gap.toFixed(1)}%p` : formatCurrency(gap)}
+            </span>
+          </div>
+          {!isPercent && dailyNeeded > 0 && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">일평균 필요</span>
+              <span className="font-medium">{formatCurrency(dailyNeeded)}/일</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
