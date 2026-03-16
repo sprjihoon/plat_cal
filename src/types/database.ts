@@ -43,8 +43,6 @@ export interface Database {
           sku: string | null;
           base_cost: number;
           image_url: string | null;
-          stock_quantity: number;
-          low_stock_threshold: number;
           created_at: string;
           updated_at: string;
         };
@@ -55,8 +53,6 @@ export interface Database {
           sku?: string | null;
           base_cost: number;
           image_url?: string | null;
-          stock_quantity?: number;
-          low_stock_threshold?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,8 +63,6 @@ export interface Database {
           sku?: string | null;
           base_cost?: number;
           image_url?: string | null;
-          stock_quantity?: number;
-          low_stock_threshold?: number;
           created_at?: string;
           updated_at?: string;
         };

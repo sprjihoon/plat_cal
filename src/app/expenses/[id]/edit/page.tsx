@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { PLATFORM_PRESETS } from '@/constants';
 import { formatCurrency } from '@/lib/calculator';
@@ -30,6 +30,7 @@ export default function EditAdvertisingPage({ params }: { params: Promise<{ id: 
   const [campaignName, setCampaignName] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showMetrics, setShowMetrics] = useState(false);
 
   useEffect(() => {
     const fetchAd = async () => {
@@ -43,6 +44,9 @@ export default function EditAdvertisingPage({ params }: { params: Promise<{ id: 
         setImpressions(String(data.impressions || 0));
         setClicks(String(data.clicks || 0));
         setConversions(String(data.conversions || 0));
+        if (data.impressions > 0 || data.clicks > 0 || data.conversions > 0) {
+          setShowMetrics(true);
+        }
         setAdType(data.ad_type || '');
         setCampaignName(data.campaign_name || '');
         setNotes(data.notes || '');
@@ -181,57 +185,67 @@ export default function EditAdvertisingPage({ params }: { params: Promise<{ id: 
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>성과 지표</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>노출수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={impressions}
-                    onChange={(e) => setImpressions(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>클릭수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={clicks}
-                    onChange={(e) => setClicks(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>전환수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={conversions}
-                    onChange={(e) => setConversions(e.target.value)}
-                  />
-                </div>
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-6 py-4"
+              onClick={() => setShowMetrics(!showMetrics)}
+            >
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">성과 지표</CardTitle>
+                <span className="text-xs text-muted-foreground font-normal">선택 입력</span>
               </div>
-
-              {costNum > 0 && (
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                  <div>
-                    <p className="text-sm text-muted-foreground">CPC (클릭당 비용)</p>
-                    <p className="font-semibold">{formatCurrency(cpc)}</p>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showMetrics ? 'rotate-180' : ''}`} />
+            </button>
+            {showMetrics && (
+              <CardContent className="space-y-4 pt-0">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>노출수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={impressions}
+                      onChange={(e) => setImpressions(e.target.value)}
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">CTR (클릭률)</p>
-                    <p className="font-semibold">{ctr.toFixed(2)}%</p>
+                  <div className="space-y-2">
+                    <Label>클릭수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={clicks}
+                      onChange={(e) => setClicks(e.target.value)}
+                    />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">CVR (전환율)</p>
-                    <p className="font-semibold">{cvr.toFixed(2)}%</p>
+                  <div className="space-y-2">
+                    <Label>전환수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={conversions}
+                      onChange={(e) => setConversions(e.target.value)}
+                    />
                   </div>
                 </div>
-              )}
-            </CardContent>
+
+                {costNum > 0 && (impressionsNum > 0 || clicksNum > 0 || conversionsNum > 0) && (
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                    <div>
+                      <p className="text-sm text-muted-foreground">CPC (클릭당 비용)</p>
+                      <p className="font-semibold">{formatCurrency(cpc)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">CTR (클릭률)</p>
+                      <p className="font-semibold">{ctr.toFixed(2)}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">CVR (전환율)</p>
+                      <p className="font-semibold">{cvr.toFixed(2)}%</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
 
           <Card>

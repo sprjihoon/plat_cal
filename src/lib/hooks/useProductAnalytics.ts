@@ -7,8 +7,6 @@ export interface ProductAnalyticsItem {
   name: string;
   sku: string | null;
   baseCost: number;
-  stockQuantity: number;
-  lowStockThreshold: number;
   revenue: number;
   profit: number;
   quantity: number;

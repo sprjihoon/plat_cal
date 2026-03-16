@@ -80,6 +80,7 @@ export default function ExpensesPage() {
   ) || { totalCost: 0, totalImpressions: 0, totalClicks: 0, totalConversions: 0 };
 
   const totalRevenue = salesData?.sales.reduce((sum, s) => sum + s.total_revenue, 0) || 0;
+  const hasMetrics = adSummary.totalImpressions > 0 || adSummary.totalClicks > 0 || adSummary.totalConversions > 0;
   const roas = calculateROAS(totalRevenue, adSummary.totalCost);
   const cpc = calculateCPC(adSummary.totalCost, adSummary.totalClicks);
   const ctr = calculateCTR(adSummary.totalClicks, adSummary.totalImpressions);
@@ -103,8 +104,8 @@ export default function ExpensesPage() {
           </Link>
         </div>
 
-        {/* 성과 지표 카드 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 핵심 지표 카드 */}
+        <div className={`grid gap-4 ${hasMetrics ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2'}`}>
           <Card className="bg-[#8C9EFF]/12 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
@@ -135,53 +136,37 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
-            <CardContent className="pt-5 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
-                  <MousePointer className="h-5 w-5 text-gray-700" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">CPC (클릭당 비용)</p>
-                  <p className="text-lg font-bold text-gray-900">{formatCurrency(cpc)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {hasMetrics && (
+            <>
+              <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
+                      <MousePointer className="h-5 w-5 text-gray-700" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1">CPC (클릭당 비용)</p>
+                      <p className="text-lg font-bold text-gray-900">{formatCurrency(cpc)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
-            <CardContent className="pt-5 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
-                  <Target className="h-5 w-5 text-gray-700" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 mb-1">전환율 (CVR)</p>
-                  <p className="text-lg font-bold text-gray-900">{cvr.toFixed(1)}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 추가 지표 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-[#D6F74C]/10 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-gray-500 mb-1">총 노출수</p>
-            <p className="text-lg font-bold text-gray-900">{adSummary.totalImpressions.toLocaleString()}</p>
-          </div>
-          <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-gray-500 mb-1">총 클릭수</p>
-            <p className="text-lg font-bold text-gray-900">{adSummary.totalClicks.toLocaleString()}</p>
-          </div>
-          <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-gray-500 mb-1">CTR (클릭률)</p>
-            <p className="text-lg font-bold text-gray-900">{ctr.toFixed(2)}%</p>
-          </div>
-          <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
-            <p className="text-xs font-medium text-gray-500 mb-1">총 전환수</p>
-            <p className="text-lg font-bold text-gray-900">{adSummary.totalConversions.toLocaleString()}</p>
-          </div>
+              <Card className="bg-[#D6F74C]/15 ring-0 border-0">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
+                      <Target className="h-5 w-5 text-gray-700" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-1">전환율 (CVR)</p>
+                      <p className="text-lg font-bold text-gray-900">{cvr.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* 날짜 필터 */}
@@ -265,10 +250,13 @@ export default function ExpensesPage() {
                     <TableHead>채널</TableHead>
                     <TableHead>캠페인</TableHead>
                     <TableHead className="text-right">광고비</TableHead>
-                    <TableHead className="text-right">노출</TableHead>
-                    <TableHead className="text-right">클릭</TableHead>
-                    <TableHead className="text-right">전환</TableHead>
-                    <TableHead className="text-right">CPC</TableHead>
+                    {hasMetrics && (
+                      <>
+                        <TableHead className="text-right">클릭</TableHead>
+                        <TableHead className="text-right">전환</TableHead>
+                        <TableHead className="text-right">CPC</TableHead>
+                      </>
+                    )}
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -289,18 +277,19 @@ export default function ExpensesPage() {
                       <TableCell className="text-right font-medium">
                         {formatCurrency(ad.cost)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {ad.impressions.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {ad.clicks.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {ad.conversions.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {formatCurrency(calculateCPC(ad.cost, ad.clicks))}
-                      </TableCell>
+                      {hasMetrics && (
+                        <>
+                          <TableCell className="text-right">
+                            {ad.clicks > 0 ? ad.clicks.toLocaleString() : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {ad.conversions > 0 ? ad.conversions.toLocaleString() : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {ad.clicks > 0 ? formatCurrency(calculateCPC(ad.cost, ad.clicks)) : '-'}
+                          </TableCell>
+                        </>
+                      )}
                       <TableCell>
                         <div className="flex gap-1">
                           <Link href={`/expenses/${ad.id}/edit`}>

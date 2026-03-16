@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       .lte('sale_date', end),
     (supabase as any)
       .from('products')
-      .select('id, name, sku, base_cost, stock_quantity, low_stock_threshold')
+      .select('id, name, sku, base_cost')
       .eq('user_id', user.id),
   ]);
 
@@ -40,8 +40,6 @@ export async function GET(request: NextRequest) {
     name: string;
     sku: string | null;
     baseCost: number;
-    stockQuantity: number;
-    lowStockThreshold: number;
     revenue: number;
     profit: number;
     quantity: number;
@@ -57,8 +55,6 @@ export async function GET(request: NextRequest) {
       name: p.name,
       sku: p.sku,
       baseCost: p.base_cost,
-      stockQuantity: p.stock_quantity,
-      lowStockThreshold: p.low_stock_threshold,
       revenue: 0,
       profit: 0,
       quantity: 0,
@@ -94,8 +90,6 @@ export async function GET(request: NextRequest) {
       name: p.name,
       sku: p.sku,
       baseCost: p.baseCost,
-      stockQuantity: p.stockQuantity,
-      lowStockThreshold: p.lowStockThreshold,
       revenue: p.revenue,
       profit: p.profit,
       quantity: p.quantity,

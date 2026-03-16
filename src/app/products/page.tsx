@@ -25,18 +25,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Header } from '@/components/layout/Header';
-import { Plus, Search, Pencil, Trash2, Package, Loader2, BarChart3, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Package, Loader2, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
 import { Pagination, type PageSize } from '@/components/ui/pagination';
 import { DateFilter } from '@/components/ui/date-filter';
-
-function StockBadge({ quantity, threshold }: { quantity: number; threshold: number }) {
-  if (quantity <= 0) return <Badge variant="destructive" className="text-xs">품절</Badge>;
-  if (quantity <= threshold) return <Badge className="text-xs bg-amber-100 text-amber-800 hover:bg-amber-100">{quantity}개</Badge>;
-  return <span className="text-sm text-muted-foreground">{quantity}개</span>;
-}
 
 export default function ProductsPage() {
   const [page, setPage] = useState(1);
@@ -156,7 +150,6 @@ export default function ProductsPage() {
                     <TableHead>상품명</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">원가</TableHead>
-                    <TableHead className="text-right">재고</TableHead>
                     <TableHead>판매 마켓</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
                   </TableRow>
@@ -177,12 +170,6 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(product.base_cost)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <StockBadge
-                          quantity={(product as any).stock_quantity || 0}
-                          threshold={(product as any).low_stock_threshold || 10}
-                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

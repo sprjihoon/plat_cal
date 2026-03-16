@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Bell, CheckCheck } from 'lucide-react';
 
 const TYPE_ICONS: Record<string, string> = {
-  low_stock: '📦',
   margin_alert: '⚠️',
   settlement: '💰',
   goal_achieved: '🎯',

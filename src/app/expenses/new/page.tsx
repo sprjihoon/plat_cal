@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { PLATFORM_PRESETS } from '@/constants';
 
@@ -26,8 +26,8 @@ export default function NewExpensePage() {
   const [campaignName, setCampaignName] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showMetrics, setShowMetrics] = useState(false);
 
-  // 계산된 지표
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
   const cvr = clicks > 0 ? (conversions / clicks) * 100 : 0;
   const cpc = clicks > 0 ? cost / clicks : 0;
@@ -149,64 +149,71 @@ export default function NewExpensePage() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>성과 지표</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>노출수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={impressions}
-                    onChange={(e) => setImpressions(Number(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>클릭수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={clicks}
-                    onChange={(e) => setClicks(Number(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>전환수</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={conversions}
-                    onChange={(e) => setConversions(Number(e.target.value))}
-                  />
-                </div>
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-6 py-4"
+              onClick={() => setShowMetrics(!showMetrics)}
+            >
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">성과 지표</CardTitle>
+                <span className="text-xs text-muted-foreground font-normal">선택 입력</span>
               </div>
-
-              {/* 계산된 지표 미리보기 */}
-              {cost > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">CTR</p>
-                    <p className="text-lg font-semibold">{ctr.toFixed(2)}%</p>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showMetrics ? 'rotate-180' : ''}`} />
+            </button>
+            {showMetrics && (
+              <CardContent className="space-y-4 pt-0">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>노출수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={impressions}
+                      onChange={(e) => setImpressions(Number(e.target.value))}
+                    />
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">CVR</p>
-                    <p className="text-lg font-semibold">{cvr.toFixed(2)}%</p>
+                  <div className="space-y-2">
+                    <Label>클릭수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={clicks}
+                      onChange={(e) => setClicks(Number(e.target.value))}
+                    />
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">CPC</p>
-                    <p className="text-lg font-semibold">{cpc.toLocaleString()}원</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">CPA</p>
-                    <p className="text-lg font-semibold">{cpa.toLocaleString()}원</p>
+                  <div className="space-y-2">
+                    <Label>전환수</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={conversions}
+                      onChange={(e) => setConversions(Number(e.target.value))}
+                    />
                   </div>
                 </div>
-              )}
-            </CardContent>
+
+                {cost > 0 && (impressions > 0 || clicks > 0 || conversions > 0) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">CTR</p>
+                      <p className="text-lg font-semibold">{ctr.toFixed(2)}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">CVR</p>
+                      <p className="text-lg font-semibold">{cvr.toFixed(2)}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">CPC</p>
+                      <p className="text-lg font-semibold">{cpc.toLocaleString()}원</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">CPA</p>
+                      <p className="text-lg font-semibold">{cpa.toLocaleString()}원</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
 
           <Card>

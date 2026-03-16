@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  ArrowLeft, Loader2, Package, BarChart3, AlertTriangle,
+  ArrowLeft, Loader2, Package, BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
@@ -42,10 +42,6 @@ export default function ProductAnalyticsPage() {
 
   const getChannelName = (ch: string) =>
     PLATFORM_PRESETS[ch as keyof typeof PLATFORM_PRESETS]?.name || ch;
-
-  const lowStockProducts = data?.products.filter(
-    (p) => p.stockQuantity > 0 && p.stockQuantity <= p.lowStockThreshold
-  ) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,27 +107,6 @@ export default function ProductAnalyticsPage() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* 저재고 경고 */}
-            {lowStockProducts.length > 0 && (
-              <Card className="border-amber-200 bg-amber-50/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-amber-800">
-                    <AlertTriangle className="h-5 w-5" />
-                    재고 부족 상품 ({lowStockProducts.length}개)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {lowStockProducts.map((p) => (
-                      <Badge key={p.id} variant="outline" className="border-amber-300 text-amber-800">
-                        {p.name}: {p.stockQuantity}개 남음
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* 매출 TOP 10 차트 */}
             {data.products.length > 0 && (

@@ -2,10 +2,7 @@
 -- 003: 기능 보완 마이그레이션
 -- =============================================
 
--- 1. products 테이블에 재고 관련 컬럼 추가
-alter table public.products
-  add column if not exists stock_quantity integer default 0 not null,
-  add column if not exists low_stock_threshold integer default 10 not null;
+-- 1. (재고 관련 컬럼 제거됨 - 재고 관리 기능 미사용)
 
 -- 2. sales_records 테이블에 주문 상태 컬럼 추가
 alter table public.sales_records
