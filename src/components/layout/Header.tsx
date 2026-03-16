@@ -26,6 +26,7 @@ const defaultNavItems: NavItem[] = [
   { href: '/settlements', label: '정산' },
   { href: '/reports', label: '리포트' },
   { href: '/import', label: '가져오기' },
+  { href: '/market-research', label: '시장조사' },
 ];
 
 export function Header({ navItems = defaultNavItems }: HeaderProps) {

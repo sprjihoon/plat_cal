@@ -24,6 +24,7 @@ import {
   Settings,
   Calculator,
   Upload,
+  Search,
 } from 'lucide-react';
 
 const navItems = [
@@ -36,6 +37,7 @@ const navItems = [
   { href: '/expenses/operating', label: '운영비', icon: Wallet },
   { href: '/reports', label: '결산 리포트', icon: BarChart3 },
   { href: '/import', label: '데이터 가져오기', icon: Upload },
+  { href: '/market-research', label: '시장조사 판별', icon: Search },
   { href: '/settings', label: '설정', icon: Settings },
 ];
 

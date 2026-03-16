@@ -30,7 +30,7 @@ import {
 import { PLATFORM_PRESETS } from '@/constants';
 import { loadPlatformSettings, loadPlatformSettingsWithFallback } from '@/lib/storage';
 import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, PlatformPreset } from '@/types';
-import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings } from 'lucide-react';
+import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -904,6 +904,24 @@ export function MarginCalculator() {
           </CardContent>
         </Card>
       )}
+
+      {/* 시장조사 판별 바로가기 */}
+      <Link href="/market-research">
+        <Card className="border-dashed hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer">
+          <CardContent className="py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Search className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">시장조사 판별</p>
+                <p className="text-xs text-muted-foreground">엑셀로 상품 목록을 올려 적합/부적합 판별</p>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* 하단 안내 */}
       <p className="text-xs text-center text-muted-foreground">
