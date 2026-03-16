@@ -729,119 +729,8 @@ export function MarginCalculator() {
             />
           </div>
 
-          {/* 계산하기 버튼 */}
-          <Button 
-            onClick={handleCalculate} 
-            className="w-full h-12 text-base font-semibold"
-            size="lg"
-          >
-            <Calculator className="h-5 w-5 mr-2" />
-            {getButtonText()}
-          </Button>
         </CardContent>
       </Card>
-
-      {/* 결과 표시 */}
-      {hasCalculated && result && (
-        <Card className={cn('border-2', judgment?.bg, judgment?.border)}>
-          <CardContent className="pt-5">
-            {/* 모드별 핵심 결과 */}
-            {mode === 'price' && recommendedPrice && (
-              <div className="text-center mb-4 pb-4 border-b">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Target className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm text-muted-foreground">목표 마진율 {targetMarginRate}% 달성을 위한</span>
-                </div>
-                <p className="text-sm text-muted-foreground">권장 판매가</p>
-                <p className="text-4xl font-bold text-blue-600">
-                  {formatCurrency(recommendedPrice)}
-                </p>
-              </div>
-            )}
-
-            {mode === 'cost' && maxAllowableCost && (
-              <div className="text-center mb-4 pb-4 border-b">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <Package className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm text-muted-foreground">목표 마진율 {targetMarginRate}% 달성을 위한</span>
-                </div>
-                <p className="text-sm text-muted-foreground">맞출 수 있는 최대 원가</p>
-                <p className="text-4xl font-bold text-purple-600">
-                  {formatCurrency(maxAllowableCost)}
-                </p>
-              </div>
-            )}
-
-            {/* 순이익 결과 */}
-            <div className="text-center mb-4">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                {result.netProfit >= 0 ? (
-                  <TrendingUp className="h-5 w-5 text-[#6b7a1a]" />
-                ) : (
-                  <TrendingDown className="h-5 w-5 text-red-600" />
-                )}
-                <span className="text-sm text-muted-foreground">예상 순이익</span>
-                <Badge variant={result.marginRate >= 25 ? 'default' : result.marginRate >= 15 ? 'secondary' : 'destructive'}>
-                  {judgment?.message}
-                </Badge>
-              </div>
-              <p className={cn('text-4xl font-bold', result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600')}>
-                {result.netProfit >= 0 ? '+' : ''}{formatCurrency(result.netProfit)}
-              </p>
-              <p className={cn('text-lg font-medium mt-1', getMarginColorClass(result.marginRate))}>
-                마진율 {formatPercent(result.marginRate)}
-              </p>
-            </div>
-
-            {/* 간단 내역 */}
-            <div className="border-t pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">판매가</span>
-                <span>{formatCurrency(result.actualSellingPrice)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">원가</span>
-                <span className="text-red-600">-{formatCurrency(result.productCostSupply)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">수수료 ({totalFeeRate}%)</span>
-                <span className="text-red-600">-{formatCurrency(result.platformFee + result.paymentFee)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">부가세 (순)</span>
-                <span className="text-red-600">-{formatCurrency(result.netVat)}</span>
-              </div>
-              {additionalCostTotal > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">추가 비용</span>
-                  <span className="text-red-600">-{formatCurrency(additionalCostTotal)}</span>
-                </div>
-              )}
-            </div>
-
-            {/* 추가 정보 */}
-            {mode === 'profit' && result.breakEvenPrice > 0 && result.breakEvenPrice < Infinity && (
-              <div className="mt-3 pt-3 border-t">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  <span>손익분기 판매가: <strong className="text-foreground">{formatCurrency(result.breakEvenPrice)}</strong></span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 입력 안내 (계산 전) */}
-      {!hasCalculated && (
-        <Card className="border-dashed bg-muted/30">
-          <CardContent className="py-6 text-center text-muted-foreground">
-            <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{guide.line1}</p>
-            <p className="text-sm font-medium">{guide.line2}</p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* 추가 비용 (접힘) */}
       <Accordion>
@@ -891,9 +780,6 @@ export function MarginCalculator() {
                 placeholder="0"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              추가 비용 입력 후 다시 계산하기를 눌러주세요
-            </p>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -934,6 +820,114 @@ export function MarginCalculator() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/* 계산하기 버튼 */}
+      <Button 
+        onClick={handleCalculate} 
+        className="w-full h-12 text-base font-semibold"
+        size="lg"
+      >
+        <Calculator className="h-5 w-5 mr-2" />
+        {getButtonText()}
+      </Button>
+
+      {/* 결과 표시 */}
+      {hasCalculated && result && (
+        <Card className={cn('border-2', judgment?.bg, judgment?.border)}>
+          <CardContent className="pt-5">
+            {mode === 'price' && recommendedPrice && (
+              <div className="text-center mb-4 pb-4 border-b">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Target className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-muted-foreground">목표 마진율 {targetMarginRate}% 달성을 위한</span>
+                </div>
+                <p className="text-sm text-muted-foreground">권장 판매가</p>
+                <p className="text-4xl font-bold text-blue-600">
+                  {formatCurrency(recommendedPrice)}
+                </p>
+              </div>
+            )}
+
+            {mode === 'cost' && maxAllowableCost && (
+              <div className="text-center mb-4 pb-4 border-b">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Package className="h-5 w-5 text-purple-600" />
+                  <span className="text-sm text-muted-foreground">목표 마진율 {targetMarginRate}% 달성을 위한</span>
+                </div>
+                <p className="text-sm text-muted-foreground">맞출 수 있는 최대 원가</p>
+                <p className="text-4xl font-bold text-purple-600">
+                  {formatCurrency(maxAllowableCost)}
+                </p>
+              </div>
+            )}
+
+            <div className="text-center mb-4">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                {result.netProfit >= 0 ? (
+                  <TrendingUp className="h-5 w-5 text-[#6b7a1a]" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                )}
+                <span className="text-sm text-muted-foreground">예상 순이익</span>
+                <Badge variant={result.marginRate >= 25 ? 'default' : result.marginRate >= 15 ? 'secondary' : 'destructive'}>
+                  {judgment?.message}
+                </Badge>
+              </div>
+              <p className={cn('text-4xl font-bold', result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600')}>
+                {result.netProfit >= 0 ? '+' : ''}{formatCurrency(result.netProfit)}
+              </p>
+              <p className={cn('text-lg font-medium mt-1', getMarginColorClass(result.marginRate))}>
+                마진율 {formatPercent(result.marginRate)}
+              </p>
+            </div>
+
+            <div className="border-t pt-3 space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">판매가</span>
+                <span>{formatCurrency(result.actualSellingPrice)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">원가</span>
+                <span className="text-red-600">-{formatCurrency(result.productCostSupply)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">수수료 ({totalFeeRate}%)</span>
+                <span className="text-red-600">-{formatCurrency(result.platformFee + result.paymentFee)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">부가세 (순)</span>
+                <span className="text-red-600">-{formatCurrency(result.netVat)}</span>
+              </div>
+              {additionalCostTotal > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">추가 비용</span>
+                  <span className="text-red-600">-{formatCurrency(additionalCostTotal)}</span>
+                </div>
+              )}
+            </div>
+
+            {mode === 'profit' && result.breakEvenPrice > 0 && result.breakEvenPrice < Infinity && (
+              <div className="mt-3 pt-3 border-t">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span>손익분기 판매가: <strong className="text-foreground">{formatCurrency(result.breakEvenPrice)}</strong></span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 입력 안내 (계산 전) */}
+      {!hasCalculated && (
+        <Card className="border-dashed bg-muted/30">
+          <CardContent className="py-6 text-center text-muted-foreground">
+            <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">{guide.line1}</p>
+            <p className="text-sm font-medium">{guide.line2}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 하단 안내 */}
       <p className="text-xs text-center text-muted-foreground">
