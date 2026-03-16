@@ -22,15 +22,14 @@ import {
   calculateMargin,
   calculateRecommendedPrice,
   calculateMaxAllowableCost,
-  numberToInputString,
   parseNumericInput,
   formatCurrency,
   formatPercent,
   getMarginColorClass,
 } from '@/lib/calculator';
-import { PLATFORM_PRESETS, EXAMPLE_PRESETS } from '@/constants';
+import { PLATFORM_PRESETS } from '@/constants';
 import { loadPlatformSettings } from '@/lib/storage';
-import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, ExamplePreset, PlatformPreset } from '@/types';
+import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, PlatformPreset } from '@/types';
 import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -346,23 +345,6 @@ export function MarginCalculator() {
     }
   }, [platformPresets, channel]);
 
-  // 예시값 적용
-  const handleSelectExample = useCallback((preset: ExamplePreset) => {
-    const v = preset.values;
-    if (v.sellingPrice !== undefined) setSellingPrice(numberToInputString(v.sellingPrice));
-    if (v.productCost !== undefined) setProductCost(numberToInputString(v.productCost));
-    if (v.platformFeeRate !== undefined) setPlatformFeeRate(v.platformFeeRate.toString());
-    if (v.paymentFeeRate !== undefined) setPaymentFeeRate(v.paymentFeeRate.toString());
-    if (v.sellerShippingCost !== undefined) setSellerShippingCost(v.sellerShippingCost > 0 ? numberToInputString(v.sellerShippingCost) : '');
-    if (v.packagingCost !== undefined) setPackagingCost(v.packagingCost > 0 ? numberToInputString(v.packagingCost) : '');
-    if (v.advertisingCost !== undefined) setAdvertisingCost(v.advertisingCost > 0 ? numberToInputString(v.advertisingCost) : '');
-    if (v.wholesaleVatType !== undefined) setWholesaleVatType(v.wholesaleVatType);
-    setResult(null);
-    setRecommendedPrice(null);
-    setMaxAllowableCost(null);
-    setHasCalculated(false);
-  }, []);
-
   // 운영 판단 메시지
   const getJudgmentInfo = () => {
     if (!result) return null;
@@ -429,7 +411,7 @@ export function MarginCalculator() {
         </Button>
       </div>
 
-      {/* 채널 선택 & 예시 */}
+      {/* 채널 선택 */}
       <div className="flex gap-2">
         <Select value={channel} onValueChange={(v) => handleChannelChange(v as SalesChannel)}>
           <SelectTrigger className="flex-1">
@@ -439,19 +421,6 @@ export function MarginCalculator() {
           </SelectTrigger>
           <SelectContent>
             {platformOptions.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select onValueChange={(v) => {
-          const preset = EXAMPLE_PRESETS.find(p => p.id === v);
-          if (preset) handleSelectExample(preset);
-        }}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="예시 불러오기" />
-          </SelectTrigger>
-          <SelectContent>
-            {EXAMPLE_PRESETS.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
             ))}
           </SelectContent>
