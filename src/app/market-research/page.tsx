@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +65,9 @@ const VERDICT_CONFIG: Record<Verdict, { label: string; icon: typeof CheckCircle;
 };
 
 export default function MarketResearchPage() {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [platformPresets, setPlatformPresets] = useState<Record<SalesChannel, PlatformPreset>>(PLATFORM_PRESETS);
   const [channel, setChannel] = useState<SalesChannel>('smartstore');
   const [goodThreshold, setGoodThreshold] = useState(25);
@@ -71,6 +75,16 @@ export default function MarketResearchPage() {
   const [defaultShipping, setDefaultShipping] = useState(0);
   const [items, setItems] = useState<ResearchItem[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.replace('/auth/login?redirectTo=/market-research');
+      } else {
+        setAuthChecked(true);
+      }
+    });
+  }, [router]);
 
   useEffect(() => {
     const loaded = loadPlatformSettings();
@@ -238,6 +252,14 @@ export default function MarketResearchPage() {
     XLSX.utils.book_append_sheet(wb, ws, '시장조사 분석');
     XLSX.writeFile(wb, `시장조사_분석_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [analyzed]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
