@@ -27,6 +27,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
+  Package,
+  Upload,
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
@@ -64,7 +67,7 @@ function GoalProgress({ label, current, target, unit = '', color }: { label: str
         <span className="font-medium">{label}</span>
         <span className={`font-bold ${pct >= 100 ? 'text-[#6b7a1a]' : pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
       </div>
-      <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <div className="flex justify-between text-xs text-muted-foreground">
@@ -136,7 +139,62 @@ export default function DashboardPage() {
               데이터를 불러오는데 실패했습니다
             </CardContent>
           </Card>
-        ) : !data ? null : (
+        ) : !data || (data.summary.revenue === 0 && data.summary.salesCount === 0 && data.summary.adCost === 0) ? (
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-bold mb-2">시작해볼까요?</h2>
+                <p className="text-muted-foreground">아래 순서대로 진행하면 대시보드가 채워집니다</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                <Link href="/products/new">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/15 hover:bg-[#D6F74C]/25 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#D6F74C]/40 rounded-2xl flex items-center justify-center">
+                      <Package className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-sm">1. 상품 등록</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">판매할 상품을 추가하세요</p>
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/sales/new">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/12 hover:bg-[#8C9EFF]/20 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center">
+                      <ShoppingCart className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-sm">2. 판매 기록</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">판매 내역을 입력하세요</p>
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/import">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/10 hover:bg-[#D6F74C]/20 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#D6F74C]/30 rounded-2xl flex items-center justify-center">
+                      <Upload className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-sm">3. 데이터 가져오기</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">마켓 엑셀을 업로드하세요</p>
+                    </div>
+                  </div>
+                </Link>
+                <Link href="/market-research">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/10 hover:bg-[#8C9EFF]/18 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/20 rounded-2xl flex items-center justify-center">
+                      <Search className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold text-sm">4. 시장조사</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">상품 적합성을 판별하세요</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
           <>
             {/* KPI 카드 - 파스텔 컬러풀 */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

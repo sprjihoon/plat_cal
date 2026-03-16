@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavItem {
   href: string;
@@ -25,15 +26,17 @@ const defaultNavItems: NavItem[] = [
   { href: '/expenses/operating', label: '운영비' },
   { href: '/settlements', label: '정산' },
   { href: '/reports', label: '리포트' },
+  { href: '/goals', label: '목표' },
   { href: '/import', label: '가져오기' },
   { href: '/market-research', label: '시장조사' },
+  { href: '/settings', label: '설정' },
 ];
 
 export function Header({ navItems = defaultNavItems }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <MobileNav />
@@ -66,6 +69,7 @@ export function Header({ navItems = defaultNavItems }: HeaderProps) {
           </nav>
         </div>
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <NotificationBell />
           <UserMenu />
         </div>

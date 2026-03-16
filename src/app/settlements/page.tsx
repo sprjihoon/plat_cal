@@ -12,7 +12,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle, Clock, ChevronLeft, ChevronRight, CalendarCheck } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
@@ -191,12 +191,12 @@ export default function SettlementsPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
+              <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
                 {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
-                  <div key={d} className="bg-gray-50 p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
+                  <div key={d} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
                 ))}
                 {Array.from({ length: firstDow }).map((_, i) => (
-                  <div key={`empty-${i}`} className="bg-white p-2 min-h-[80px]" />
+                  <div key={`empty-${i}`} className="bg-card p-2 min-h-[80px]" />
                 ))}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const day = i + 1;
@@ -204,7 +204,7 @@ export default function SettlementsPage() {
                   const daySettlements = settlementsByDate[dateStr] || [];
                   const isToday = dateStr === todayStr;
                   return (
-                    <div key={day} className={`bg-white p-2 min-h-[80px] ${isToday ? 'ring-2 ring-inset ring-blue-500' : ''}`}>
+                    <div key={day} className={`bg-card p-2 min-h-[80px] ${isToday ? 'ring-2 ring-inset ring-blue-500' : ''}`}>
                       <span className={`text-xs font-medium ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>{day}</span>
                       <div className="mt-1 space-y-1">
                         {daySettlements.map((s) => (
@@ -229,6 +229,15 @@ export default function SettlementsPage() {
         </Card>
 
         {/* 정산 목록 */}
+        {data && data.settlements.length === 0 && !showForm && (
+          <Card className="border-dashed">
+            <CardContent className="py-10 text-center">
+              <CalendarCheck className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="text-muted-foreground mb-1">이 달에 등록된 정산 일정이 없습니다</p>
+              <p className="text-xs text-muted-foreground">상단의 &quot;정산 일정 추가&quot; 버튼으로 추가하세요</p>
+            </CardContent>
+          </Card>
+        )}
         {data && data.settlements.length > 0 && (
           <Card>
             <CardHeader><CardTitle>정산 일정 목록</CardTitle></CardHeader>
