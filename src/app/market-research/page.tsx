@@ -254,7 +254,7 @@ export default function MarketResearchPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">수수료 합계 {totalFeeRate}%</p>
+                <p className="text-xs text-muted-foreground">수수료 합계 {totalFeeRate.toFixed(2)}%</p>
               </div>
 
               <div className="space-y-2">
