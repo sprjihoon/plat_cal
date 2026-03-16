@@ -52,6 +52,7 @@ export function useGoals(current = false) {
   return useQuery({
     queryKey: ['goals', current],
     queryFn: () => fetchGoals(current),
+    retry: 1,
   });
 }
 
@@ -60,6 +61,7 @@ export function useCurrentGoal() {
     queryKey: ['goals', true],
     queryFn: () => fetchGoals(true),
     select: (data) => data.goals[0] || null,
+    retry: 1,
   });
 }
 

@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
 
 export default function GoalsPage() {
-  const { data, isLoading } = useGoals();
+  const { data, isLoading, error: fetchError } = useGoals();
   const createGoal = useCreateGoal();
   const deleteGoalMutation = useDeleteGoal();
 
@@ -140,6 +140,17 @@ export default function GoalsPage() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
+        ) : fetchError ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-2">목표 데이터를 불러올 수 없습니다</p>
+              <p className="text-xs text-muted-foreground mb-4">Supabase에 goals 테이블이 생성되었는지 확인해주세요</p>
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="h-4 w-4 mr-2" />첫 목표 설정하기
+              </Button>
+            </CardContent>
+          </Card>
         ) : !data?.goals.length ? (
           <Card>
             <CardContent className="py-12 text-center">
