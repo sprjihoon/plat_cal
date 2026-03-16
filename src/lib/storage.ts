@@ -55,3 +55,47 @@ export function getStoredUpdatedAt(): string | null {
     return null;
   }
 }
+
+export async function loadPlatformSettingsFromServer(): Promise<Record<SalesChannel, PlatformPreset> | null> {
+  try {
+    const res = await fetch('/api/platform-settings');
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.custom_presets) return null;
+    return data.custom_presets as Record<SalesChannel, PlatformPreset>;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePlatformSettingsToServer(platforms: Record<SalesChannel, PlatformPreset>): Promise<boolean> {
+  try {
+    const res = await fetch('/api/platform-settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ custom_presets: platforms }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function resetPlatformSettingsOnServer(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/platform-settings', { method: 'DELETE' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadPlatformSettingsWithFallback(): Promise<Record<SalesChannel, PlatformPreset>> {
+  const serverSettings = await loadPlatformSettingsFromServer();
+  if (serverSettings) {
+    savePlatformSettings(serverSettings);
+    return serverSettings;
+  }
+
+  return loadPlatformSettings();
+}

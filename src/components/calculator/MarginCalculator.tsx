@@ -28,7 +28,7 @@ import {
   getMarginColorClass,
 } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
-import { loadPlatformSettings } from '@/lib/storage';
+import { loadPlatformSettings, loadPlatformSettingsWithFallback } from '@/lib/storage';
 import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, PlatformPreset } from '@/types';
 import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,16 +44,23 @@ export function MarginCalculator() {
   const [tierOptionId, setTierOptionId] = useState<string | null>(null);
   const [platformPresets, setPlatformPresets] = useState<Record<SalesChannel, PlatformPreset>>(PLATFORM_PRESETS);
 
-  // 로컬스토리지에서 커스텀 설정 불러오기
   useEffect(() => {
-    const loaded = loadPlatformSettings();
-    setPlatformPresets(loaded);
-    // 초기 수수료율도 업데이트
-    const preset = loaded['smartstore'];
+    const localSettings = loadPlatformSettings();
+    setPlatformPresets(localSettings);
+    const preset = localSettings['smartstore'];
     if (preset) {
       setPlatformFeeRate(preset.platformFeeRate.toString());
       setPaymentFeeRate(preset.paymentFeeRate.toString());
     }
+
+    loadPlatformSettingsWithFallback().then((serverSettings) => {
+      setPlatformPresets(serverSettings);
+      const sp = serverSettings['smartstore'];
+      if (sp) {
+        setPlatformFeeRate(sp.platformFeeRate.toString());
+        setPaymentFeeRate(sp.paymentFeeRate.toString());
+      }
+    });
   }, []);
 
   // 핵심 입력값
@@ -425,7 +432,7 @@ export function MarginCalculator() {
             ))}
           </SelectContent>
         </Select>
-        <Link href="/admin">
+        <Link href="/settings?tab=fees">
           <Button variant="ghost" size="icon" title="수수료 설정">
             <Settings className="h-4 w-4" />
           </Button>
