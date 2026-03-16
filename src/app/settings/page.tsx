@@ -418,10 +418,10 @@ export default function SettingsPage() {
               <Accordion className="space-y-3">
                 {Object.entries(platforms).map(([channelId, platform]) => {
                   if (channelId === 'custom') return null;
-                  const totalRate = platform.platformFeeRate + platform.paymentFeeRate;
+                  const totalRate = (platform.platformFeeRate + platform.paymentFeeRate).toFixed(2);
 
                   return (
-                    <AccordionItem key={channelId} value={channelId} className="border rounded-lg bg-white">
+                    <AccordionItem key={channelId} value={channelId} className="border rounded-lg bg-card">
                       <AccordionTrigger className="px-4 hover:no-underline">
                         <div className="flex items-center gap-3">
                           <span className="font-semibold">{platform.name}</span>
@@ -472,7 +472,7 @@ export default function SettingsPage() {
                                   const tags = Array.from(new Set(platform.subOptions!.map(o => o.tag).filter(Boolean)));
                                   const hasGroups = tags.length > 1;
                                   const renderOption = (option: PlatformSubOption) => {
-                                    const optionTotal = option.platformFeeRate + option.paymentFeeRate;
+                                    const optionTotal = Number((option.platformFeeRate + option.paymentFeeRate).toFixed(2));
                                     return (
                                       <div key={option.id} className="p-3 border rounded-lg space-y-2">
                                         <div className="flex items-center justify-between">

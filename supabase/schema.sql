@@ -332,3 +332,37 @@ create trigger set_updated_at before update on public.advertising_costs
 drop trigger if exists set_updated_at on public.operating_expenses;
 create trigger set_updated_at before update on public.operating_expenses
   for each row execute procedure public.handle_updated_at();
+
+-- ============================================================
+-- 목표 설정 테이블
+-- ============================================================
+create table if not exists public.goals (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  period_start date not null,
+  period_end date not null,
+  target_revenue numeric default 0,
+  target_margin_rate numeric default 0,
+  target_roas numeric default 0,
+  notes text,
+  created_at timestamptz default now() not null,
+  updated_at timestamptz default now() not null
+);
+
+create index if not exists idx_goals_user_id on public.goals(user_id);
+create index if not exists idx_goals_period on public.goals(user_id, period_start, period_end);
+
+alter table public.goals enable row level security;
+
+create policy "Users can view own goals"
+  on public.goals for select using (auth.uid() = user_id);
+create policy "Users can insert own goals"
+  on public.goals for insert with check (auth.uid() = user_id);
+create policy "Users can update own goals"
+  on public.goals for update using (auth.uid() = user_id);
+create policy "Users can delete own goals"
+  on public.goals for delete using (auth.uid() = user_id);
+
+drop trigger if exists set_updated_at on public.goals;
+create trigger set_updated_at before update on public.goals
+  for each row execute procedure public.handle_updated_at();

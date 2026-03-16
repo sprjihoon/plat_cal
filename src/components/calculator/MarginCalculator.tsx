@@ -363,7 +363,7 @@ export function MarginCalculator() {
   };
 
   const judgment = getJudgmentInfo();
-  const totalFeeRate = parseNumericInput(platformFeeRate) + parseNumericInput(paymentFeeRate);
+  const totalFeeRate = Number((parseNumericInput(platformFeeRate) + parseNumericInput(paymentFeeRate)).toFixed(2));
 
   // 모드별 버튼 텍스트
   const getButtonText = () => {

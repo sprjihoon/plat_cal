@@ -32,22 +32,39 @@ export default function GoalsPage() {
     notes: '',
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createGoal.mutateAsync({
-      period_start: form.period_start,
-      period_end: form.period_end,
-      target_revenue: Number(form.target_revenue) || 0,
-      target_margin_rate: Number(form.target_margin_rate) || 0,
-      target_roas: Number(form.target_roas) || 0,
-      notes: form.notes || null,
-    });
-    setShowForm(false);
-    setForm({
-      period_start: new Date().toISOString().split('T')[0],
-      period_end: (() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(),
-      target_revenue: '', target_margin_rate: '', target_roas: '', notes: '',
-    });
+    setError(null);
+
+    const revenue = Number(form.target_revenue) || 0;
+    const marginRate = Number(form.target_margin_rate) || 0;
+    const roas = Number(form.target_roas) || 0;
+
+    if (revenue === 0 && marginRate === 0 && roas === 0) {
+      setError('매출, 마진율, ROAS 중 하나 이상 입력해주세요');
+      return;
+    }
+
+    try {
+      await createGoal.mutateAsync({
+        period_start: form.period_start,
+        period_end: form.period_end,
+        target_revenue: revenue,
+        target_margin_rate: marginRate,
+        target_roas: roas,
+        notes: form.notes || null,
+      });
+      setShowForm(false);
+      setForm({
+        period_start: new Date().toISOString().split('T')[0],
+        period_end: (() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(),
+        target_revenue: '', target_margin_rate: '', target_roas: '', notes: '',
+      });
+    } catch (err: any) {
+      setError(err?.message || '목표 저장에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -104,12 +121,15 @@ export default function GoalsPage() {
                   <Label>메모</Label>
                   <Input placeholder="목표에 대한 메모" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
+                {error && (
+                  <p className="text-sm text-red-600 bg-red-50 dark:bg-red-950/30 p-3 rounded-lg">{error}</p>
+                )}
                 <div className="flex gap-2">
                   <Button type="submit" disabled={createGoal.isPending}>
                     {createGoal.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     저장
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>취소</Button>
+                  <Button type="button" variant="outline" onClick={() => { setShowForm(false); setError(null); }}>취소</Button>
                 </div>
               </form>
             </CardContent>

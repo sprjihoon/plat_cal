@@ -55,21 +55,30 @@ export async function POST(request: NextRequest) {
     const validation = validateBody(body, createGoalSchema);
     if (!validation.success) return validation.response;
 
+    const insertData = {
+      user_id: user.id,
+      period_start: validation.data.period_start,
+      period_end: validation.data.period_end,
+      target_revenue: validation.data.target_revenue ?? 0,
+      target_margin_rate: validation.data.target_margin_rate ?? 0,
+      target_roas: validation.data.target_roas ?? 0,
+      notes: validation.data.notes ?? null,
+    };
+
     const { data, error } = await (supabase as any)
       .from('goals')
-      .insert({
-        user_id: user.id,
-        ...validation.data,
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (error) {
+      console.error('Goals insert error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error('Goals POST error:', err);
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }
