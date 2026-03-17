@@ -17,7 +17,7 @@ export const DEFAULT_INPUTS = {
   advertisingCost: 0,
   otherCosts: 0,
   sellingPriceVatIncluded: true,
-  wholesaleVatType: 'excluded' as const,
+  wholesaleVatType: 'included' as const,
   targetMarginRate: 30,
 };
 

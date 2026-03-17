@@ -71,7 +71,7 @@ export const calculatorInputSchema = z.object({
 
   // VAT 설정
   sellingPriceVatIncluded: z.boolean().default(true),
-  wholesaleVatType: z.enum(['included', 'excluded']).default('excluded'),
+  wholesaleVatType: z.enum(['included', 'excluded']).default('included'),
 
   // 목표 마진율
   targetMarginRate: percentageString.pipe(

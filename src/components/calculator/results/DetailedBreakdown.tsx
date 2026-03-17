@@ -73,11 +73,23 @@ export function DetailedBreakdown({ result, isValid }: DetailedBreakdownProps) {
                   <BreakdownItem label="상품 원가 (공급가)" value={result.productCostSupply} isSubtraction />
                   <BreakdownItem label="플랫폼 수수료" value={result.platformFee} isSubtraction />
                   <BreakdownItem label="결제 수수료" value={result.paymentFee} isSubtraction />
-                  <BreakdownItem label="순부가세" value={result.netVat} isSubtraction />
+                  <BreakdownItem label="납부부가세" value={result.vatPayable} isSubtraction />
                   <BreakdownItem label="배송비 (판매자 부담)" value={result.shippingCost} isSubtraction />
                   <BreakdownItem label="포장 및 부자재비" value={result.packagingAndMaterialCost} isSubtraction />
                   <BreakdownItem label="광고비" value={result.advertisingCost} isSubtraction />
                   <BreakdownItem label="기타 비용" value={result.otherCosts} isSubtraction />
+                </div>
+
+                <Separator />
+
+                {/* 부가세 상세 */}
+                <div className="py-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                    부가세 상세
+                  </p>
+                  <BreakdownItem label="매출부가세" value={result.salesVat} />
+                  <BreakdownItem label="매입부가세 (원가+비용 VAT)" value={result.totalPurchaseVat} isSubtraction />
+                  <BreakdownItem label="납부부가세" value={result.vatPayable} isTotal />
                 </div>
 
                 <Separator />

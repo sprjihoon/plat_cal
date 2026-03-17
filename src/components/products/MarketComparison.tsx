@@ -41,7 +41,7 @@ export function MarketComparison({ product }: MarketComparisonProps) {
       advertisingCost: additionalCosts.advertising_cost || 0,
       otherCosts: additionalCosts.other_costs || 0,
       sellingPriceVatIncluded: true,
-      wholesaleVatType: 'excluded',
+      wholesaleVatType: 'included',
       targetMarginRate: 30,
     };
 

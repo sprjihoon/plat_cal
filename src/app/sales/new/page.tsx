@@ -60,7 +60,7 @@ export default function NewSalePage() {
       advertisingCost: 0,
       otherCosts: 0,
       sellingPriceVatIncluded: true,
-      wholesaleVatType: 'excluded',
+      wholesaleVatType: 'included',
       targetMarginRate: 30,
     };
 

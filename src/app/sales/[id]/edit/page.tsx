@@ -86,7 +86,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
       advertisingCost: 0,
       otherCosts: 0,
       sellingPriceVatIncluded: true,
-      wholesaleVatType: 'excluded',
+      wholesaleVatType: 'included',
       targetMarginRate: 30,
     };
 

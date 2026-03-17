@@ -629,27 +629,33 @@ export function MarginCalculator() {
                 suffix="원"
                 placeholder="10,000"
               />
-              <NumberInput
-                id="productCost"
-                label="상품 원가"
-                value={productCost}
-                onChange={setProductCost}
-                suffix="원"
-                placeholder="4,000"
-              />
+              <div>
+                <NumberInput
+                  id="productCost"
+                  label="상품 원가 (VAT포함)"
+                  value={productCost}
+                  onChange={setProductCost}
+                  suffix="원"
+                  placeholder="4,000"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5 pl-1">도매가 VAT포함가 입력</p>
+              </div>
             </div>
           )}
 
           {mode === 'price' && (
             <div className="grid grid-cols-2 gap-3">
-              <NumberInput
-                id="productCost"
-                label="상품 원가"
-                value={productCost}
-                onChange={setProductCost}
-                suffix="원"
-                placeholder="4,000"
-              />
+              <div>
+                <NumberInput
+                  id="productCost"
+                  label="상품 원가 (VAT포함)"
+                  value={productCost}
+                  onChange={setProductCost}
+                  suffix="원"
+                  placeholder="4,000"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5 pl-1">도매가 VAT포함가 입력</p>
+              </div>
               <NumberInput
                 id="targetMarginRate"
                 label="목표 마진율"
