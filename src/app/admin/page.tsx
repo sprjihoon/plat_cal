@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
@@ -467,9 +467,19 @@ function AnnouncementsTab() {
   const [form, setForm] = useState({ title: '', content: '' });
   const [saving, setSaving] = useState(false);
 
-  const [notifForm, setNotifForm] = useState({ target: 'all', userId: '', title: '', message: '' });
+  // 알림 관련 상태
+  const [notifForm, setNotifForm] = useState({ target: 'all', title: '', message: '' });
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string | null>(null);
+
+  // 유저 선택 관련 상태
+  const [notifUsers, setNotifUsers] = useState<UserData[]>([]);
+  const [notifUsersLoading, setNotifUsersLoading] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [userSearch, setUserSearch] = useState('');
+  const [userSortBy, setUserSortBy] = useState('created_at');
+  const [userActivityFilter, setUserActivityFilter] = useState('all');
+  const [userDateFilter, setUserDateFilter] = useState('all');
 
   const fetchAnnouncements = useCallback(async () => {
     const res = await fetch('/api/admin/announcements');
@@ -479,6 +489,65 @@ function AnnouncementsTab() {
   }, []);
 
   useEffect(() => { fetchAnnouncements(); }, [fetchAnnouncements]);
+
+  const fetchNotifUsers = useCallback(async () => {
+    setNotifUsersLoading(true);
+    const sp = new URLSearchParams();
+    if (userSearch) sp.set('search', userSearch);
+    sp.set('sortBy', userSortBy);
+    const res = await fetch(`/api/admin/users?${sp}`);
+    const data = await res.json();
+    setNotifUsers(data.users || []);
+    setNotifUsersLoading(false);
+  }, [userSearch, userSortBy]);
+
+  useEffect(() => {
+    if (notifForm.target === 'selected') fetchNotifUsers();
+  }, [notifForm.target, fetchNotifUsers]);
+
+  const filteredNotifUsers = useMemo(() => {
+    let filtered = notifUsers;
+
+    if (userActivityFilter === 'active') {
+      filtered = filtered.filter(u => u.stats.totalActivity >= 5);
+    } else if (userActivityFilter === 'low') {
+      filtered = filtered.filter(u => u.stats.totalActivity > 0 && u.stats.totalActivity < 5);
+    } else if (userActivityFilter === 'inactive') {
+      filtered = filtered.filter(u => u.stats.totalActivity === 0);
+    }
+
+    if (userDateFilter === '7d') {
+      const d = new Date(); d.setDate(d.getDate() - 7);
+      filtered = filtered.filter(u => new Date(u.created_at) >= d);
+    } else if (userDateFilter === '30d') {
+      const d = new Date(); d.setDate(d.getDate() - 30);
+      filtered = filtered.filter(u => new Date(u.created_at) >= d);
+    } else if (userDateFilter === 'no_login_7d') {
+      const d = new Date(); d.setDate(d.getDate() - 7);
+      filtered = filtered.filter(u => !u.last_sign_in_at || new Date(u.last_sign_in_at) < d);
+    } else if (userDateFilter === 'no_login_30d') {
+      const d = new Date(); d.setDate(d.getDate() - 30);
+      filtered = filtered.filter(u => !u.last_sign_in_at || new Date(u.last_sign_in_at) < d);
+    }
+
+    return filtered;
+  }, [notifUsers, userActivityFilter, userDateFilter]);
+
+  const toggleUser = (id: string) => {
+    setSelectedUserIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedUserIds.size === filteredNotifUsers.length) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(filteredNotifUsers.map(u => u.id)));
+    }
+  };
 
   const handleCreateAnnouncement = async () => {
     if (!form.title || !form.content) return;
@@ -510,65 +579,172 @@ function AnnouncementsTab() {
 
   const handleSendNotification = async () => {
     if (!notifForm.title || !notifForm.message) return;
+    if (notifForm.target === 'selected' && selectedUserIds.size === 0) {
+      setNotifResult('오류: 유저를 선택해주세요');
+      return;
+    }
     setNotifSending(true);
     setNotifResult(null);
-    const res = await fetch('/api/admin/notifications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(notifForm),
-    });
-    const data = await res.json();
-    setNotifSending(false);
-    if (data.success) {
-      setNotifResult(`${data.sent}명에게 알림을 전송했습니다`);
-      setNotifForm({ target: 'all', userId: '', title: '', message: '' });
+
+    if (notifForm.target === 'all') {
+      const res = await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: 'all', title: notifForm.title, message: notifForm.message }),
+      });
+      const data = await res.json();
+      setNotifSending(false);
+      if (data.success) {
+        setNotifResult(`${data.sent}명에게 알림을 전송했습니다`);
+        setNotifForm({ target: 'all', title: '', message: '' });
+      } else {
+        setNotifResult(`오류: ${data.error}`);
+      }
     } else {
-      setNotifResult(`오류: ${data.error}`);
+      let sentCount = 0;
+      for (const userId of selectedUserIds) {
+        const res = await fetch('/api/admin/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: 'user', userId, title: notifForm.title, message: notifForm.message }),
+        });
+        const data = await res.json();
+        if (data.success) sentCount += data.sent;
+      }
+      setNotifSending(false);
+      setNotifResult(`${sentCount}명에게 알림을 전송했습니다`);
+      setNotifForm({ target: 'all', title: '', message: '' });
+      setSelectedUserIds(new Set());
     }
   };
 
   return (
     <div className="space-y-6 mt-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2"><Bell className="h-4 w-4" />알림 보내기</CardTitle>
-            <CardDescription>전체 또는 특정 유저에게 알림 발송</CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><Bell className="h-4 w-4" />알림 보내기</CardTitle>
+          <CardDescription>전체 또는 선택한 유저에게 알림 발송</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label>대상</Label>
-              <Select value={notifForm.target} onValueChange={(v) => setNotifForm({ ...notifForm, target: v || 'all' })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체 유저</SelectItem>
-                  <SelectItem value="user">특정 유저</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {notifForm.target === 'user' && (
-              <div>
-                <Label>유저 ID</Label>
-                <Input placeholder="유저 UUID" value={notifForm.userId} onChange={(e) => setNotifForm({ ...notifForm, userId: e.target.value })} />
+        <CardContent className="space-y-4">
+          <div>
+            <Label>대상</Label>
+            <Select value={notifForm.target} onValueChange={(v) => setNotifForm({ ...notifForm, target: v || 'all' })}>
+              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 유저</SelectItem>
+                <SelectItem value="selected">유저 선택</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {notifForm.target === 'selected' && (
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/20">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="이름 또는 이메일 검색..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={userActivityFilter} onValueChange={(v) => setUserActivityFilter(v || 'all')}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="활동량" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체</SelectItem>
+                    <SelectItem value="active">활발 (5건+)</SelectItem>
+                    <SelectItem value="low">저활동 (1~4건)</SelectItem>
+                    <SelectItem value="inactive">미활동 (0건)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={userDateFilter} onValueChange={(v) => setUserDateFilter(v || 'all')}>
+                  <SelectTrigger className="w-[170px]"><SelectValue placeholder="기간 필터" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">전체 기간</SelectItem>
+                    <SelectItem value="7d">최근 7일 가입</SelectItem>
+                    <SelectItem value="30d">최근 30일 가입</SelectItem>
+                    <SelectItem value="no_login_7d">7일 이상 미접속</SelectItem>
+                    <SelectItem value="no_login_30d">30일 이상 미접속</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={userSortBy} onValueChange={(v) => setUserSortBy(v || 'created_at')}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="정렬" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_at">가입일순</SelectItem>
+                    <SelectItem value="last_sign_in">최근접속순</SelectItem>
+                    <SelectItem value="activity">활동량순</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {selectedUserIds.size === filteredNotifUsers.length && filteredNotifUsers.length > 0 ? '전체 해제' : '전체 선택'}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {selectedUserIds.size}명 선택 / {filteredNotifUsers.length}명
+                </span>
+              </div>
+
+              {notifUsersLoading ? <LoadingSpinner /> : (
+                <div className="max-h-[280px] overflow-y-auto border rounded-md divide-y">
+                  {filteredNotifUsers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">조건에 맞는 유저가 없습니다</p>
+                  ) : filteredNotifUsers.map((u) => (
+                    <label
+                      key={u.id}
+                      className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${selectedUserIds.has(u.id) ? 'bg-primary/5' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedUserIds.has(u.id)}
+                        onChange={() => toggleUser(u.id)}
+                        className="rounded border-gray-300 h-4 w-4 accent-primary"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{u.name || u.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-muted-foreground">활동 {u.stats.totalActivity}건</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {u.last_sign_in_at ? `접속 ${new Date(u.last_sign_in_at).toLocaleDateString('ko-KR')}` : '미접속'}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <Label>제목</Label>
+              <Input placeholder="알림 제목" value={notifForm.title} onChange={(e) => setNotifForm({ ...notifForm, title: e.target.value })} />
+            </div>
+            <div>
+              <Label>내용</Label>
+              <textarea
+                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="알림 내용을 입력하세요"
+                value={notifForm.message}
+                onChange={(e) => setNotifForm({ ...notifForm, message: e.target.value })}
+              />
+            </div>
           </div>
-          <div>
-            <Label>제목</Label>
-            <Input placeholder="알림 제목" value={notifForm.title} onChange={(e) => setNotifForm({ ...notifForm, title: e.target.value })} />
-          </div>
-          <div>
-            <Label>내용</Label>
-            <Input placeholder="알림 내용" value={notifForm.message} onChange={(e) => setNotifForm({ ...notifForm, message: e.target.value })} />
-          </div>
+
           {notifResult && (
             <p className={`text-sm ${notifResult.startsWith('오류') ? 'text-red-600' : 'text-green-600'}`}>{notifResult}</p>
           )}
-          <Button onClick={handleSendNotification} disabled={notifSending}>
+          <Button onClick={handleSendNotification} disabled={notifSending || !notifForm.title || !notifForm.message}>
             {notifSending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-            전송
+            {notifForm.target === 'all' ? '전체 발송' : `${selectedUserIds.size}명에게 발송`}
           </Button>
         </CardContent>
       </Card>
