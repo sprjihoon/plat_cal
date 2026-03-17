@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,11 @@ import {
   Upload,
   Search,
   Target,
+  Shield,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
-const navItems = [
+const baseNavItems = [
   { href: '/', label: '계산기', icon: Calculator },
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
   { href: '/products', label: '상품 관리', icon: Package },
@@ -45,7 +47,23 @@ const navItems = [
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('admin_users').select('id').eq('user_id', user.id).single();
+      if (data) setIsAdmin(true);
+    };
+    checkAdmin();
+  }, []);
+
+  const navItems = isAdmin
+    ? [...baseNavItems, { href: '/admin', label: '관리자', icon: Shield }]
+    : baseNavItems;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

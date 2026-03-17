@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { UserMenu } from '@/components/auth/UserMenu';
 import { MobileNav } from './MobileNav';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
+import { createClient } from '@/lib/supabase/client';
 
 interface NavItem {
   href: string;
@@ -33,6 +35,22 @@ const defaultNavItems: NavItem[] = [
 
 export function Header({ navItems = defaultNavItems }: HeaderProps) {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('admin_users').select('id').eq('user_id', user.id).single();
+      if (data) setIsAdmin(true);
+    };
+    checkAdmin();
+  }, []);
+
+  const allNavItems = isAdmin
+    ? [...navItems, { href: '/admin', label: '관리자' }]
+    : navItems;
 
   return (
     <header className="bg-background/90 backdrop-blur-md border-b border-border sticky top-0 z-50">
@@ -43,8 +61,8 @@ export function Header({ navItems = defaultNavItems }: HeaderProps) {
             마진 계산기
           </Link>
           <nav className="hidden sm:flex items-center gap-0.5 ml-2">
-            {navItems.map((item) => {
-              const hasMoreSpecific = navItems.some(
+            {allNavItems.map((item) => {
+              const hasMoreSpecific = allNavItems.some(
                 (other) => other.href !== item.href && other.href.startsWith(item.href + '/') && (pathname === other.href || pathname.startsWith(other.href + '/'))
               );
               const isActive = !hasMoreSpecific && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/')));
