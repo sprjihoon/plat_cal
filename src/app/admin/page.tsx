@@ -44,10 +44,13 @@ interface StatsData {
     activeIn30d: number;
     newIn7d: number;
     newIn30d: number;
+    churnedCount: number;
+    churnRate: number;
     totalSales: number;
     totalProducts: number;
   };
-  cohort: { week: string; signups: number; retained: number; rate: number }[];
+  dailyTrend: { date: string; signups: number; active: number }[];
+  cohort: { week: string; signups: number; retention: { week: number; retained: number; rate: number }[] }[];
   topUsers: { id: string; name: string; email: string; salesCount: number }[];
   leastActiveUsers: { id: string; name: string; email: string; salesCount: number }[];
   inactiveUsers: { id: string; name: string; email: string; salesCount: number }[];
@@ -151,46 +154,107 @@ function DashboardTab() {
   if (!stats) return <p className="text-muted-foreground text-center py-8">통계를 불러올 수 없습니다</p>;
 
   const o = stats.overview;
+  const trendMax = Math.max(...stats.dailyTrend.map(d => Math.max(d.signups, d.active)), 1);
 
   return (
     <div className="space-y-6 mt-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* 핵심 지표 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         <StatCard icon={Users} label="전체 유저" value={o.totalUsers} />
         <StatCard icon={UserCheck} label="7일 활성" value={o.activeIn7d} sub={`${o.totalUsers > 0 ? Math.round((o.activeIn7d / o.totalUsers) * 100) : 0}%`} />
         <StatCard icon={TrendingUp} label="7일 신규" value={o.newIn7d} />
+        <StatCard icon={UserX} label="이탈 유저" value={o.churnedCount} sub={`이탈률 ${o.churnRate}%`} />
         <StatCard icon={BarChart3} label="총 판매건" value={o.totalSales} />
+        <StatCard icon={Activity} label="30일 활성" value={o.activeIn30d} sub={`${o.totalUsers > 0 ? Math.round((o.activeIn30d / o.totalUsers) * 100) : 0}%`} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">코호트 분석 (주별 가입 → 재방문)</CardTitle>
-            <CardDescription>가입 후 24시간 이후 재로그인한 비율</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.cohort.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
-            ) : (
-              <div className="space-y-2">
-                {stats.cohort.map((c) => (
-                  <div key={c.week} className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground w-20 shrink-0">{c.week}</span>
-                    <div className="flex-1 h-6 bg-muted rounded-full overflow-hidden relative">
-                      <div
-                        className="h-full bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef] rounded-full transition-all"
-                        style={{ width: `${c.rate}%` }}
-                      />
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                        {c.signups}명 가입 · {c.rate}% 재방문
-                      </span>
-                    </div>
-                  </div>
-                ))}
+      {/* 일별 유입/활성 추이 (30일) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">일별 유입/활성 추이 (최근 30일)</CardTitle>
+          <CardDescription>
+            <span className="inline-flex items-center gap-1.5 mr-4"><span className="w-3 h-3 rounded-sm bg-[#D6F74C]" /> 신규 가입</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#8C9EFF]" /> 활성 접속</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-[2px] h-[140px]">
+            {stats.dailyTrend.map((d) => (
+              <div key={d.date} className="flex-1 flex flex-col items-center gap-[1px] h-full justify-end group relative">
+                <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border rounded-md px-2 py-1 text-xs shadow-md whitespace-nowrap z-10">
+                  <p className="font-medium">{d.date}</p>
+                  <p>가입 {d.signups}명 · 접속 {d.active}명</p>
+                </div>
+                <div
+                  className="w-full bg-[#8C9EFF] rounded-t-sm min-h-[1px]"
+                  style={{ height: `${(d.active / trendMax) * 100}%` }}
+                />
+                <div
+                  className="w-full bg-[#D6F74C] rounded-t-sm min-h-[1px]"
+                  style={{ height: `${(d.signups / trendMax) * 100}%` }}
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px] text-muted-foreground">{stats.dailyTrend[0]?.date}</span>
+            <span className="text-[10px] text-muted-foreground">{stats.dailyTrend[stats.dailyTrend.length - 1]?.date}</span>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* 코호트 분석 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">코호트 분석 (주별 가입 → 주차별 유지율)</CardTitle>
+          <CardDescription>가입 주 기준, 이후 N주차에 재접속한 비율 (높을수록 유지 잘 됨)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {stats.cohort.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-3 font-medium text-muted-foreground">가입 주</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">가입</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">1주 후</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">2주 후</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">3주 후</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">4주 후</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.cohort.map((c) => (
+                    <tr key={c.week} className="border-b last:border-0">
+                      <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">{c.week}</td>
+                      <td className="text-center py-2 px-2 font-medium">{c.signups}명</td>
+                      {[1, 2, 3, 4].map((w) => {
+                        const r = c.retention.find(ret => ret.week === w);
+                        if (!r) return <td key={w} className="text-center py-2 px-2 text-muted-foreground">-</td>;
+                        const bg = r.rate >= 60 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : r.rate >= 30 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                          : r.rate > 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                          : 'text-muted-foreground';
+                        return (
+                          <td key={w} className="text-center py-2 px-2">
+                            <span className={`inline-block rounded px-1.5 py-0.5 font-medium ${bg}`}>
+                              {r.rate}%
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">활동량 TOP 유저</CardTitle>
@@ -214,14 +278,13 @@ function DashboardTab() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <UserX className="h-4 w-4" />비활성 유저 (활동 없음)
+              <UserX className="h-4 w-4" />비활성 / 이탈 유저
             </CardTitle>
+            <CardDescription>7일 이상 미접속 또는 활동 없는 유저</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -233,27 +296,6 @@ function DashboardTab() {
               ))}
               {stats.inactiveUsers.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">모든 유저가 활동 중입니다</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingDown className="h-4 w-4" />활동량 최소 유저
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {stats.leastActiveUsers.map((u) => (
-                <div key={u.id} className="flex items-center justify-between text-sm">
-                  <span>{u.name || u.email}</span>
-                  <Badge variant="outline">{u.salesCount}건</Badge>
-                </div>
-              ))}
-              {stats.leastActiveUsers.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
               )}
             </div>
           </CardContent>

@@ -7,66 +7,94 @@ export async function GET(_request: NextRequest) {
   const { serviceClient } = auth;
 
   const { data: { users: allUsers } } = await serviceClient.auth.admin.listUsers({ perPage: 1000 });
-  const totalUsers = allUsers?.length || 0;
+  const users = allUsers || [];
+  const totalUsers = users.length;
 
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const DAY = 24 * 60 * 60 * 1000;
+  const sevenDaysAgo = new Date(now.getTime() - 7 * DAY);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * DAY);
 
-  const activeIn7d = (allUsers || []).filter(
-    (u) => u.last_sign_in_at && new Date(u.last_sign_in_at) >= new Date(sevenDaysAgo)
-  ).length;
+  const activeIn7d = users.filter(u => u.last_sign_in_at && new Date(u.last_sign_in_at) >= sevenDaysAgo).length;
+  const activeIn30d = users.filter(u => u.last_sign_in_at && new Date(u.last_sign_in_at) >= thirtyDaysAgo).length;
+  const newIn7d = users.filter(u => new Date(u.created_at) >= sevenDaysAgo).length;
+  const newIn30d = users.filter(u => new Date(u.created_at) >= thirtyDaysAgo).length;
 
-  const activeIn30d = (allUsers || []).filter(
-    (u) => u.last_sign_in_at && new Date(u.last_sign_in_at) >= new Date(thirtyDaysAgo)
-  ).length;
-
-  const newIn7d = (allUsers || []).filter(
-    (u) => new Date(u.created_at) >= new Date(sevenDaysAgo)
-  ).length;
-
-  const newIn30d = (allUsers || []).filter(
-    (u) => new Date(u.created_at) >= new Date(thirtyDaysAgo)
-  ).length;
+  // 이탈 유저: 가입 후 7일 이상 미접속 또는 한번도 접속 안 한 유저
+  const churnedUsers = users.filter(u => {
+    if (!u.last_sign_in_at) return true;
+    return new Date(u.last_sign_in_at) < sevenDaysAgo;
+  });
+  const churnRate = totalUsers > 0 ? Math.round((churnedUsers.length / totalUsers) * 100) : 0;
 
   const { count: totalSales } = await (serviceClient as any)
-    .from('sales_records')
-    .select('*', { count: 'exact', head: true });
-
+    .from('sales_records').select('*', { count: 'exact', head: true });
   const { count: totalProducts } = await (serviceClient as any)
-    .from('products')
-    .select('*', { count: 'exact', head: true });
+    .from('products').select('*', { count: 'exact', head: true });
 
-  // 코호트: 주별 가입자 → 7일 내 재방문율
-  const cohortWeeks: { week: string; signups: number; retained: number; rate: number }[] = [];
+  // 일별 유입/활성 추이 (최근 30일)
+  const dailyTrend: { date: string; signups: number; active: number }[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const dayEnd = new Date(dayStart.getTime() + DAY);
+    const dateStr = dayStart.toISOString().split('T')[0];
+
+    const signups = users.filter(u => {
+      const d = new Date(u.created_at);
+      return d >= dayStart && d < dayEnd;
+    }).length;
+
+    const active = users.filter(u => {
+      if (!u.last_sign_in_at) return false;
+      const d = new Date(u.last_sign_in_at);
+      return d >= dayStart && d < dayEnd;
+    }).length;
+
+    dailyTrend.push({ date: dateStr, signups, active });
+  }
+
+  // 코호트 분석: 주별 가입 → 1주/2주/3주/4주 후 유지율
+  const cohortWeeks: {
+    week: string;
+    signups: number;
+    retention: { week: number; retained: number; rate: number }[];
+  }[] = [];
+
   for (let i = 0; i < 8; i++) {
-    const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
-    const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
-
-    const weekUsers = (allUsers || []).filter((u) => {
+    const weekStart = new Date(now.getTime() - (i + 1) * 7 * DAY);
+    const weekEnd = new Date(now.getTime() - i * 7 * DAY);
+    const weekUsers = users.filter(u => {
       const d = new Date(u.created_at);
       return d >= weekStart && d < weekEnd;
     });
 
-    const retained = weekUsers.filter((u) => {
-      if (!u.last_sign_in_at) return false;
-      const lastSign = new Date(u.last_sign_in_at);
-      const created = new Date(u.created_at);
-      return lastSign.getTime() - created.getTime() > 24 * 60 * 60 * 1000;
-    }).length;
+    const retention: { week: number; retained: number; rate: number }[] = [];
+    for (let w = 1; w <= 4; w++) {
+      const checkStart = new Date(weekStart.getTime() + w * 7 * DAY);
+      if (checkStart > now) break;
+
+      const retained = weekUsers.filter(u => {
+        if (!u.last_sign_in_at) return false;
+        return new Date(u.last_sign_in_at) >= checkStart;
+      }).length;
+
+      retention.push({
+        week: w,
+        retained,
+        rate: weekUsers.length > 0 ? Math.round((retained / weekUsers.length) * 100) : 0,
+      });
+    }
 
     cohortWeeks.push({
       week: weekStart.toISOString().split('T')[0],
       signups: weekUsers.length,
-      retained,
-      rate: weekUsers.length > 0 ? Math.round((retained / weekUsers.length) * 100) : 0,
+      retention,
     });
   }
 
   // 유저별 활동량 순위
   const { data: salesByUser } = await (serviceClient as any)
-    .from('sales_records')
-    .select('user_id');
+    .from('sales_records').select('user_id');
 
   const activityMap = new Map<string, number>();
   (salesByUser || []).forEach((r: any) => {
@@ -74,9 +102,10 @@ export async function GET(_request: NextRequest) {
   });
 
   const { data: profiles } = await (serviceClient as any)
-    .from('profiles')
-    .select('id, name, email');
-  const profileMap = new Map<string, { name: string; email: string }>((profiles || []).map((p: any) => [p.id, p]));
+    .from('profiles').select('id, name, email');
+  const profileMap = new Map<string, { name: string; email: string }>(
+    (profiles || []).map((p: any) => [p.id, p])
+  );
 
   const topUsers = Array.from(activityMap.entries())
     .sort((a, b) => b[1] - a[1])
@@ -94,10 +123,9 @@ export async function GET(_request: NextRequest) {
       return { id: uid, name: p?.name, email: p?.email, salesCount: count };
     });
 
-  // 활동 없는 유저
-  const usersWithNoActivity = (allUsers || [])
-    .filter((u) => !activityMap.has(u.id))
-    .map((u) => {
+  const usersWithNoActivity = users
+    .filter(u => !activityMap.has(u.id))
+    .map(u => {
       const p = profileMap.get(u.id);
       return { id: u.id, name: p?.name, email: u.email, salesCount: 0 };
     });
@@ -109,9 +137,12 @@ export async function GET(_request: NextRequest) {
       activeIn30d,
       newIn7d,
       newIn30d,
+      churnedCount: churnedUsers.length,
+      churnRate,
       totalSales: totalSales || 0,
       totalProducts: totalProducts || 0,
     },
+    dailyTrend,
     cohort: cohortWeeks.reverse(),
     topUsers,
     leastActiveUsers,
