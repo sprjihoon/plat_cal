@@ -25,6 +25,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   Upload,
   Download,
   Trash2,
@@ -34,6 +42,7 @@ import {
   XCircle,
   FileSpreadsheet,
   Loader2,
+  PackagePlus,
 } from 'lucide-react';
 import { PLATFORM_PRESETS } from '@/constants';
 import { calculateMargin, formatCurrency, parseNumericInput } from '@/lib/calculator';
@@ -264,6 +273,86 @@ export default function MarketResearchPage() {
     XLSX.writeFile(wb, `시장조사_분석_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [analyzed]);
 
+  // 상품 추가 관련
+  const [addingProductIds, setAddingProductIds] = useState<Set<string>>(new Set());
+  const [addedProductIds, setAddedProductIds] = useState<Set<string>>(new Set());
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [bulkAdding, setBulkAdding] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ success: number; fail: number } | null>(null);
+
+  const addSingleProduct = useCallback(async (item: AnalyzedItem) => {
+    setAddingProductIds(prev => new Set(prev).add(item.id));
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: item.name || '이름 없는 상품',
+          base_cost: item.cost,
+          markets: [{
+            channel,
+            selling_price: item.sellingPrice,
+            platform_fee_rate: preset.platformFeeRate,
+            payment_fee_rate: preset.paymentFeeRate,
+            additional_costs: { shipping: item.shippingCost },
+          }],
+        }),
+      });
+      if (res.ok) {
+        setAddedProductIds(prev => new Set(prev).add(item.id));
+      }
+    } catch { /* ignore */ }
+    setAddingProductIds(prev => {
+      const next = new Set(prev);
+      next.delete(item.id);
+      return next;
+    });
+  }, [channel, preset]);
+
+  const handleBulkAdd = useCallback(async (targetVerdict: 'good' | 'all') => {
+    const targets = targetVerdict === 'good'
+      ? analyzed.filter(i => i.verdict === 'good' && !addedProductIds.has(i.id))
+      : analyzed.filter(i => !addedProductIds.has(i.id));
+
+    if (targets.length === 0) return;
+    setBulkAdding(true);
+    setBulkResult(null);
+
+    let success = 0;
+    let fail = 0;
+
+    for (const item of targets) {
+      try {
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: item.name || '이름 없는 상품',
+            base_cost: item.cost,
+            markets: [{
+              channel,
+              selling_price: item.sellingPrice,
+              platform_fee_rate: preset.platformFeeRate,
+              payment_fee_rate: preset.paymentFeeRate,
+              additional_costs: { shipping: item.shippingCost },
+            }],
+          }),
+        });
+        if (res.ok) {
+          success++;
+          setAddedProductIds(prev => new Set(prev).add(item.id));
+        } else {
+          fail++;
+        }
+      } catch {
+        fail++;
+      }
+    }
+
+    setBulkResult({ success, fail });
+    setBulkAdding(false);
+  }, [analyzed, addedProductIds, channel, preset]);
+
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -365,6 +454,16 @@ export default function MarketResearchPage() {
           </Button>
           {items.length > 0 && (
             <>
+              {summary.good > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => { setBulkResult(null); setBulkAddOpen(true); }}
+                  className="border-[#D6F74C]/50 text-[#6b7a1a] hover:bg-[#D6F74C]/10"
+                >
+                  <PackagePlus className="h-4 w-4 mr-2" />
+                  적합 상품 추가 ({summary.good - analyzed.filter(i => i.verdict === 'good' && addedProductIds.has(i.id)).length}개)
+                </Button>
+              )}
               <Button variant="outline" onClick={handleExportExcel}>
                 <Download className="h-4 w-4 mr-2" />
                 결과 다운로드
@@ -503,14 +602,36 @@ export default function MarketResearchPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
+                          <div className="flex items-center gap-0.5">
+                            {addedProductIds.has(item.id) ? (
+                              <span title="등록 완료">
+                                <CheckCircle className="h-4 w-4 text-[#6b7a1a]" />
+                              </span>
+                            ) : item.sellingPrice > 0 && item.name ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="상품관리에 추가"
+                                onClick={() => addSingleProduct(item)}
+                                disabled={addingProductIds.has(item.id)}
+                              >
+                                {addingProductIds.has(item.id) ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <PackagePlus className="h-3.5 w-3.5 text-primary" />
+                                )}
+                              </Button>
+                            ) : null}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleDeleteItem(item.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -520,6 +641,66 @@ export default function MarketResearchPage() {
             </div>
           </Card>
         )}
+
+        {/* 일괄 추가 다이얼로그 */}
+        <Dialog open={bulkAddOpen} onOpenChange={setBulkAddOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>적합 상품 일괄 추가</DialogTitle>
+              <DialogDescription>
+                마진율 {goodThreshold}% 이상인 적합 상품을 상품관리에 일괄 등록합니다.
+                채널({preset.name})과 수수료 설정이 함께 저장됩니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            {bulkResult ? (
+              <div className="py-6 text-center">
+                <CheckCircle className="h-12 w-12 mx-auto mb-3 text-[#6b7a1a]" />
+                <p className="font-medium text-lg">{bulkResult.success}개 상품 등록 완료</p>
+                {bulkResult.fail > 0 && (
+                  <p className="text-sm text-red-600 mt-1">{bulkResult.fail}개 실패</p>
+                )}
+                <p className="text-sm text-muted-foreground mt-2">상품관리에서 확인할 수 있습니다</p>
+                <Button className="mt-4" variant="outline" onClick={() => setBulkAddOpen(false)}>닫기</Button>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">대상 상품</span>
+                    <span className="font-medium">
+                      {analyzed.filter(i => i.verdict === 'good' && !addedProductIds.has(i.id)).length}개
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">판매 채널</span>
+                    <span>{preset.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">수수료</span>
+                    <span>{preset.platformFeeRate}% + {preset.paymentFeeRate}%</span>
+                  </div>
+                  {addedProductIds.size > 0 && (
+                    <p className="text-xs text-muted-foreground pt-1 border-t">
+                      이미 추가된 {addedProductIds.size}개 상품은 제외됩니다
+                    </p>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setBulkAddOpen(false)}>취소</Button>
+                  <Button
+                    onClick={() => handleBulkAdd('good')}
+                    disabled={bulkAdding}
+                  >
+                    {bulkAdding ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PackagePlus className="h-4 w-4 mr-2" />}
+                    {bulkAdding ? '등록 중...' : '일괄 등록'}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
       </main>
     </div>

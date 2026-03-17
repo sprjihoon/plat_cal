@@ -4,6 +4,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { NumberInput } from './inputs/NumberInput';
 import {
   calculateMargin,
@@ -30,7 +40,7 @@ import {
 import { PLATFORM_PRESETS } from '@/constants';
 import { loadPlatformSettings, loadPlatformSettingsWithFallback } from '@/lib/storage';
 import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, PlatformPreset } from '@/types';
-import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings, Search } from 'lucide-react';
+import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings, Search, Plus, Loader2, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -350,6 +360,60 @@ export function MarginCalculator() {
       setPaymentFeeRate(preset.paymentFeeRate.toString());
     }
   }, [platformPresets, channel]);
+
+  // 상품 추가 다이얼로그
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [productName, setProductName] = useState('');
+  const [addingProduct, setAddingProduct] = useState(false);
+  const [addProductResult, setAddProductResult] = useState<'success' | 'error' | null>(null);
+
+  const handleAddProduct = useCallback(async () => {
+    if (!productName.trim() || !result) return;
+    setAddingProduct(true);
+    setAddProductResult(null);
+
+    const actualSellingPrice = recommendedPrice || parseNumericInput(sellingPrice);
+    const actualCost = maxAllowableCost || parseNumericInput(productCost);
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: productName.trim(),
+          base_cost: actualCost,
+          markets: [{
+            channel,
+            sub_option_id: subOptionId || (isComboChannel ? `${sourceOptionId || ''}_${tierOptionId || ''}` : null),
+            selling_price: actualSellingPrice,
+            platform_fee_rate: parseNumericInput(platformFeeRate),
+            payment_fee_rate: parseNumericInput(paymentFeeRate),
+            additional_costs: {
+              shipping: parseNumericInput(sellerShippingCost),
+              packaging: parseNumericInput(packagingCost),
+              advertising: parseNumericInput(advertisingCost),
+              other: parseNumericInput(otherCosts),
+            },
+          }],
+        }),
+      });
+
+      if (res.ok) {
+        setAddProductResult('success');
+        setTimeout(() => {
+          setShowAddProduct(false);
+          setProductName('');
+          setAddProductResult(null);
+        }, 1500);
+      } else {
+        setAddProductResult('error');
+      }
+    } catch {
+      setAddProductResult('error');
+    } finally {
+      setAddingProduct(false);
+    }
+  }, [productName, result, recommendedPrice, sellingPrice, maxAllowableCost, productCost, channel, subOptionId, isComboChannel, sourceOptionId, tierOptionId, platformFeeRate, paymentFeeRate, sellerShippingCost, packagingCost, advertisingCost, otherCosts]);
 
   // 운영 판단 메시지
   const getJudgmentInfo = () => {
@@ -884,9 +948,99 @@ export function MarginCalculator() {
                 </div>
               </div>
             )}
+
+            {/* 상품으로 추가 버튼 */}
+            <div className="mt-4 pt-4 border-t">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => { setShowAddProduct(true); setAddProductResult(null); }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                상품관리에 추가
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* 상품 추가 다이얼로그 */}
+      <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>상품관리에 추가</DialogTitle>
+            <DialogDescription>
+              계산 결과를 상품으로 등록합니다. 채널({platformPresets[channel]?.name})과 수수료 설정이 함께 저장됩니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          {addProductResult === 'success' ? (
+            <div className="py-6 text-center">
+              <CheckCircle className="h-12 w-12 mx-auto mb-3 text-[#6b7a1a]" />
+              <p className="font-medium text-lg">상품이 등록되었습니다</p>
+              <p className="text-sm text-muted-foreground mt-1">상품관리에서 확인할 수 있습니다</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="addProductName">상품명 *</Label>
+                  <Input
+                    id="addProductName"
+                    placeholder="예: 니트 가디건"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && productName.trim()) handleAddProduct(); }}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="rounded-lg bg-muted/50 p-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">채널</span>
+                    <span className="font-medium">{platformPresets[channel]?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">원가</span>
+                    <span>{formatCurrency(maxAllowableCost || parseNumericInput(productCost))}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">판매가</span>
+                    <span>{formatCurrency(recommendedPrice || parseNumericInput(sellingPrice))}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">수수료</span>
+                    <span>{platformFeeRate}% + {paymentFeeRate}%</span>
+                  </div>
+                  {result && (
+                    <div className="flex justify-between pt-1.5 border-t font-medium">
+                      <span>예상 순이익</span>
+                      <span className={result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}>
+                        {formatCurrency(result.netProfit)} ({formatPercent(result.marginRate)})
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {addProductResult === 'error' && (
+                  <p className="text-sm text-red-600">등록에 실패했습니다. 로그인 상태를 확인해주세요.</p>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddProduct(false)}>취소</Button>
+                <Button
+                  onClick={handleAddProduct}
+                  disabled={!productName.trim() || addingProduct}
+                >
+                  {addingProduct ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                  등록
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* 입력 안내 (계산 전) */}
       {!hasCalculated && (
