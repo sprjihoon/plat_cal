@@ -76,8 +76,14 @@ export default function SignupPage() {
       console.error('Signup error:', error);
       if (error.message.includes('already registered')) {
         setError('이미 가입된 이메일입니다');
+      } else if (error.message.includes('password')) {
+        setError('비밀번호 조건을 확인해주세요 (8자 이상, 영문+숫자)');
+      } else if (error.message.includes('email')) {
+        setError('유효한 이메일 주소를 입력해주세요');
+      } else if (error.message.includes('rate limit')) {
+        setError('요청이 너무 많습니다. 잠시 후 다시 시도해주세요');
       } else {
-        setError('회원가입에 실패했습니다. 다시 시도해주세요');
+        setError(`회원가입에 실패했습니다: ${error.message}`);
       }
       setIsLoading(false);
     } else {

@@ -719,6 +719,7 @@ export function MarginCalculator() {
           <AccordionTrigger className="px-4 text-sm">
             <div className="flex items-center gap-2">
               <span>추가 비용</span>
+              <span className="text-[10px] text-muted-foreground font-normal">VAT포함가 입력</span>
               {additionalCostTotal > 0 && (
                 <Badge variant="secondary" className="font-normal">
                   {formatCurrency(additionalCostTotal)}
@@ -735,6 +736,7 @@ export function MarginCalculator() {
                 onChange={setSellerShippingCost}
                 suffix="원"
                 placeholder="0"
+                description="VAT포함가 입력"
               />
               <NumberInput
                 id="packagingCost"
@@ -743,6 +745,7 @@ export function MarginCalculator() {
                 onChange={setPackagingCost}
                 suffix="원"
                 placeholder="0"
+                description="VAT포함가 입력"
               />
               <NumberInput
                 id="advertisingCost"
@@ -751,6 +754,7 @@ export function MarginCalculator() {
                 onChange={setAdvertisingCost}
                 suffix="원"
                 placeholder="0"
+                description="VAT포함가 입력"
               />
               <NumberInput
                 id="otherCosts"
@@ -759,6 +763,7 @@ export function MarginCalculator() {
                 onChange={setOtherCosts}
                 suffix="원"
                 placeholder="0"
+                description="VAT포함가 입력"
               />
             </div>
           </AccordionContent>

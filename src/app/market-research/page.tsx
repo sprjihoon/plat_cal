@@ -53,6 +53,9 @@ interface AnalyzedItem extends ResearchItem {
   fee: number;
   netProfit: number;
   marginRate: number;
+  salesVat: number;
+  totalPurchaseVat: number;
+  vatPayable: number;
   verdict: 'good' | 'normal' | 'bad';
 }
 
@@ -121,9 +124,13 @@ export default function MarketResearchPage() {
       if (result.marginRate >= goodThreshold) verdict = 'good';
       else if (result.marginRate >= normalThreshold) verdict = 'normal';
 
-      return { ...item, fee, netProfit: result.netProfit, marginRate: result.marginRate, verdict };
+      return {
+        ...item, fee, netProfit: result.netProfit, marginRate: result.marginRate,
+        salesVat: result.salesVat, totalPurchaseVat: result.totalPurchaseVat, vatPayable: result.vatPayable,
+        verdict,
+      };
     } catch {
-      return { ...item, fee: 0, netProfit: 0, marginRate: 0, verdict: 'bad' };
+      return { ...item, fee: 0, netProfit: 0, marginRate: 0, salesVat: 0, totalPurchaseVat: 0, vatPayable: 0, verdict: 'bad' };
     }
   }, [preset, defaultShipping, goodThreshold, normalThreshold]);
 
@@ -136,7 +143,8 @@ export default function MarketResearchPage() {
     const avgMargin = analyzed.length > 0
       ? analyzed.reduce((s, i) => s + i.marginRate, 0) / analyzed.length
       : 0;
-    return { total: analyzed.length, good, normal, bad, avgMargin };
+    const totalVatPayable = analyzed.reduce((s, i) => s + i.vatPayable, 0);
+    return { total: analyzed.length, good, normal, bad, avgMargin, totalVatPayable };
   }, [analyzed]);
 
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,10 +246,13 @@ export default function MarketResearchPage() {
 
     const data = analyzed.map(item => ({
       '상품명': item.name,
-      '원가': item.cost,
+      '원가(VAT포함)': item.cost,
       '판매가': item.sellingPrice,
       '배송비': item.shippingCost,
       '수수료': Math.round(item.fee),
+      '매출부가세': Math.round(item.salesVat),
+      '매입부가세': Math.round(item.totalPurchaseVat),
+      '납부부가세': Math.round(item.vatPayable),
       '순이익': Math.round(item.netProfit),
       '마진율(%)': Number(item.marginRate.toFixed(1)),
       '판정': VERDICT_CONFIG[item.verdict].label,
@@ -368,7 +379,7 @@ export default function MarketResearchPage() {
 
         {/* 요약 카드 */}
         {analyzed.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="bg-gray-50 rounded-2xl p-4 text-center">
               <p className="text-xs font-medium text-gray-500 mb-1">전체</p>
               <p className="text-2xl font-bold">{summary.total}개</p>
@@ -388,6 +399,10 @@ export default function MarketResearchPage() {
             <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
               <p className="text-xs font-medium text-gray-500 mb-1">평균 마진율</p>
               <p className="text-2xl font-bold">{summary.avgMargin.toFixed(1)}%</p>
+            </div>
+            <div className="bg-blue-50 rounded-2xl p-4 text-center">
+              <p className="text-xs font-medium text-blue-600 mb-1">납부부가세 합계</p>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(summary.totalVatPayable)}</p>
             </div>
           </div>
         )}
@@ -410,10 +425,11 @@ export default function MarketResearchPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[140px]">상품명</TableHead>
-                    <TableHead className="text-right min-w-[100px]">원가</TableHead>
+                    <TableHead className="text-right min-w-[100px]">원가<span className="text-[10px] text-muted-foreground ml-0.5">(VAT포함)</span></TableHead>
                     <TableHead className="text-right min-w-[100px]">판매가</TableHead>
                     <TableHead className="text-right">배송비</TableHead>
                     <TableHead className="text-right">수수료</TableHead>
+                    <TableHead className="text-right">납부VAT</TableHead>
                     <TableHead className="text-right">순이익</TableHead>
                     <TableHead className="text-right">마진율</TableHead>
                     <TableHead className="text-center">판정</TableHead>
@@ -463,6 +479,12 @@ export default function MarketResearchPage() {
                         </TableCell>
                         <TableCell className="text-right text-sm text-muted-foreground">
                           {item.sellingPrice > 0 ? formatCurrency(item.fee) : '-'}
+                        </TableCell>
+                        <TableCell
+                          className="text-right text-sm text-muted-foreground cursor-help"
+                          title={item.sellingPrice > 0 ? `매출부가세: ${formatCurrency(item.salesVat)}\n매입부가세: ${formatCurrency(item.totalPurchaseVat)}\n납부부가세: ${formatCurrency(item.vatPayable)}` : ''}
+                        >
+                          {item.sellingPrice > 0 ? formatCurrency(item.vatPayable) : '-'}
                         </TableCell>
                         <TableCell className={`text-right font-medium ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
                           {item.sellingPrice > 0 ? formatCurrency(item.netProfit) : '-'}
