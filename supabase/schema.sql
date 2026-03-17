@@ -380,9 +380,9 @@ create table if not exists public.admin_users (
 );
 
 alter table public.admin_users enable row level security;
-create policy "Only admins can view admin_users"
+create policy "Users can check own admin status"
   on public.admin_users for select
-  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+  using (auth.uid() = user_id);
 
 -- 공지사항
 create table if not exists public.announcements (
