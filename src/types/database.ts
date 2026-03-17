@@ -336,6 +336,101 @@ export interface Database {
           created_at?: string;
         };
       };
+      admin_users: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          role?: string;
+        };
+      };
+      announcements: {
+        Row: {
+          id: string;
+          admin_id: string;
+          title: string;
+          content: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          title: string;
+          content: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          admin_id?: string;
+          title?: string;
+          content?: string;
+          is_active?: boolean;
+        };
+      };
+      user_activity_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          action: string;
+          resource: string | null;
+          metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action: string;
+          resource?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          action?: string;
+          resource?: string | null;
+          metadata?: Json | null;
+        };
+      };
+      user_status: {
+        Row: {
+          user_id: string;
+          status: string;
+          suspended_reason: string | null;
+          suspended_at: string | null;
+          suspended_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          status?: string;
+          suspended_reason?: string | null;
+          suspended_at?: string | null;
+          suspended_by?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          status?: string;
+          suspended_reason?: string | null;
+          suspended_at?: string | null;
+          suspended_by?: string | null;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

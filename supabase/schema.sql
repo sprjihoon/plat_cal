@@ -366,3 +366,87 @@ create policy "Users can delete own goals"
 drop trigger if exists set_updated_at on public.goals;
 create trigger set_updated_at before update on public.goals
   for each row execute procedure public.handle_updated_at();
+
+-- ============================================================
+-- 관리자 시스템 테이블
+-- ============================================================
+
+-- 관리자 목록 (profiles.id를 참조, 특정 유저를 관리자로 지정)
+create table if not exists public.admin_users (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null unique,
+  role text default 'admin' not null,
+  created_at timestamptz default now() not null
+);
+
+alter table public.admin_users enable row level security;
+create policy "Only admins can view admin_users"
+  on public.admin_users for select
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+-- 공지사항
+create table if not exists public.announcements (
+  id uuid default uuid_generate_v4() primary key,
+  admin_id uuid references auth.users not null,
+  title text not null,
+  content text not null,
+  is_active boolean default true not null,
+  created_at timestamptz default now() not null,
+  updated_at timestamptz default now() not null
+);
+
+create index if not exists idx_announcements_active on public.announcements(is_active, created_at desc);
+
+alter table public.announcements enable row level security;
+create policy "Anyone can view active announcements"
+  on public.announcements for select using (true);
+create policy "Admins can manage announcements"
+  on public.announcements for all
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+drop trigger if exists set_updated_at on public.announcements;
+create trigger set_updated_at before update on public.announcements
+  for each row execute procedure public.handle_updated_at();
+
+-- 유저 활동 로그
+create table if not exists public.user_activity_logs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  action text not null,
+  resource text,
+  metadata jsonb,
+  created_at timestamptz default now() not null
+);
+
+create index if not exists idx_activity_logs_user on public.user_activity_logs(user_id, created_at desc);
+create index if not exists idx_activity_logs_action on public.user_activity_logs(action, created_at desc);
+create index if not exists idx_activity_logs_created on public.user_activity_logs(created_at desc);
+
+alter table public.user_activity_logs enable row level security;
+create policy "Admins can view all activity logs"
+  on public.user_activity_logs for select
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+create policy "Users can insert own logs"
+  on public.user_activity_logs for insert
+  with check (auth.uid() = user_id);
+
+-- 유저 상태 관리 (일시정지 등)
+create table if not exists public.user_status (
+  user_id uuid references auth.users on delete cascade primary key,
+  status text default 'active' not null,
+  suspended_reason text,
+  suspended_at timestamptz,
+  suspended_by uuid references auth.users,
+  updated_at timestamptz default now() not null
+);
+
+alter table public.user_status enable row level security;
+create policy "Users can view own status"
+  on public.user_status for select using (auth.uid() = user_id);
+create policy "Admins can manage user status"
+  on public.user_status for all
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+drop trigger if exists set_updated_at on public.user_status;
+create trigger set_updated_at before update on public.user_status
+  for each row execute procedure public.handle_updated_at();

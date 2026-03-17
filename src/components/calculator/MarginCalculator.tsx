@@ -76,8 +76,8 @@ export function MarginCalculator() {
   const [advertisingCost, setAdvertisingCost] = useState('');
   const [otherCosts, setOtherCosts] = useState('');
 
-  // 고급 설정
-  const [wholesaleVatType, setWholesaleVatType] = useState<VatType>('excluded');
+  // 도매가는 항상 VAT 포함
+  const wholesaleVatType: VatType = 'included';
 
   // 계산 결과
   const [result, setResult] = useState<CalculationResult | null>(null);
@@ -337,7 +337,6 @@ export function MarginCalculator() {
     setPackagingCost('');
     setAdvertisingCost('');
     setOtherCosts('');
-    setWholesaleVatType('excluded');
     setResult(null);
     setRecommendedPrice(null);
     setMaxAllowableCost(null);
@@ -760,43 +759,6 @@ export function MarginCalculator() {
         </AccordionItem>
       </Accordion>
 
-      {/* 고급 설정 (접힘) */}
-      <Accordion>
-        <AccordionItem className="border rounded-lg">
-          <AccordionTrigger className="px-4 text-sm text-muted-foreground">
-            고급 설정
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium mb-2 block">도매가 VAT 방식</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={wholesaleVatType === 'excluded' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setWholesaleVatType('excluded')}
-                    className="flex-1"
-                  >
-                    VAT 별도
-                  </Button>
-                  <Button
-                    variant={wholesaleVatType === 'included' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setWholesaleVatType('included')}
-                    className="flex-1"
-                  >
-                    VAT 포함
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  도매처 세금계산서 기준으로 선택
-                </p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
       {/* 계산하기 버튼 */}
       <Button 
         onClick={handleCalculate} 
@@ -863,16 +825,12 @@ export function MarginCalculator() {
                 <span>{formatCurrency(result.actualSellingPrice)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">원가</span>
+                <span className="text-muted-foreground">원가 (공급가)</span>
                 <span className="text-red-600">-{formatCurrency(result.productCostSupply)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">수수료 ({totalFeeRate}%)</span>
                 <span className="text-red-600">-{formatCurrency(result.platformFee + result.paymentFee)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">부가세 (순)</span>
-                <span className="text-red-600">-{formatCurrency(result.netVat)}</span>
               </div>
               {additionalCostTotal > 0 && (
                 <div className="flex justify-between">
@@ -880,6 +838,31 @@ export function MarginCalculator() {
                   <span className="text-red-600">-{formatCurrency(additionalCostTotal)}</span>
                 </div>
               )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">납부부가세</span>
+                <span className={result.vatPayable >= 0 ? 'text-red-600' : 'text-green-600'}>
+                  {result.vatPayable >= 0 ? '-' : '+'}{formatCurrency(Math.abs(result.vatPayable))}
+                </span>
+              </div>
+            </div>
+
+            {/* 부가세 상세 */}
+            <div className="mt-3 pt-3 border-t space-y-1 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground text-sm mb-1.5">부가세 상세</p>
+              <div className="flex justify-between">
+                <span>매출부가세 (판매가의 1/11)</span>
+                <span>{formatCurrency(result.salesVat)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>매입부가세 (원가+수수료+비용의 VAT)</span>
+                <span>-{formatCurrency(result.totalPurchaseVat)}</span>
+              </div>
+              <div className="flex justify-between font-medium text-foreground">
+                <span>납부부가세</span>
+                <span className={result.vatPayable >= 0 ? 'text-red-600' : 'text-green-600'}>
+                  {formatCurrency(result.vatPayable)}
+                </span>
+              </div>
             </div>
 
             {mode === 'profit' && result.breakEvenPrice > 0 && result.breakEvenPrice < Infinity && (

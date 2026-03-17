@@ -10,9 +10,6 @@ import { MARGIN_THRESHOLDS, OPERATION_MESSAGES } from '@/constants';
 
 /**
  * 실제 판매가 계산 (할인 적용)
- * - 할인금액 입력 시: 판매가 - 할인금액
- * - 할인율 입력 시: 판매가 × (1 - 할인율/100)
- * - 할인 입력이 없으면: 판매가
  */
 export function calculateActualSellingPrice(
   sellingPrice: number,
@@ -30,8 +27,7 @@ export function calculateActualSellingPrice(
 
 /**
  * 매출 VAT 계산 (판매가 VAT 포함 기준)
- * - 공급가 = 판매가 / 1.1
- * - 매출VAT = 판매가 / 11
+ * 공급가 = 판매가 / 1.1, 매출VAT = 판매가 / 11
  */
 export function calculateSalesVat(actualSellingPriceIncluded: number): {
   supplyPrice: number;
@@ -43,29 +39,29 @@ export function calculateSalesVat(actualSellingPriceIncluded: number): {
 }
 
 /**
- * 매입 VAT 계산
- * - VAT 별도: 매입가_공급가 = 원가, 매입VAT = 원가 × 0.1
- * - VAT 포함: 매입가_공급가 = 원가 / 1.1, 매입VAT = 원가 / 11
+ * 매입 VAT 계산 (항상 VAT 포함 기준)
+ * 공급가 = 원가 / 1.1, 매입VAT = 원가 / 11
  */
 export function calculatePurchaseVat(
   productCost: number,
-  vatType: VatType
+  _vatType?: VatType
 ): {
   supplyPrice: number;
   vat: number;
   includedPrice: number;
 } {
-  if (vatType === 'excluded') {
-    const supplyPrice = productCost;
-    const vat = productCost * 0.1;
-    const includedPrice = productCost + vat;
-    return { supplyPrice, vat, includedPrice };
-  } else {
-    const includedPrice = productCost;
-    const supplyPrice = productCost / 1.1;
-    const vat = productCost / 11;
-    return { supplyPrice, vat, includedPrice };
-  }
+  const includedPrice = productCost;
+  const supplyPrice = productCost / 1.1;
+  const vat = productCost / 11;
+  return { supplyPrice, vat, includedPrice };
+}
+
+/**
+ * VAT 포함 금액에서 VAT 추출 (비용항목의 매입부가세 계산용)
+ * 세금계산서 발행 비용(수수료, 광고비, 택배비, 포장비 등)의 VAT
+ */
+function extractVat(amountIncludingVat: number): number {
+  return amountIncludingVat / 11;
 }
 
 /**
@@ -112,8 +108,32 @@ export function determineOperationJudgment(marginRate: number): OperationJudgmen
 }
 
 /**
+ * 총 매입부가세 계산 (원가 + 비용항목들의 VAT 합산)
+ * 세금계산서 발행 가능한 비용: 수수료, 광고비, 택배비, 포장비, 기타비용
+ */
+function calculateTotalPurchaseVat(
+  productCostVat: number,
+  fees: { platformFee: number; paymentFee: number },
+  advertisingCost: number,
+  sellerShippingCost: number,
+  packagingCost: number,
+  materialCost: number,
+  otherCosts: number
+): number {
+  return (
+    productCostVat +
+    extractVat(fees.platformFee) +
+    extractVat(fees.paymentFee) +
+    extractVat(advertisingCost) +
+    extractVat(sellerShippingCost) +
+    extractVat(packagingCost) +
+    extractVat(materialCost) +
+    extractVat(otherCosts)
+  );
+}
+
+/**
  * 손익분기 판매가 계산
- * 순이익 = 0이 되는 최소 판매가를 구함
  */
 export function calculateBreakEvenPrice(inputs: CalculatorInputs): number {
   const {
@@ -127,13 +147,10 @@ export function calculateBreakEvenPrice(inputs: CalculatorInputs): number {
     materialCost,
     advertisingCost,
     otherCosts,
-    wholesaleVatType,
   } = inputs;
 
-  // 매입 VAT 계산
-  const purchase = calculatePurchaseVat(productCost, wholesaleVatType);
+  const purchase = calculatePurchaseVat(productCost);
 
-  // 고정 비용 합계 (판매가와 무관한 비용)
   const fixedCosts =
     sellerShippingCost +
     packagingCost +
@@ -142,28 +159,30 @@ export function calculateBreakEvenPrice(inputs: CalculatorInputs): number {
     otherCosts +
     couponBurden;
 
-  // 총유입금액 = 실제판매가 + 고객부담배송비
-  // 순이익 = 총유입금액 - 총비용 = 0
-  // 실제판매가 + 고객부담배송비 = 매입가_공급가 + 순부가세 + 플랫폼수수료 + 결제수수료 + 고정비용
-
-  // 순부가세 = 매출VAT - 매입VAT = (실제판매가/11) - 매입VAT
-  // 플랫폼수수료 = 실제판매가 × (플랫폼수수료율/100)
-  // 결제수수료 = 실제판매가 × (결제수수료율/100)
-
-  // P + 고객배송비 = 매입가_공급가 + (P/11 - 매입VAT) + P×(플랫폼율+결제율)/100 + 고정비용
-  // P - P/11 - P×(플랫폼율+결제율)/100 = 매입가_공급가 - 매입VAT + 고정비용 - 고객배송비
-  // P × (1 - 1/11 - (플랫폼율+결제율)/100) = 매입가_공급가 - 매입VAT + 고정비용 - 고객배송비
-  // P × (10/11 - (플랫폼율+결제율)/100) = 매입가_공급가 - 매입VAT + 고정비용 - 고객배송비
+  // 매입부가세에 비용항목 VAT 포함하므로 순부가세 계산이 달라짐
+  // 납부부가세 = 매출VAT - 총매입VAT
+  // 총매입VAT = 원가VAT + 수수료VAT + 광고비VAT + 택배비VAT + 포장비VAT + 기타VAT
+  // 수수료는 P에 비례하므로 수수료VAT도 P에 비례
+  // 고정비용VAT = (택배비+포장비+광고비+기타)/11
+  const fixedCostVat = (sellerShippingCost + packagingCost + materialCost + advertisingCost + otherCosts) / 11;
 
   const totalFeeRate = (platformFeeRate + paymentFeeRate) / 100;
-  const coefficient = 10 / 11 - totalFeeRate;
+  // 수수료VAT = P * totalFeeRate / 11
+  // 납부부가세 = P/11 - purchase.vat - P*totalFeeRate/11 - fixedCostVat
+  // = P*(1 - totalFeeRate)/11 - purchase.vat - fixedCostVat
+
+  // 순이익 = P + 고객배송비 - purchase.supplyPrice - 납부부가세 - 수수료 - 고정비용
+  // 0 = P + 고객배송비 - purchase.supplyPrice - [P*(1-totalFeeRate)/11 - purchase.vat - fixedCostVat] - P*totalFeeRate - 고정비용
+  // 0 = P(1 - (1-totalFeeRate)/11 - totalFeeRate) + 고객배송비 - purchase.supplyPrice + purchase.vat + fixedCostVat - 고정비용
+
+  const coefficient = 1 - (1 - totalFeeRate) / 11 - totalFeeRate;
 
   if (coefficient <= 0) {
     return Infinity;
   }
 
   const rightSide =
-    purchase.supplyPrice - purchase.vat + fixedCosts - customerShippingCost;
+    purchase.supplyPrice - purchase.vat - fixedCostVat + fixedCosts - customerShippingCost;
 
   const breakEvenPrice = rightSide / coefficient;
 
@@ -188,13 +207,10 @@ export function calculateRecommendedPrice(
     materialCost,
     advertisingCost,
     otherCosts,
-    wholesaleVatType,
   } = inputs;
 
-  // 매입 VAT 계산
-  const purchase = calculatePurchaseVat(productCost, wholesaleVatType);
+  const purchase = calculatePurchaseVat(productCost);
 
-  // 고정 비용 합계
   const fixedCosts =
     sellerShippingCost +
     packagingCost +
@@ -203,33 +219,24 @@ export function calculateRecommendedPrice(
     otherCosts +
     couponBurden;
 
-  // 마진율 = 순이익 / 실제판매가 × 100 = targetMarginRate
-  // 순이익 = 실제판매가 × (targetMarginRate/100)
-  // 순이익 = 총유입금액 - 총비용
-  // 실제판매가 × (targetMarginRate/100) = (실제판매가 + 고객배송비) - 총비용
-
-  // 총비용 = 매입가_공급가 + 순부가세 + 플랫폼수수료 + 결제수수료 + 고정비용
-  // 순부가세 = (P/11) - 매입VAT
-  // 플랫폼수수료 = P × (플랫폼율/100)
-  // 결제수수료 = P × (결제율/100)
-
-  // P × (targetMarginRate/100) = P + 고객배송비 - 매입가_공급가 - (P/11 - 매입VAT) - P×(플랫폼율+결제율)/100 - 고정비용
-  // P × (targetMarginRate/100) = P - P/11 - P×(플랫폼율+결제율)/100 + 고객배송비 - 매입가_공급가 + 매입VAT - 고정비용
-  // P × (targetMarginRate/100 - 1 + 1/11 + (플랫폼율+결제율)/100) = 고객배송비 - 매입가_공급가 + 매입VAT - 고정비용
-  // P × (targetMarginRate/100 - 10/11 + (플랫폼율+결제율)/100) = 고객배송비 - 매입가_공급가 + 매입VAT - 고정비용
+  const fixedCostVat = (sellerShippingCost + packagingCost + materialCost + advertisingCost + otherCosts) / 11;
 
   const totalFeeRate = (platformFeeRate + paymentFeeRate) / 100;
   const targetRate = targetMarginRate / 100;
-  const coefficient = targetRate - 10 / 11 + totalFeeRate;
 
-  // coefficient가 음수면 산출 가능
-  // 양수면 불가능 (목표 마진이 너무 높음)
+  // P * targetRate = P + 고객배송비 - purchase.supplyPrice - 납부부가세 - 수수료 - 고정비용
+  // 납부부가세 = P*(1-totalFeeRate)/11 - purchase.vat - fixedCostVat
+  // P * targetRate = P(1 - (1-totalFeeRate)/11 - totalFeeRate) + 고객배송비 - purchase.supplyPrice + purchase.vat + fixedCostVat - 고정비용
+  // P * (targetRate - 1 + (1-totalFeeRate)/11 + totalFeeRate) = 고객배송비 - purchase.supplyPrice + purchase.vat + fixedCostVat - 고정비용
+
+  const coefficient = targetRate - 1 + (1 - totalFeeRate) / 11 + totalFeeRate;
+
   if (coefficient >= 0) {
     return Infinity;
   }
 
   const rightSide =
-    customerShippingCost - purchase.supplyPrice + purchase.vat - fixedCosts;
+    customerShippingCost - purchase.supplyPrice + purchase.vat + fixedCostVat - fixedCosts;
 
   const recommendedPrice = rightSide / coefficient;
 
@@ -256,10 +263,8 @@ export function calculateMaxAllowableCost(
     materialCost,
     advertisingCost,
     otherCosts,
-    wholesaleVatType,
   } = inputs;
 
-  // 실제 판매가 계산
   const actualSellingPrice = calculateActualSellingPrice(
     sellingPrice,
     discountRate,
@@ -270,16 +275,10 @@ export function calculateMaxAllowableCost(
     return 0;
   }
 
-  // 목표 순이익
   const targetProfit = actualSellingPrice * (targetMarginRate / 100);
-
-  // 총 유입금액
   const totalIncome = actualSellingPrice + customerShippingCost;
-
-  // 수수료 계산
   const fees = calculateFees(actualSellingPrice, platformFeeRate, paymentFeeRate);
 
-  // 고정 비용 (원가 제외)
   const fixedCostsWithoutCost =
     fees.platformFee +
     fees.paymentFee +
@@ -290,50 +289,30 @@ export function calculateMaxAllowableCost(
     otherCosts +
     couponBurden;
 
-  // 순이익 = 총유입금액 - 총비용
-  // targetProfit = totalIncome - (매입가_공급가 + 순부가세 + 고정비용)
-  // 순부가세 = 매출VAT - 매입VAT
-
-  // 매출VAT 계산
   const salesVat = actualSellingPrice / 11;
+  const feeVat = (fees.platformFee + fees.paymentFee) / 11;
+  const costVat = (sellerShippingCost + packagingCost + materialCost + advertisingCost + otherCosts) / 11;
 
-  // VAT 별도인 경우:
-  // 매입가_공급가 = C (원가)
-  // 매입VAT = C × 0.1
-  // 순부가세 = 매출VAT - C × 0.1
-  // targetProfit = totalIncome - C - (매출VAT - C×0.1) - 고정비용
-  // targetProfit = totalIncome - C - 매출VAT + C×0.1 - 고정비용
-  // targetProfit = totalIncome - 0.9C - 매출VAT - 고정비용
-  // 0.9C = totalIncome - 매출VAT - 고정비용 - targetProfit
-  // C = (totalIncome - 매출VAT - 고정비용 - targetProfit) / 0.9
-
-  // VAT 포함인 경우:
-  // 매입가_공급가 = C / 1.1
-  // 매입VAT = C / 11
-  // 순부가세 = 매출VAT - C/11
-  // targetProfit = totalIncome - C/1.1 - (매출VAT - C/11) - 고정비용
-  // targetProfit = totalIncome - C/1.1 - 매출VAT + C/11 - 고정비용
-  // C/1.1 - C/11 = 10C/11 - C/11 = 9C/11 = 0.818...C
-  // targetProfit = totalIncome - (9C/11) - 매출VAT - 고정비용
-  // 9C/11 = totalIncome - 매출VAT - 고정비용 - targetProfit
-  // C = (totalIncome - 매출VAT - 고정비용 - targetProfit) × 11/9
+  // 도매가 VAT 포함 고정:
+  // 원가공급가 = C / 1.1, 원가VAT = C / 11
+  // 총매입VAT = C/11 + feeVat + costVat
+  // 납부부가세 = salesVat - C/11 - feeVat - costVat
+  // 순이익 = totalIncome - C/1.1 - 납부부가세 - 수수료 - 고정비용(원가제외)
+  //        = totalIncome - C/1.1 - salesVat + C/11 + feeVat + costVat - fixedCostsWithoutCost
+  // targetProfit = totalIncome - 9C/11 - salesVat + feeVat + costVat - fixedCostsWithoutCost
+  // 9C/11 = totalIncome - salesVat + feeVat + costVat - fixedCostsWithoutCost - targetProfit
+  // C = (totalIncome - salesVat + feeVat + costVat - fixedCostsWithoutCost - targetProfit) * 11/9
 
   const availableForCost =
-    totalIncome - salesVat - fixedCostsWithoutCost - targetProfit;
+    totalIncome - salesVat + feeVat + costVat - fixedCostsWithoutCost - targetProfit;
 
-  let maxCost: number;
-
-  if (wholesaleVatType === 'excluded') {
-    maxCost = availableForCost / 0.9;
-  } else {
-    maxCost = (availableForCost * 11) / 9;
-  }
+  const maxCost = (availableForCost * 11) / 9;
 
   return Math.max(0, Math.floor(maxCost));
 }
 
 /**
- * 10% 할인 시 예상 순이익 계산 (재귀 방지를 위해 직접 계산)
+ * 10% 할인 시 예상 순이익 계산
  */
 export function calculateProfitAfterDiscount(
   inputs: CalculatorInputs,
@@ -351,31 +330,22 @@ export function calculateProfitAfterDiscount(
     materialCost,
     advertisingCost,
     otherCosts,
-    wholesaleVatType,
   } = inputs;
 
-  // 할인 적용된 판매가
   const actualSellingPrice = sellingPrice * (1 - discountPercent / 100);
-  
-  // 총 유입 금액
   const totalIncome = actualSellingPrice + customerShippingCost;
-  
-  // 매출 VAT 계산
   const sales = calculateSalesVat(actualSellingPrice);
-  
-  // 매입 VAT 계산
-  const purchase = calculatePurchaseVat(productCost, wholesaleVatType);
-  
-  // 순부가세
-  const netVat = sales.vat - purchase.vat;
-  
-  // 수수료 계산
+  const purchase = calculatePurchaseVat(productCost);
   const fees = calculateFees(actualSellingPrice, platformFeeRate, paymentFeeRate);
-  
-  // 총 비용 계산
+
+  const totalPurchaseVat = calculateTotalPurchaseVat(
+    purchase.vat, fees, advertisingCost, sellerShippingCost, packagingCost, materialCost, otherCosts
+  );
+  const vatPayable = sales.vat - totalPurchaseVat;
+
   const totalCost =
     purchase.supplyPrice +
-    netVat +
+    vatPayable +
     fees.platformFee +
     fees.paymentFee +
     sellerShippingCost +
@@ -384,13 +354,12 @@ export function calculateProfitAfterDiscount(
     advertisingCost +
     otherCosts +
     couponBurden;
-  
-  // 순이익
+
   return totalIncome - totalCost;
 }
 
 /**
- * 메인 마진 계산 함수 (판매가 기준 모드)
+ * 메인 마진 계산 함수
  */
 export function calculateMargin(inputs: CalculatorInputs): CalculationResult {
   const {
@@ -407,35 +376,31 @@ export function calculateMargin(inputs: CalculatorInputs): CalculationResult {
     materialCost,
     advertisingCost,
     otherCosts,
-    wholesaleVatType,
   } = inputs;
 
-  // 1. 실제 판매가 계산
   const actualSellingPrice = calculateActualSellingPrice(
     sellingPrice,
     discountRate,
     discountAmount
   );
 
-  // 2. 총 유입 금액
   const totalIncome = actualSellingPrice + customerShippingCost;
-
-  // 3. 매출 VAT 계산
   const sales = calculateSalesVat(actualSellingPrice);
-
-  // 4. 매입 VAT 계산
-  const purchase = calculatePurchaseVat(productCost, wholesaleVatType);
-
-  // 5. 순부가세
-  const netVat = sales.vat - purchase.vat;
-
-  // 6. 수수료 계산
+  const purchase = calculatePurchaseVat(productCost);
   const fees = calculateFees(actualSellingPrice, platformFeeRate, paymentFeeRate);
 
-  // 7. 총 비용 계산
+  // 총 매입부가세 = 원가VAT + 수수료VAT + 광고비VAT + 택배비VAT + 포장비VAT + 기타VAT
+  const totalPurchaseVat = calculateTotalPurchaseVat(
+    purchase.vat, fees, advertisingCost, sellerShippingCost, packagingCost, materialCost, otherCosts
+  );
+
+  // 납부부가세 = 매출부가세 - 총매입부가세
+  const vatPayable = sales.vat - totalPurchaseVat;
+
+  // 총 비용 (납부부가세 사용)
   const totalCost =
     purchase.supplyPrice +
-    netVat +
+    vatPayable +
     fees.platformFee +
     fees.paymentFee +
     sellerShippingCost +
@@ -445,29 +410,18 @@ export function calculateMargin(inputs: CalculatorInputs): CalculationResult {
     otherCosts +
     couponBurden;
 
-  // 8. 순이익
   const netProfit = totalIncome - totalCost;
 
-  // 9. 마진율 (실제 판매가 기준)
   const marginRate =
     actualSellingPrice > 0 ? (netProfit / actualSellingPrice) * 100 : 0;
 
-  // 10. 운영 판단
   const operationJudgment = determineOperationJudgment(marginRate);
-
-  // 11. 손익분기 판매가
   const breakEvenPrice = calculateBreakEvenPrice(inputs);
-
-  // 12. 권장 판매가 (30% 마진 기준)
   const recommendedPrice = calculateRecommendedPrice(inputs, 30);
-
-  // 13. 맞출 수 있는 최대 원가 (현재 마진율 유지 기준)
   const maxAllowableCost = calculateMaxAllowableCost(
     inputs,
     Math.max(marginRate, 0)
   );
-
-  // 14. 10% 할인 시 예상 순이익
   const profitAfter10PercentDiscount = calculateProfitAfterDiscount(inputs, 10);
 
   return {
@@ -479,13 +433,15 @@ export function calculateMargin(inputs: CalculatorInputs): CalculationResult {
     productCostSupply: Math.round(purchase.supplyPrice),
     platformFee: Math.round(fees.platformFee),
     paymentFee: Math.round(fees.paymentFee),
-    netVat: Math.round(netVat),
+    netVat: Math.round(vatPayable),
     shippingCost: Math.round(sellerShippingCost),
     packagingAndMaterialCost: Math.round(packagingCost + materialCost),
     advertisingCost: Math.round(advertisingCost),
     otherCosts: Math.round(otherCosts + couponBurden),
     salesVat: Math.round(sales.vat),
     purchaseVat: Math.round(purchase.vat),
+    totalPurchaseVat: Math.round(totalPurchaseVat),
+    vatPayable: Math.round(vatPayable),
     breakEvenPrice,
     recommendedPrice,
     maxAllowableCost,
@@ -505,7 +461,6 @@ export function calculateByTargetMargin(
     inputs.targetMarginRate
   );
 
-  // 권장 판매가로 다시 계산
   const modifiedInputs = {
     ...inputs,
     sellingPrice: targetRecommendedPrice,
@@ -532,7 +487,6 @@ export function calculateByMaxCost(
     inputs.targetMarginRate
   );
 
-  // 찾은 원가로 다시 계산
   const modifiedInputs = {
     ...inputs,
     productCost: calculatedMaxCost,

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { checkRateLimit } from './rate-limit';
 
 interface AuthResult {
   user: { id: string; email?: string };
   supabase: Awaited<ReturnType<typeof createClient>>;
+}
+
+interface AdminAuthResult extends AuthResult {
+  serviceClient: Awaited<ReturnType<typeof createServiceClient>>;
 }
 
 export async function withAuth(): Promise<AuthResult | NextResponse> {
@@ -17,6 +22,24 @@ export async function withAuth(): Promise<AuthResult | NextResponse> {
   }
 
   return { user, supabase };
+}
+
+export async function withAdminAuth(): Promise<AdminAuthResult | NextResponse> {
+  const auth = await withAuth();
+  if (auth instanceof NextResponse) return auth;
+
+  const { data: adminRow } = await (auth.supabase as any)
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', auth.user.id)
+    .single();
+
+  if (!adminRow) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const serviceClient = await createServiceClient();
+  return { ...auth, serviceClient };
 }
 
 export function withRateLimit(

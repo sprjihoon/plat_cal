@@ -68,9 +68,11 @@ export interface CalculationResult {
   advertisingCost: number;
   otherCosts: number;
 
-  // 추가 정보
+  // 부가세 상세
   salesVat: number;
   purchaseVat: number;
+  totalPurchaseVat: number;
+  vatPayable: number;
   breakEvenPrice: number;
   recommendedPrice: number;
   maxAllowableCost: number;
