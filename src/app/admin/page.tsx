@@ -23,7 +23,8 @@ import {
 import {
   Users, Bell, Megaphone, BarChart3, Loader2, Shield, Search,
   Trash2, Pause, Play, RotateCcw, Send, Plus, TrendingUp,
-  TrendingDown, Activity, UserCheck, UserX, Eye,
+  TrendingDown, Activity, UserCheck, UserX, Eye, Globe, Database,
+  Clock, ArrowRightLeft, LogIn, LogOut, Monitor,
 } from 'lucide-react';
 
 interface UserData {
@@ -74,6 +75,37 @@ interface LogEntry {
   profiles?: { name: string; email: string };
 }
 
+interface PageStatsData {
+  pageStats: { path: string; views: number; uniqueSessions: number; avgDuration: number }[];
+  entryPages: { path: string; count: number; rate: number }[];
+  exitPages: { path: string; count: number; rate: number }[];
+  hourlyDistribution: number[];
+  dailyViews: { date: string; views: number; uniqueUsers: number }[];
+  sessionSummary: { totalSessions: number; avgPagesPerSession: number; avgSessionDuration: number };
+}
+
+interface UsageData {
+  byRecords: UserUsageRow[];
+  bySessions: UserUsageRow[];
+  byDuration: UserUsageRow[];
+  byPageViews: UserUsageRow[];
+  totalUsers: number;
+}
+
+interface UserUsageRow {
+  id: string;
+  name: string | null;
+  email: string | null;
+  products: number;
+  sales: number;
+  ads: number;
+  expenses: number;
+  totalRecords: number;
+  sessionCount: number;
+  totalDuration: number;
+  pageViews: number;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [authChecked, setAuthChecked] = useState(false);
@@ -114,27 +146,343 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v || 'dashboard')}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-1.5">
-              <BarChart3 className="h-4 w-4" />통계
+              <BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">통계</span>
+            </TabsTrigger>
+            <TabsTrigger value="pages" className="flex items-center gap-1.5">
+              <Globe className="h-4 w-4" /><span className="hidden sm:inline">페이지</span>
+            </TabsTrigger>
+            <TabsTrigger value="usage" className="flex items-center gap-1.5">
+              <Database className="h-4 w-4" /><span className="hidden sm:inline">사용량</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-1.5">
-              <Users className="h-4 w-4" />유저
+              <Users className="h-4 w-4" /><span className="hidden sm:inline">유저</span>
             </TabsTrigger>
             <TabsTrigger value="announcements" className="flex items-center gap-1.5">
-              <Megaphone className="h-4 w-4" />공지/알림
+              <Megaphone className="h-4 w-4" /><span className="hidden sm:inline">공지</span>
             </TabsTrigger>
             <TabsTrigger value="logs" className="flex items-center gap-1.5">
-              <Activity className="h-4 w-4" />로그
+              <Activity className="h-4 w-4" /><span className="hidden sm:inline">로그</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard"><DashboardTab /></TabsContent>
+          <TabsContent value="pages"><PagesTab /></TabsContent>
+          <TabsContent value="usage"><UsageTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="announcements"><AnnouncementsTab /></TabsContent>
           <TabsContent value="logs"><LogsTab /></TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}초`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}분 ${seconds % 60}초`;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}시간 ${m}분`;
+}
+
+function PagesTab() {
+  const [data, setData] = useState<PageStatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState('30');
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/admin/stats/pages?days=${days}`)
+      .then((r) => r.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [days]);
+
+  if (loading) return <LoadingSpinner />;
+  if (!data) return <p className="text-muted-foreground text-center py-8">데이터를 불러올 수 없습니다</p>;
+
+  const hourMax = Math.max(...data.hourlyDistribution, 1);
+  const dailyMax = Math.max(...data.dailyViews.map(d => d.views), 1);
+
+  return (
+    <div className="space-y-6 mt-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2"><Globe className="h-5 w-5" />페이지 분석</h2>
+        <Select value={days} onValueChange={(v) => setDays(v || '30')}>
+          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">최근 7일</SelectItem>
+            <SelectItem value="14">최근 14일</SelectItem>
+            <SelectItem value="30">최근 30일</SelectItem>
+            <SelectItem value="90">최근 90일</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 세션 요약 카드 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <StatCard icon={Monitor} label="총 세션" value={data.sessionSummary.totalSessions} />
+        <StatCard icon={ArrowRightLeft} label="세션당 페이지" value={data.sessionSummary.avgPagesPerSession} sub="평균" />
+        <StatCard icon={Clock} label="평균 세션 시간" value={0} sub={formatDuration(data.sessionSummary.avgSessionDuration)} />
+      </div>
+
+      {/* 일별 페이지뷰 추이 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">일별 페이지뷰 추이</CardTitle>
+          <CardDescription>
+            <span className="inline-flex items-center gap-1.5 mr-4"><span className="w-3 h-3 rounded-sm bg-[#8C9EFF]" /> 페이지뷰</span>
+            <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#D6F74C]" /> 순 방문자</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-[2px] h-[140px]">
+            {data.dailyViews.map((d) => (
+              <div key={d.date} className="flex-1 flex flex-col items-center gap-[1px] h-full justify-end group relative">
+                <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border rounded-md px-2 py-1 text-xs shadow-md whitespace-nowrap z-10">
+                  <p className="font-medium">{d.date}</p>
+                  <p>PV {d.views} · UV {d.uniqueUsers}</p>
+                </div>
+                <div
+                  className="w-full bg-[#8C9EFF] rounded-t-sm min-h-[1px]"
+                  style={{ height: `${(d.views / dailyMax) * 100}%` }}
+                />
+                <div
+                  className="w-full bg-[#D6F74C] rounded-t-sm min-h-[1px]"
+                  style={{ height: `${(d.uniqueUsers / dailyMax) * 100}%` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px] text-muted-foreground">{data.dailyViews[0]?.date}</span>
+            <span className="text-[10px] text-muted-foreground">{data.dailyViews[data.dailyViews.length - 1]?.date}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 페이지별 통계 테이블 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">페이지별 통계</CardTitle>
+          <CardDescription>방문 수 기준 상위 페이지</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>페이지</TableHead>
+                <TableHead className="text-right">방문수</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">고유 세션</TableHead>
+                <TableHead className="text-right">평균 체류</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.pageStats.map((p) => (
+                <TableRow key={p.path}>
+                  <TableCell className="font-mono text-sm">{p.path}</TableCell>
+                  <TableCell className="text-right">{p.views.toLocaleString()}</TableCell>
+                  <TableCell className="text-right hidden sm:table-cell">{p.uniqueSessions.toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{formatDuration(p.avgDuration)}</TableCell>
+                </TableRow>
+              ))}
+              {data.pageStats.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    아직 페이지뷰 데이터가 없습니다
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 유입 페이지 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><LogIn className="h-4 w-4 text-green-600" />유입 페이지 TOP</CardTitle>
+            <CardDescription>유저가 처음 접속한 페이지</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {data.entryPages.map((p, i) => (
+                <div key={p.path} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                      {i + 1}
+                    </span>
+                    <span className="font-mono">{p.path}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">{p.count}회</span>
+                    <Badge variant="secondary">{p.rate}%</Badge>
+                  </div>
+                </div>
+              ))}
+              {data.entryPages.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 이탈 페이지 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><LogOut className="h-4 w-4 text-red-500" />이탈 페이지 TOP</CardTitle>
+            <CardDescription>유저가 마지막으로 본 페이지</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {data.exitPages.map((p, i) => (
+                <div key={p.path} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-muted text-muted-foreground'}`}>
+                      {i + 1}
+                    </span>
+                    <span className="font-mono">{p.path}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">{p.count}회</span>
+                    <Badge variant="secondary">{p.rate}%</Badge>
+                  </div>
+                </div>
+              ))}
+              {data.exitPages.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 시간대별 접속 분포 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" />시간대별 접속 분포</CardTitle>
+          <CardDescription>하루 중 어느 시간에 접속이 많은지</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-1 h-[120px]">
+            {data.hourlyDistribution.map((count, hour) => (
+              <div key={hour} className="flex-1 flex flex-col items-center justify-end group relative h-full">
+                <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border rounded-md px-2 py-1 text-xs shadow-md whitespace-nowrap z-10">
+                  {hour}시: {count}건
+                </div>
+                <div
+                  className="w-full bg-[#8C9EFF] rounded-t-sm min-h-[1px]"
+                  style={{ height: `${(count / hourMax) * 100}%` }}
+                />
+                {hour % 3 === 0 && (
+                  <span className="text-[9px] text-muted-foreground mt-1">{hour}시</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function UsageTab() {
+  const [data, setData] = useState<UsageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [rankBy, setRankBy] = useState<'records' | 'sessions' | 'duration' | 'pageViews'>('records');
+
+  useEffect(() => {
+    fetch('/api/admin/stats/usage')
+      .then((r) => r.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingSpinner />;
+  if (!data) return <p className="text-muted-foreground text-center py-8">데이터를 불러올 수 없습니다</p>;
+
+  const rankData = rankBy === 'records' ? data.byRecords
+    : rankBy === 'sessions' ? data.bySessions
+    : rankBy === 'duration' ? data.byDuration
+    : data.byPageViews;
+
+  const rankLabel = rankBy === 'records' ? '데이터 수'
+    : rankBy === 'sessions' ? '접속 횟수'
+    : rankBy === 'duration' ? '총 체류시간'
+    : '페이지뷰';
+
+  return (
+    <div className="space-y-6 mt-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2"><Database className="h-5 w-5" />유저 사용량</h2>
+        <Select value={rankBy} onValueChange={(v) => setRankBy((v || 'records') as any)}>
+          <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="records">데이터 수</SelectItem>
+            <SelectItem value="sessions">접속 횟수</SelectItem>
+            <SelectItem value="duration">체류시간</SelectItem>
+            <SelectItem value="pageViews">페이지뷰</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">유저별 {rankLabel} 랭킹</CardTitle>
+          <CardDescription>상위 15명</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>유저</TableHead>
+                <TableHead className="text-right">상품</TableHead>
+                <TableHead className="text-right">판매</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">광고</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">비용</TableHead>
+                <TableHead className="text-right">접속</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">체류</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">PV</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rankData.map((u, i) => (
+                <TableRow key={u.id}>
+                  <TableCell>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-[#D6F74C] text-[#333]' : 'bg-muted text-muted-foreground'}`}>
+                      {i + 1}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium text-sm">{u.name || '-'}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[150px]">{u.email}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{u.products}</TableCell>
+                  <TableCell className="text-right tabular-nums">{u.sales}</TableCell>
+                  <TableCell className="text-right tabular-nums hidden sm:table-cell">{u.ads}</TableCell>
+                  <TableCell className="text-right tabular-nums hidden sm:table-cell">{u.expenses}</TableCell>
+                  <TableCell className="text-right tabular-nums">{u.sessionCount}회</TableCell>
+                  <TableCell className="text-right text-muted-foreground hidden sm:table-cell">{formatDuration(u.totalDuration)}</TableCell>
+                  <TableCell className="text-right tabular-nums hidden sm:table-cell">{u.pageViews}</TableCell>
+                </TableRow>
+              ))}
+              {rankData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    아직 사용량 데이터가 없습니다
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

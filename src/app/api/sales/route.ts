@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { withAuth, withRateLimit, validateBody } from '@/lib/api/validate';
+import { logActivity } from '@/lib/activity-log';
 
 const createSaleSchema = z.object({
   product_id: z.string().uuid('올바른 상품을 선택하세요'),
@@ -104,6 +105,12 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    logActivity(supabase, user.id, 'create_sale', 'sales_records', {
+      channel,
+      quantity,
+      total_revenue,
+    });
 
     return NextResponse.json(data, { status: 201 });
   } catch {

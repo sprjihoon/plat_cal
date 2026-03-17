@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -79,6 +80,11 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  logActivity(supabase, user.id, 'create_expense', 'operating_expenses', {
+    category: body.category,
+    amount: body.amount,
+  });
 
   return NextResponse.json(expense, { status: 201 });
 }

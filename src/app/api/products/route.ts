@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -116,6 +117,11 @@ export async function POST(request: NextRequest) {
       .select('*, product_markets(*)')
       .eq('id', product.id)
       .single();
+
+    logActivity(supabase, user.id, 'create_product', 'products', {
+      product_name: name,
+      markets_count: markets?.length || 0,
+    });
 
     return NextResponse.json(fullProduct, { status: 201 });
   } catch (error) {

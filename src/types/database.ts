@@ -431,6 +431,77 @@ export interface Database {
           suspended_by?: string | null;
         };
       };
+      page_views: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          session_id: string;
+          page_path: string;
+          referrer_path: string | null;
+          entered_at: string;
+          left_at: string | null;
+          duration_seconds: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          session_id: string;
+          page_path: string;
+          referrer_path?: string | null;
+          entered_at: string;
+          left_at?: string | null;
+          duration_seconds?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          session_id?: string;
+          page_path?: string;
+          referrer_path?: string | null;
+          entered_at?: string;
+          left_at?: string | null;
+          duration_seconds?: number | null;
+        };
+      };
+      user_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          session_id: string;
+          started_at: string;
+          ended_at: string | null;
+          entry_page: string | null;
+          exit_page: string | null;
+          page_count: number;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          session_id: string;
+          started_at?: string;
+          ended_at?: string | null;
+          entry_page?: string | null;
+          exit_page?: string | null;
+          page_count?: number;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          session_id?: string;
+          started_at?: string;
+          ended_at?: string | null;
+          entry_page?: string | null;
+          exit_page?: string | null;
+          page_count?: number;
+          user_agent?: string | null;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -157,6 +158,11 @@ export async function GET(request: NextRequest) {
     default:
       return NextResponse.json({ error: '유효하지 않은 타입입니다' }, { status: 400 });
   }
+
+  logActivity(supabase, user.id, 'export_data', type || 'unknown', {
+    format,
+    rows: data.length,
+  });
 
   if (format === 'json') {
     return NextResponse.json(data);

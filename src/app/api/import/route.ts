@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logActivity } from '@/lib/activity-log';
 
 interface ParsedRow {
   [key: string]: string;
@@ -214,6 +215,12 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
+
+    logActivity(supabase, user.id, 'import_data', type, {
+      imported,
+      total: rows.length,
+      errors_count: errors.length,
+    });
 
     return NextResponse.json({
       success: true,

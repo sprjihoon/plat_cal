@@ -450,3 +450,65 @@ create policy "Admins can manage user status"
 drop trigger if exists set_updated_at on public.user_status;
 create trigger set_updated_at before update on public.user_status
   for each row execute procedure public.handle_updated_at();
+
+-- ============================================================
+-- 페이지 트래킹 시스템
+-- ============================================================
+
+-- 페이지 방문 기록
+create table if not exists public.page_views (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade,
+  session_id text not null,
+  page_path text not null,
+  referrer_path text,
+  entered_at timestamptz not null,
+  left_at timestamptz,
+  duration_seconds integer,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_page_views_user on public.page_views(user_id, created_at desc);
+create index if not exists idx_page_views_session on public.page_views(session_id);
+create index if not exists idx_page_views_path on public.page_views(page_path, created_at desc);
+create index if not exists idx_page_views_created on public.page_views(created_at desc);
+
+alter table public.page_views enable row level security;
+create policy "Users can insert own page views"
+  on public.page_views for insert
+  with check (auth.uid() = user_id);
+create policy "Users can update own page views"
+  on public.page_views for update
+  using (auth.uid() = user_id);
+create policy "Admins can view all page views"
+  on public.page_views for select
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+-- 유저 세션 기록
+create table if not exists public.user_sessions (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  session_id text not null unique,
+  started_at timestamptz default now(),
+  ended_at timestamptz,
+  entry_page text,
+  exit_page text,
+  page_count integer default 0,
+  user_agent text,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_user_sessions_user on public.user_sessions(user_id, created_at desc);
+create index if not exists idx_user_sessions_session on public.user_sessions(session_id);
+create index if not exists idx_user_sessions_created on public.user_sessions(created_at desc);
+
+alter table public.user_sessions enable row level security;
+create policy "Users can insert own sessions"
+  on public.user_sessions for insert
+  with check (auth.uid() = user_id);
+create policy "Users can update own sessions"
+  on public.user_sessions for update
+  using (auth.uid() = user_id);
+create policy "Admins can view all sessions"
+  on public.user_sessions for select
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));

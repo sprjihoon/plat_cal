@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { PageTracker } from "@/components/tracking/PageTracker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,6 +48,7 @@ export default function RootLayout({
         <QueryProvider>
           <TooltipProvider>
             <ErrorBoundary>
+              <PageTracker />
               {children}
             </ErrorBoundary>
           </TooltipProvider>
