@@ -106,10 +106,10 @@ export default function ExpensesPage() {
 
         {/* 핵심 지표 카드 */}
         <div className={`grid gap-4 ${hasMetrics ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2'}`}>
-          <Card className="bg-[#8C9EFF]/12 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/12 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#8C9EFF]/25 rounded-xl">
+                <div className="p-2.5 bg-[#D6F74C]/25 rounded-xl">
                   <DollarSign className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
@@ -120,10 +120,10 @@ export default function ExpensesPage() {
             </CardContent>
           </Card>
 
-          <Card className={`${roas >= 100 ? 'bg-[#D6F74C]/20' : 'bg-[#D6F74C]/15'} ring-0 border-0`}>
+          <Card className={`${roas >= 100 ? 'bg-[#8C9EFF]/20' : 'bg-[#8C9EFF]/15'} ring-0 border-0`}>
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#D6F74C]/40' : 'bg-[#D6F74C]/30'}`}>
+                <div className={`p-2.5 rounded-xl ${roas >= 100 ? 'bg-[#8C9EFF]/40' : 'bg-[#8C9EFF]/30'}`}>
                   <TrendingUp className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
@@ -138,10 +138,10 @@ export default function ExpensesPage() {
 
           {hasMetrics && (
             <>
-              <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
+              <Card className="bg-[#D6F74C]/15 ring-0 border-0">
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
+                    <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
                       <MousePointer className="h-5 w-5 text-gray-700" />
                     </div>
                     <div>
@@ -152,10 +152,10 @@ export default function ExpensesPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#D6F74C]/15 ring-0 border-0">
+              <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
                 <CardContent className="pt-5 pb-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
+                    <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
                       <Target className="h-5 w-5 text-gray-700" />
                     </div>
                     <div>

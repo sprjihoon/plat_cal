@@ -29,7 +29,7 @@ function getDefaultDates() {
 }
 
 const GRADE_COLORS: Record<string, string> = {
-  A: 'bg-[#D6F74C]/15 text-[#6b7a1a]',
+  A: 'bg-[#8C9EFF]/15 text-[#4a5abf]',
   B: 'bg-yellow-100 text-yellow-800',
   C: 'bg-red-100 text-red-800',
 };
@@ -89,7 +89,7 @@ export default function ProductAnalyticsPage() {
               <Card>
                 <CardContent className="pt-6 text-center">
                   <p className="text-sm text-muted-foreground">총 순이익</p>
-                  <p className={`text-xl font-bold ${data.totalProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                  <p className={`text-xl font-bold ${data.totalProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                     {formatCurrency(data.totalProfit)}
                   </p>
                 </CardContent>
@@ -126,7 +126,7 @@ export default function ProductAnalyticsPage() {
                     }))}
                     bars={[
                       { dataKey: 'revenue', name: '매출', color: '#8C9EFF' },
-                      { dataKey: 'profit', name: '순이익', color: '#a8c030' },
+                      { dataKey: 'profit', name: '순이익', color: '#D6F74C' },
                     ]}
                     layout="vertical"
                   />
@@ -189,10 +189,10 @@ export default function ProductAnalyticsPage() {
                           {p.sku && <span className="text-xs text-muted-foreground ml-1">({p.sku})</span>}
                         </TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(p.revenue)}</TableCell>
-                        <TableCell className={`text-right ${p.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                        <TableCell className={`text-right ${p.profit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                           {formatCurrency(p.profit)}
                         </TableCell>
-                        <TableCell className={`text-right ${p.marginRate >= 20 ? 'text-[#6b7a1a]' : p.marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        <TableCell className={`text-right ${p.marginRate >= 20 ? 'text-[#4a5abf]' : p.marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
                           {p.marginRate.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-right">{p.quantity.toLocaleString()}</TableCell>

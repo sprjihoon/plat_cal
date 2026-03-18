@@ -88,10 +88,10 @@ export default function OperatingExpensesPage() {
 
         {/* 요약 카드 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
+          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-[#D6F74C]/30 rounded-xl">
+                <div className="p-2.5 bg-[#8C9EFF]/30 rounded-xl">
                   <Wallet className="h-5 w-5 text-gray-700" />
                 </div>
                 <div>
@@ -101,7 +101,7 @@ export default function OperatingExpensesPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#8C9EFF]/15 ring-0 border-0">
+          <Card className="bg-[#D6F74C]/15 ring-0 border-0">
             <CardContent className="pt-5 pb-4">
               <p className="text-xs font-medium text-gray-500 mb-1">기록 수</p>
               <p className="text-lg font-bold text-gray-900">{data?.pagination.total || 0}건</p>

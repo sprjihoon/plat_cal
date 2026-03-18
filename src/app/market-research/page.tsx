@@ -73,7 +73,7 @@ interface AnalyzedItem extends ResearchItem {
 type Verdict = 'good' | 'normal' | 'bad';
 
 const VERDICT_CONFIG: Record<Verdict, { label: string; icon: typeof CheckCircle; color: string; bg: string; border: string }> = {
-  good: { label: '적합', icon: CheckCircle, color: 'text-[#6b7a1a]', bg: 'bg-[#D6F74C]/15', border: 'border-[#D6F74C]/40' },
+  good: { label: '적합', icon: CheckCircle, color: 'text-[#4a5abf]', bg: 'bg-[#8C9EFF]/15', border: 'border-[#8C9EFF]/40' },
   normal: { label: '보통', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   bad: { label: '부적합', icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
 };
@@ -504,7 +504,7 @@ export default function MarketResearchPage() {
                   </div>
                 )}
                 {selectedSubOption && (
-                  <div className="p-2.5 bg-[#D6F74C]/10 border border-[#D6F74C]/30 rounded-xl text-xs">
+                  <div className="p-2.5 bg-[#8C9EFF]/10 border border-[#8C9EFF]/30 rounded-xl text-xs">
                     <span className="font-medium">적용 수수료:</span>{' '}
                     플랫폼 {activePlatformFeeRate}% + 결제 {activePaymentFeeRate}% ={' '}
                     <span className="font-bold">합계 {totalFeeRate.toFixed(2)}%</span>
@@ -545,7 +545,7 @@ export default function MarketResearchPage() {
                 <Button
                   variant="outline"
                   onClick={() => { setBulkResult(null); setBulkAddOpen(true); }}
-                  className="border-[#D6F74C]/50 text-[#6b7a1a] hover:bg-[#D6F74C]/10"
+                  className="border-[#8C9EFF]/50 text-[#4a5abf] hover:bg-[#8C9EFF]/10"
                 >
                   <PackagePlus className="h-4 w-4 mr-2" />
                   적합 상품 추가 ({summary.good - analyzed.filter(i => i.verdict === 'good' && addedProductIds.has(i.id)).length}개)
@@ -570,9 +570,9 @@ export default function MarketResearchPage() {
               <p className="text-xs font-medium text-gray-500 mb-1">전체</p>
               <p className="text-2xl font-bold">{summary.total}개</p>
             </div>
-            <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
-              <p className="text-xs font-medium text-[#6b7a1a] mb-1">적합</p>
-              <p className="text-2xl font-bold text-[#6b7a1a]">{summary.good}개</p>
+            <div className="bg-[#8C9EFF]/15 rounded-2xl p-4 text-center">
+              <p className="text-xs font-medium text-[#4a5abf] mb-1">적합</p>
+              <p className="text-2xl font-bold text-[#4a5abf]">{summary.good}개</p>
             </div>
             <div className="bg-amber-50 rounded-2xl p-4 text-center">
               <p className="text-xs font-medium text-amber-600 mb-1">보통</p>
@@ -674,7 +674,7 @@ export default function MarketResearchPage() {
                           >
                             {item.sellingPrice > 0 ? formatCurrency(item.vatPayable) : '-'}
                           </TableCell>
-                          <TableCell className={`text-right font-medium ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                          <TableCell className={`text-right font-medium ${item.netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                             {item.sellingPrice > 0 ? formatCurrency(item.netProfit) : '-'}
                           </TableCell>
                           <TableCell className={`text-right font-bold ${vc.color}`}>
@@ -694,7 +694,7 @@ export default function MarketResearchPage() {
                             <div className="flex items-center gap-0.5">
                               {addedProductIds.has(item.id) ? (
                                 <span title="등록 완료">
-                                  <CheckCircle className="h-4 w-4 text-[#6b7a1a]" />
+                                  <CheckCircle className="h-4 w-4 text-[#4a5abf]" />
                                 </span>
                               ) : item.sellingPrice > 0 && item.name ? (
                                 <Button
@@ -808,7 +808,7 @@ export default function MarketResearchPage() {
                         <div className="grid grid-cols-3 gap-2 pt-2 border-t">
                           <div className="text-center">
                             <p className="text-[10px] text-muted-foreground">순이익</p>
-                            <p className={`text-sm font-bold ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                            <p className={`text-sm font-bold ${item.netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                               {formatCurrency(item.netProfit)}
                             </p>
                           </div>
@@ -830,7 +830,7 @@ export default function MarketResearchPage() {
                       {/* 액션 버튼 */}
                       <div className="flex items-center gap-2 pt-1">
                         {addedProductIds.has(item.id) ? (
-                          <div className="flex items-center gap-1.5 text-sm text-[#6b7a1a]">
+                          <div className="flex items-center gap-1.5 text-sm text-[#4a5abf]">
                             <CheckCircle className="h-4 w-4" />
                             <span>등록 완료</span>
                           </div>
@@ -882,7 +882,7 @@ export default function MarketResearchPage() {
 
             {bulkResult ? (
               <div className="py-6 text-center">
-                <CheckCircle className="h-12 w-12 mx-auto mb-3 text-[#6b7a1a]" />
+                <CheckCircle className="h-12 w-12 mx-auto mb-3 text-[#4a5abf]" />
                 <p className="font-medium text-lg">{bulkResult.success}개 상품 등록 완료</p>
                 {bulkResult.fail > 0 && (
                   <p className="text-sm text-red-600 mt-1">{bulkResult.fail}개 실패</p>

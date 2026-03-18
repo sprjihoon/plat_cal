@@ -279,7 +279,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">예상 순이익</p>
-                    <p className={`text-lg font-bold ${netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                    <p className={`text-lg font-bold ${netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                       {formatCurrency(netProfit)}
                     </p>
                   </div>

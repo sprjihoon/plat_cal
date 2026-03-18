@@ -193,12 +193,12 @@ export default function ReportsPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${ts!.netProfitAfterAll >= 0 ? 'bg-[#D6F74C]/15' : 'bg-red-100'}`}>
-                      <TrendingUp className={`h-5 w-5 ${ts!.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`} />
+                    <div className={`p-2 rounded-lg ${ts!.netProfitAfterAll >= 0 ? 'bg-[#8C9EFF]/15' : 'bg-red-100'}`}>
+                      <TrendingUp className={`h-5 w-5 ${ts!.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`} />
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">최종 순수익</p>
-                      <p className={`text-xl font-bold ${ts!.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                      <p className={`text-xl font-bold ${ts!.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                         {formatCurrency(ts!.netProfitAfterAll)}
                       </p>
                     </div>
@@ -224,19 +224,19 @@ export default function ReportsPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
                   <div>
                     <p className="text-sm text-muted-foreground">ROAS</p>
-                    <p className={`text-2xl font-bold ${ts!.roas >= 100 ? 'text-[#6b7a1a]' : ts!.roas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+                    <p className={`text-2xl font-bold ${ts!.roas >= 100 ? 'text-[#4a5abf]' : ts!.roas > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                       {ts!.adCost > 0 ? `${ts!.roas.toFixed(0)}%` : '-'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">ROI</p>
-                    <p className={`text-2xl font-bold ${ts!.roi >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                    <p className={`text-2xl font-bold ${ts!.roi >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                       {ts!.totalCost > 0 ? `${ts!.roi.toFixed(0)}%` : '-'}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">마진율</p>
-                    <p className={`text-2xl font-bold ${ts!.marginRate >= 20 ? 'text-[#6b7a1a]' : ts!.marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    <p className={`text-2xl font-bold ${ts!.marginRate >= 20 ? 'text-[#4a5abf]' : ts!.marginRate >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
                       {ts!.revenue > 0 ? `${ts!.marginRate.toFixed(1)}%` : '-'}
                     </p>
                   </div>
@@ -272,7 +272,7 @@ export default function ReportsPage() {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">상품 순이익 (플랫폼 수수료 차감)</TableCell>
-                      <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
+                      <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
                       <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.profit / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
                     </TableRow>
                     <TableRow>
@@ -292,7 +292,7 @@ export default function ReportsPage() {
                     </TableRow>
                     <TableRow className="border-t-2 font-bold text-lg">
                       <TableCell>최종 순수익</TableCell>
-                      <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                      <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                         {formatCurrency(ts!.netProfitAfterAll)}
                       </TableCell>
                       <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.netProfitAfterAll / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
@@ -437,7 +437,7 @@ export default function ReportsPage() {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-sm text-muted-foreground">순이익</span>
-                              <span className={`font-medium ${ch.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(ch.profit)}</span>
+                              <span className={`font-medium ${ch.profit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{formatCurrency(ch.profit)}</span>
                             </div>
                             {ch.adCost !== undefined && ch.adCost > 0 && (
                               <>
@@ -447,7 +447,7 @@ export default function ReportsPage() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-sm text-muted-foreground">ROAS</span>
-                                  <span className={`font-medium ${chRoas >= 100 ? 'text-[#6b7a1a]' : 'text-yellow-600'}`}>{chRoas.toFixed(0)}%</span>
+                                  <span className={`font-medium ${chRoas >= 100 ? 'text-[#4a5abf]' : 'text-yellow-600'}`}>{chRoas.toFixed(0)}%</span>
                                 </div>
                               </>
                             )}
@@ -485,16 +485,16 @@ export default function ReportsPage() {
                         <TableRow key={p.period}>
                           <TableCell className="font-medium whitespace-nowrap">{formatPeriod(p.period)}</TableCell>
                           <TableCell className="text-right">{formatCurrency(p.revenue)}</TableCell>
-                          <TableCell className={`text-right ${p.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(p.profit)}</TableCell>
+                          <TableCell className={`text-right ${p.profit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{formatCurrency(p.profit)}</TableCell>
                           <TableCell className="text-right text-red-600">{p.adCost > 0 ? `-${formatCurrency(p.adCost)}` : '-'}</TableCell>
                           <TableCell className="text-right text-orange-600">{p.operatingCost > 0 ? `-${formatCurrency(p.operatingCost)}` : '-'}</TableCell>
-                          <TableCell className={`text-right font-bold ${p.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                          <TableCell className={`text-right font-bold ${p.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                             {formatCurrency(p.netProfitAfterAll)}
                           </TableCell>
-                          <TableCell className={`text-right ${p.roas >= 100 ? 'text-[#6b7a1a]' : 'text-yellow-600'}`}>
+                          <TableCell className={`text-right ${p.roas >= 100 ? 'text-[#4a5abf]' : 'text-yellow-600'}`}>
                             {p.adCost > 0 ? `${p.roas.toFixed(0)}%` : '-'}
                           </TableCell>
-                          <TableCell className={`text-right ${p.roi >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                          <TableCell className={`text-right ${p.roi >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
                             {p.totalCost > 0 ? `${p.roi.toFixed(0)}%` : '-'}
                           </TableCell>
                         </TableRow>
@@ -503,12 +503,12 @@ export default function ReportsPage() {
                       <TableRow className="border-t-2 font-bold bg-gray-50">
                         <TableCell>합계</TableCell>
                         <TableCell className="text-right">{formatCurrency(ts!.revenue)}</TableCell>
-                        <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
+                        <TableCell className={`text-right ${ts!.profit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{formatCurrency(ts!.profit)}</TableCell>
                         <TableCell className="text-right text-red-600">{ts!.adCost > 0 ? `-${formatCurrency(ts!.adCost)}` : '-'}</TableCell>
                         <TableCell className="text-right text-orange-600">{ts!.operatingCost > 0 ? `-${formatCurrency(ts!.operatingCost)}` : '-'}</TableCell>
-                        <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{formatCurrency(ts!.netProfitAfterAll)}</TableCell>
-                        <TableCell className={`text-right ${ts!.roas >= 100 ? 'text-[#6b7a1a]' : 'text-yellow-600'}`}>{ts!.adCost > 0 ? `${ts!.roas.toFixed(0)}%` : '-'}</TableCell>
-                        <TableCell className={`text-right ${ts!.roi >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>{ts!.totalCost > 0 ? `${ts!.roi.toFixed(0)}%` : '-'}</TableCell>
+                        <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{formatCurrency(ts!.netProfitAfterAll)}</TableCell>
+                        <TableCell className={`text-right ${ts!.roas >= 100 ? 'text-[#4a5abf]' : 'text-yellow-600'}`}>{ts!.adCost > 0 ? `${ts!.roas.toFixed(0)}%` : '-'}</TableCell>
+                        <TableCell className={`text-right ${ts!.roi >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>{ts!.totalCost > 0 ? `${ts!.roi.toFixed(0)}%` : '-'}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>

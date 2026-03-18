@@ -305,12 +305,12 @@ export default function ImportPage() {
         </div>
 
         {/* 개인정보 보호 안내 */}
-        <Card className="border-[#D6F74C]/30 bg-[#D6F74C]/10">
+        <Card className="border-[#8C9EFF]/30 bg-[#8C9EFF]/10">
           <CardContent className="flex items-start gap-3 pt-4">
-            <ShieldCheck className="h-5 w-5 text-[#6b7a1a] mt-0.5 shrink-0" />
+            <ShieldCheck className="h-5 w-5 text-[#4a5abf] mt-0.5 shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-[#6b7a1a]">개인정보 보호</p>
-              <p className="text-[#6b7a1a] mt-1">
+              <p className="font-medium text-[#4a5abf]">개인정보 보호</p>
+              <p className="text-[#4a5abf] mt-1">
                 업로드된 파일은 브라우저에서 처리되며, 주소/전화번호/이름 등 개인정보는
                 <strong> 자동으로 감지하여 서버 전송 전에 제거</strong>됩니다.
                 개인정보가 서버에 저장되지 않습니다.
@@ -544,9 +544,9 @@ export default function ImportPage() {
                         {marketData.summary.totalOrders.toLocaleString()}건
                       </p>
                     </div>
-                    <div className="bg-[#D6F74C]/10 p-3 rounded-lg text-center">
-                      <p className="text-xs text-[#6b7a1a]">총 매출</p>
-                      <p className="text-lg font-bold text-[#6b7a1a]">
+                    <div className="bg-[#8C9EFF]/10 p-3 rounded-lg text-center">
+                      <p className="text-xs text-[#4a5abf]">총 매출</p>
+                      <p className="text-lg font-bold text-[#4a5abf]">
                         {formatCurrency(marketData.summary.totalRevenue)}
                       </p>
                     </div>
@@ -846,7 +846,7 @@ export default function ImportPage() {
             <AlertDialogTitle className="flex items-center gap-2">
               {result?.success && result.imported > 0 ? (
                 <>
-                  <CheckCircle className="h-5 w-5 text-[#6b7a1a]" />
+                  <CheckCircle className="h-5 w-5 text-[#4a5abf]" />
                   가져오기 완료
                 </>
               ) : (

@@ -290,7 +290,7 @@ function GoalProgressBar({ label, current, target, unit, remainDays }: { label: 
         <span className="text-sm font-medium">{label}</span>
         <div className="flex items-center gap-2">
           {achieved ? (
-            <Badge className="bg-[#D6F74C]/20 text-[#6b7a1a] border-0 text-xs">달성!</Badge>
+            <Badge className="bg-[#8C9EFF]/20 text-[#4a5abf] border-0 text-xs">달성!</Badge>
           ) : (
             <span className={`text-sm font-bold ${pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
           )}
@@ -298,7 +298,7 @@ function GoalProgressBar({ label, current, target, unit, remainDays }: { label: 
       </div>
       <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#D6F74C]' : 'bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]'}`}
+          className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#8C9EFF]' : 'bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]'}`}
           style={{ width: `${pct}%` }}
         />
       </div>

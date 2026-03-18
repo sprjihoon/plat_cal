@@ -48,7 +48,7 @@ function ChangeIndicator({ value }: { value: number }) {
   }
   if (value > 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#6b7a1a] bg-[#D6F74C]/20 px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-0.5 text-xs font-medium text-[#4a5abf] bg-[#8C9EFF]/15 px-2 py-0.5 rounded-full">
         <ArrowUpRight className="h-3 w-3" /> +{value.toFixed(1)}%
       </span>
     );
@@ -72,13 +72,13 @@ function GoalProgress({ label, current, target, unit = '', color, remainDays }: 
       <div className="flex justify-between items-center">
         <span className="text-sm font-medium">{label}</span>
         {achieved ? (
-          <Badge className="bg-[#D6F74C]/20 text-[#6b7a1a] border-0 text-xs">달성!</Badge>
+          <Badge className="bg-[#8C9EFF]/20 text-[#4a5abf] border-0 text-xs">달성!</Badge>
         ) : (
-          <span className={`text-sm font-bold ${pct >= 70 ? 'text-[#5a6abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
+          <span className={`text-sm font-bold ${pct >= 70 ? 'text-[#4a5abf]' : 'text-amber-600'}`}>{pct.toFixed(0)}%</span>
         )}
       </div>
       <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#D6F74C]' : color}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all duration-500 ${achieved ? 'bg-[#8C9EFF]' : color}`} style={{ width: `${pct}%` }} />
       </div>
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>현재 {isPercent ? `${current.toFixed(1)}%` : formatCurrency(current)}</span>
@@ -105,10 +105,10 @@ function GoalProgress({ label, current, target, unit = '', color, remainDays }: 
 }
 
 const KPI_STYLES = [
-  { bg: 'bg-[#D6F74C]/20', iconBg: 'bg-[#D6F74C]/40', iconColor: 'text-gray-700', accent: 'text-gray-900' },
   { bg: 'bg-[#8C9EFF]/15', iconBg: 'bg-[#8C9EFF]/30', iconColor: 'text-gray-700', accent: 'text-gray-900' },
   { bg: 'bg-[#D6F74C]/15', iconBg: 'bg-[#D6F74C]/30', iconColor: 'text-gray-700', accent: 'text-gray-900' },
   { bg: 'bg-[#8C9EFF]/12', iconBg: 'bg-[#8C9EFF]/25', iconColor: 'text-gray-700', accent: 'text-gray-900' },
+  { bg: 'bg-[#D6F74C]/12', iconBg: 'bg-[#D6F74C]/25', iconColor: 'text-gray-700', accent: 'text-gray-900' },
 ];
 
 export default function DashboardPage() {
@@ -174,8 +174,8 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
                 <Link href="/products/new">
-                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/15 hover:bg-[#D6F74C]/25 transition-colors cursor-pointer">
-                    <div className="w-12 h-12 bg-[#D6F74C]/40 rounded-2xl flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/12 hover:bg-[#8C9EFF]/20 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center">
                       <Package className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="text-center">
@@ -185,8 +185,8 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/sales/new">
-                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/12 hover:bg-[#8C9EFF]/20 transition-colors cursor-pointer">
-                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/12 hover:bg-[#D6F74C]/20 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#D6F74C]/25 rounded-2xl flex items-center justify-center">
                       <ShoppingCart className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="text-center">
@@ -196,8 +196,8 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/import">
-                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/10 hover:bg-[#D6F74C]/20 transition-colors cursor-pointer">
-                    <div className="w-12 h-12 bg-[#D6F74C]/30 rounded-2xl flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/10 hover:bg-[#8C9EFF]/18 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/20 rounded-2xl flex items-center justify-center">
                       <Upload className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="text-center">
@@ -207,8 +207,8 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/market-research">
-                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#8C9EFF]/10 hover:bg-[#8C9EFF]/18 transition-colors cursor-pointer">
-                    <div className="w-12 h-12 bg-[#8C9EFF]/20 rounded-2xl flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-[#D6F74C]/10 hover:bg-[#D6F74C]/18 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-[#D6F74C]/20 rounded-2xl flex items-center justify-center">
                       <Search className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="text-center">
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-muted-foreground mb-1">순수익</p>
-                      <p className={`text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-rose-700'}`}>
+                      <p className={`text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-rose-700'}`}>
                         {formatCurrency(data.summary.netProfitAfterAll)}
                       </p>
                       <div className="mt-1.5"><ChangeIndicator value={data.changes.netProfitAfterAll} /></div>
@@ -291,28 +291,28 @@ export default function DashboardPage() {
 
             {/* 핵심 지표 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
+              <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">ROAS</p>
                 <p className={`text-2xl font-bold ${data.summary.roas >= 100 ? 'text-gray-900' : data.summary.roas > 0 ? 'text-gray-700' : 'text-gray-400'}`}>
                   {data.summary.adCost > 0 ? `${data.summary.roas.toFixed(0)}%` : '-'}
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">매출/광고비</p>
               </div>
-              <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
+              <div className="bg-[#D6F74C]/12 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">ROI</p>
                 <p className={`text-2xl font-bold ${data.summary.roi >= 0 ? 'text-gray-900' : 'text-gray-700'}`}>
                   {data.summary.totalCost > 0 ? `${data.summary.roi.toFixed(0)}%` : '-'}
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">(순이익-비용)/비용</p>
               </div>
-              <div className="bg-[#D6F74C]/15 rounded-2xl p-4 text-center">
+              <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">마진율</p>
                 <p className={`text-2xl font-bold ${data.summary.marginRate >= 20 ? 'text-gray-900' : data.summary.marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
                   {data.summary.revenue > 0 ? `${data.summary.marginRate.toFixed(1)}%` : '-'}
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">순이익/매출</p>
               </div>
-              <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
+              <div className="bg-[#D6F74C]/10 rounded-2xl p-4 text-center">
                 <p className="text-xs font-medium text-gray-500 mb-1">건당 평균</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {data.summary.salesCount > 0 ? formatCurrency(data.summary.revenue / data.summary.salesCount) : '-'}
@@ -360,7 +360,7 @@ export default function DashboardPage() {
                           label="매출 목표"
                           current={data.summary.revenue}
                           target={currentGoal.target_revenue}
-                          color="bg-gradient-to-r from-[#D6F74C] to-[#b8d940]"
+                          color="bg-gradient-to-r from-[#8C9EFF] to-[#6b7fef]"
                           remainDays={remainDays}
                         />
                       )}
@@ -416,18 +416,18 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3.5 bg-[#8C9EFF]/12 rounded-xl">
+                    <div className="flex items-center justify-between p-3.5 bg-[#8C9EFF]/10 rounded-xl">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 bg-[#8C9EFF]/25 rounded-lg">
+                        <div className="p-1.5 bg-[#8C9EFF]/20 rounded-lg">
                           <Target className="h-4 w-4 text-gray-600" />
                         </div>
                         <span className="font-medium text-sm">광고비</span>
                       </div>
                       <span className="font-bold text-gray-900">{formatCurrency(data.summary.adCost)}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3.5 bg-[#D6F74C]/15 rounded-xl">
+                    <div className="flex items-center justify-between p-3.5 bg-[#D6F74C]/12 rounded-xl">
                       <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 bg-[#D6F74C]/30 rounded-lg">
+                        <div className="p-1.5 bg-[#D6F74C]/25 rounded-lg">
                           <Wallet className="h-4 w-4 text-gray-600" />
                         </div>
                         <span className="font-medium text-sm">운영비</span>
@@ -488,19 +488,19 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl text-center">
+                    <div className="p-4 bg-[#8C9EFF]/10 rounded-xl text-center">
                       <p className="text-xs font-medium text-muted-foreground mb-1">매출부가세</p>
-                      <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(data.summary.salesVat))}</p>
+                      <p className="text-lg font-bold text-[#4a5abf]">{formatCurrency(Math.round(data.summary.salesVat))}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">매출 ÷ 11</p>
                     </div>
-                    <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-xl text-center">
+                    <div className="p-4 bg-[#D6F74C]/10 rounded-xl text-center">
                       <p className="text-xs font-medium text-muted-foreground mb-1">매입부가세</p>
-                      <p className="text-lg font-bold text-green-700 dark:text-green-400">{formatCurrency(Math.round(data.summary.purchaseVat))}</p>
+                      <p className="text-lg font-bold text-[#8da020]">{formatCurrency(Math.round(data.summary.purchaseVat))}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">수수료 VAT 공제</p>
                     </div>
-                    <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-center">
+                    <div className="p-4 bg-[#8C9EFF]/8 rounded-xl text-center">
                       <p className="text-xs font-medium text-muted-foreground mb-1">납부부가세</p>
-                      <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(data.summary.vatPayable))}</p>
+                      <p className="text-lg font-bold text-[#4a5abf]">{formatCurrency(Math.round(data.summary.vatPayable))}</p>
                       <p className="text-[11px] text-muted-foreground mt-1">매출VAT - 매입VAT</p>
                     </div>
                   </div>
@@ -539,7 +539,7 @@ export default function DashboardPage() {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">상품 순이익 (수수료 차감 후)</TableCell>
-                        <TableCell className={`text-right ${data.summary.profit >= 0 ? 'text-[#6b7a1a]' : 'text-rose-600'}`}>{formatCurrency(data.summary.profit)}</TableCell>
+                        <TableCell className={`text-right ${data.summary.profit >= 0 ? 'text-[#4a5abf]' : 'text-rose-600'}`}>{formatCurrency(data.summary.profit)}</TableCell>
                         <TableCell className="text-right">{data.summary.revenue > 0 ? `${(data.summary.profit / data.summary.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
                       </TableRow>
                       <TableRow>
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                       </TableRow>
                       <TableRow className="border-t-2 font-bold">
                         <TableCell>최종 순수익</TableCell>
-                        <TableCell className={`text-right text-lg ${data.summary.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-rose-600'}`}>
+                        <TableCell className={`text-right text-lg ${data.summary.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-rose-600'}`}>
                           {formatCurrency(data.summary.netProfitAfterAll)}
                         </TableCell>
                         <TableCell className="text-right">{data.summary.revenue > 0 ? `${(data.summary.netProfitAfterAll / data.summary.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
@@ -568,9 +568,9 @@ export default function DashboardPage() {
             {/* 빠른 액션 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Link href="/sales/new">
-                <Card className="bg-[#D6F74C]/20 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#8C9EFF]/15 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#D6F74C]/40 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/30 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <ShoppingCart className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">판매 기록</p>
@@ -578,9 +578,9 @@ export default function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/expenses/new">
-                <Card className="bg-[#8C9EFF]/15 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#D6F74C]/15 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#8C9EFF]/30 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#D6F74C]/30 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <Target className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">광고비 등록</p>
@@ -588,9 +588,9 @@ export default function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/expenses/operating/new">
-                <Card className="bg-[#D6F74C]/15 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#8C9EFF]/12 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#D6F74C]/30 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <Wallet className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">운영비 등록</p>
@@ -598,9 +598,9 @@ export default function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/reports">
-                <Card className="bg-[#8C9EFF]/12 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
+                <Card className="bg-[#D6F74C]/12 ring-0 border-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200">
                   <CardContent className="pt-6 pb-5 text-center">
-                    <div className="w-12 h-12 bg-[#8C9EFF]/25 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-[#D6F74C]/25 rounded-2xl flex items-center justify-center mx-auto mb-3">
                       <BarChart3 className="h-6 w-6 text-gray-700" />
                     </div>
                     <p className="font-semibold text-sm text-gray-800">상세 리포트</p>

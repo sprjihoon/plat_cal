@@ -117,8 +117,8 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#D6F74C]/15 flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-[#6b7a1a]" />
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#8C9EFF]/15 flex items-center justify-center">
+            <CheckCircle className="h-6 w-6 text-[#4a5abf]" />
             </div>
             <CardTitle className="text-2xl">이메일을 확인해주세요</CardTitle>
             <CardDescription>

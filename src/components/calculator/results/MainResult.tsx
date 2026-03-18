@@ -35,7 +35,7 @@ export function MainResult({ result, isValid }: MainResultProps) {
   const marginBgClass = getMarginBgClass(result.marginRate);
 
   const getProfitIcon = () => {
-    if (result.netProfit > 0) return <TrendingUp className="h-5 w-5 text-[#6b7a1a]" />;
+    if (result.netProfit > 0) return <TrendingUp className="h-5 w-5 text-[#4a5abf]" />;
     if (result.netProfit < 0) return <TrendingDown className="h-5 w-5 text-red-600" />;
     return <Minus className="h-5 w-5 text-gray-400" />;
   };
@@ -58,7 +58,7 @@ export function MainResult({ result, isValid }: MainResultProps) {
             <p className="text-sm text-muted-foreground mb-1">예상 순이익</p>
             <p className={cn(
               'text-3xl font-bold',
-              result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'
+              result.netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'
             )}>
               {result.netProfit >= 0 ? '+' : ''}{formatCurrency(result.netProfit)}
             </p>

@@ -22,7 +22,7 @@ export function OperationJudgment({ result, isValid }: OperationJudgmentProps) {
   const getIcon = () => {
     switch (level) {
       case 'stable':
-        return <CheckCircle2 className="h-5 w-5 text-[#6b7a1a]" />;
+        return <CheckCircle2 className="h-5 w-5 text-[#4a5abf]" />;
       case 'manageable':
         return <AlertCircle className="h-5 w-5 text-blue-600" />;
       case 'caution':
@@ -61,7 +61,7 @@ export function OperationJudgment({ result, isValid }: OperationJudgmentProps) {
   const getAlertClass = () => {
     switch (level) {
       case 'stable':
-        return 'border-[#D6F74C]/30 bg-[#D6F74C]/10';
+        return 'border-[#8C9EFF]/30 bg-[#8C9EFF]/10';
       case 'manageable':
         return 'border-blue-200 bg-blue-50';
       case 'caution':

@@ -453,7 +453,7 @@ function UsageTab() {
               {rankData.map((u, i) => (
                 <TableRow key={u.id}>
                   <TableCell>
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-[#D6F74C] text-[#333]' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-[#8C9EFF] text-[#333]' : 'bg-muted text-muted-foreground'}`}>
                       {i + 1}
                     </span>
                   </TableCell>
@@ -612,7 +612,7 @@ function DashboardTab() {
               {stats.topUsers.map((u, i) => (
                 <div key={u.id} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-[#D6F74C] text-[#333]' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${i < 3 ? 'bg-[#8C9EFF] text-[#333]' : 'bg-muted text-muted-foreground'}`}>
                       {i + 1}
                     </span>
                     <span className="font-medium">{u.name || u.email}</span>
@@ -769,7 +769,7 @@ function UsersTab() {
                       {u.status === 'suspended' ? (
                         <Badge variant="destructive" className="text-xs">정지</Badge>
                       ) : (
-                        <Badge className="bg-[#D6F74C]/20 text-[#6b7a1a] border-0 text-xs">활성</Badge>
+                        <Badge className="bg-[#8C9EFF]/20 text-[#4a5abf] border-0 text-xs">활성</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
