@@ -10,6 +10,9 @@ interface DailyStat {
   operatingCost: number;
   netProfit: number;
   quantity: number;
+  salesVat: number;
+  purchaseVat: number;
+  vatPayable: number;
 }
 
 interface DashboardData {
@@ -30,6 +33,9 @@ interface DashboardData {
     roas: number;
     roi: number;
     marginRate: number;
+    salesVat: number;
+    purchaseVat: number;
+    vatPayable: number;
   };
   changes: {
     revenue: number;

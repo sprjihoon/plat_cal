@@ -26,6 +26,7 @@ import {
   Wallet,
   ShoppingCart,
   PieChart,
+  Receipt,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/calculator';
 import { PLATFORM_PRESETS } from '@/constants';
@@ -284,6 +285,11 @@ export default function ReportsPage() {
                       <TableCell className="text-right text-orange-600">-{formatCurrency(ts!.operatingCost)}</TableCell>
                       <TableCell className="text-right">{ts!.revenue > 0 ? `${(ts!.operatingCost / ts!.revenue * 100).toFixed(1)}%` : '-'}</TableCell>
                     </TableRow>
+                    <TableRow className="bg-amber-50/50 dark:bg-amber-950/20">
+                      <TableCell className="font-medium text-amber-700 dark:text-amber-400 pl-8">납부부가세 (참고)</TableCell>
+                      <TableCell className="text-right text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(ts!.vatPayable))}</TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground">매출VAT {formatCurrency(Math.round(ts!.salesVat))} - 매입VAT {formatCurrency(Math.round(ts!.purchaseVat))}</TableCell>
+                    </TableRow>
                     <TableRow className="border-t-2 font-bold text-lg">
                       <TableCell>최종 순수익</TableCell>
                       <TableCell className={`text-right ${ts!.netProfitAfterAll >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
@@ -295,6 +301,66 @@ export default function ReportsPage() {
                 </Table>
               </CardContent>
             </Card>
+
+            {/* 부가세 상세 */}
+            {ts!.revenue > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt className="h-5 w-5" />
+                    부가세 매입/매출 내역
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-6 mb-6">
+                    <div className="p-5 bg-blue-50 dark:bg-blue-950/30 rounded-xl text-center">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">매출부가세</p>
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(ts!.salesVat))}</p>
+                      <p className="text-xs text-muted-foreground mt-1">총매출 ÷ 11</p>
+                    </div>
+                    <div className="p-5 bg-green-50 dark:bg-green-950/30 rounded-xl text-center">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">매입부가세</p>
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{formatCurrency(Math.round(ts!.purchaseVat))}</p>
+                      <p className="text-xs text-muted-foreground mt-1">수수료 VAT 공제분</p>
+                    </div>
+                    <div className="p-5 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-center">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">납부부가세</p>
+                      <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(ts!.vatPayable))}</p>
+                      <p className="text-xs text-muted-foreground mt-1">매출VAT - 매입VAT</p>
+                    </div>
+                  </div>
+
+                  {data.periodSummaries.length > 1 && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>기간</TableHead>
+                          <TableHead className="text-right">매출부가세</TableHead>
+                          <TableHead className="text-right">매입부가세</TableHead>
+                          <TableHead className="text-right">납부부가세</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {data.periodSummaries.map((p) => (
+                          <TableRow key={`vat-${p.period}`}>
+                            <TableCell className="font-medium whitespace-nowrap">{formatPeriod(p.period)}</TableCell>
+                            <TableCell className="text-right text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(p.salesVat))}</TableCell>
+                            <TableCell className="text-right text-green-700 dark:text-green-400">{formatCurrency(Math.round(p.purchaseVat))}</TableCell>
+                            <TableCell className="text-right font-medium text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(p.vatPayable))}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="border-t-2 font-bold bg-gray-50 dark:bg-gray-900">
+                          <TableCell>합계</TableCell>
+                          <TableCell className="text-right text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(ts!.salesVat))}</TableCell>
+                          <TableCell className="text-right text-green-700 dark:text-green-400">{formatCurrency(Math.round(ts!.purchaseVat))}</TableCell>
+                          <TableCell className="text-right text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(ts!.vatPayable))}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* 운영비 카테고리별 */}
             {data.expenseCategorySummary && data.expenseCategorySummary.length > 0 && (

@@ -20,6 +20,9 @@ interface PeriodSummary {
   netProfitAfterAll: number;
   roas: number;
   roi: number;
+  salesVat: number;
+  purchaseVat: number;
+  vatPayable: number;
 }
 
 interface ChannelSummary {
@@ -61,6 +64,9 @@ interface ReportData {
     roas: number;
     roi: number;
     marginRate: number;
+    salesVat: number;
+    purchaseVat: number;
+    vatPayable: number;
   };
   periodSummaries: PeriodSummary[];
   channelSummary: ChannelSummary[];

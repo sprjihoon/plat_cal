@@ -121,6 +121,12 @@ export async function GET(request: NextRequest) {
   const roi = totalCost > 0 ? ((profit - totalCost) / totalCost) * 100 : 0;
   const marginRate = revenue > 0 ? (profit / revenue) * 100 : 0;
 
+  const salesVat = revenue / 11;
+  const purchaseVat = sales.reduce((s: number, r: any) => {
+    return s + (r.platform_fee || 0) / 11 + (r.payment_fee || 0) / 11;
+  }, 0);
+  const vatPayable = salesVat - purchaseVat;
+
   const prevRevenue = prevSales.reduce((s: number, r: any) => s + r.total_revenue, 0);
   const prevProfit = prevSales.reduce((s: number, r: any) => s + r.net_profit, 0);
   const prevAdCost = prevAds.reduce((s: number, a: any) => s + a.cost, 0);
@@ -133,19 +139,21 @@ export async function GET(request: NextRequest) {
     return ((curr - prev) / Math.abs(prev)) * 100;
   };
 
-  const dailySales: Record<string, { revenue: number; profit: number; adCost: number; opCost: number; quantity: number }> = {};
+  const dailySales: Record<string, { revenue: number; profit: number; adCost: number; opCost: number; quantity: number; salesVat: number; purchaseVat: number }> = {};
   sales.forEach((s: any) => {
-    if (!dailySales[s.sale_date]) dailySales[s.sale_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0 };
+    if (!dailySales[s.sale_date]) dailySales[s.sale_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0, salesVat: 0, purchaseVat: 0 };
     dailySales[s.sale_date].revenue += s.total_revenue;
     dailySales[s.sale_date].profit += s.net_profit;
     dailySales[s.sale_date].quantity += s.quantity;
+    dailySales[s.sale_date].salesVat += s.total_revenue / 11;
+    dailySales[s.sale_date].purchaseVat += (s.platform_fee || 0) / 11 + (s.payment_fee || 0) / 11;
   });
   ads.forEach((a: any) => {
-    if (!dailySales[a.ad_date]) dailySales[a.ad_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0 };
+    if (!dailySales[a.ad_date]) dailySales[a.ad_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0, salesVat: 0, purchaseVat: 0 };
     dailySales[a.ad_date].adCost += a.cost;
   });
   ops.forEach((o: any) => {
-    if (!dailySales[o.expense_date]) dailySales[o.expense_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0 };
+    if (!dailySales[o.expense_date]) dailySales[o.expense_date] = { revenue: 0, profit: 0, adCost: 0, opCost: 0, quantity: 0, salesVat: 0, purchaseVat: 0 };
     dailySales[o.expense_date].opCost += o.amount;
   });
 
@@ -159,6 +167,9 @@ export async function GET(request: NextRequest) {
       operatingCost: d.opCost,
       netProfit: d.profit - d.adCost - d.opCost,
       quantity: d.quantity,
+      salesVat: d.salesVat,
+      purchaseVat: d.purchaseVat,
+      vatPayable: d.salesVat - d.purchaseVat,
     }));
 
   const channelRevenue: Record<string, number> = {};
@@ -190,6 +201,9 @@ export async function GET(request: NextRequest) {
       roas,
       roi,
       marginRate,
+      salesVat,
+      purchaseVat,
+      vatPayable,
     },
     changes: {
       revenue: calcChange(revenue, prevRevenue),

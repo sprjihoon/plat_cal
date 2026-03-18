@@ -43,6 +43,7 @@ import {
   FileSpreadsheet,
   Loader2,
   PackagePlus,
+  ChevronRight,
 } from 'lucide-react';
 import { PLATFORM_PRESETS } from '@/constants';
 import { calculateMargin, formatCurrency, parseNumericInput } from '@/lib/calculator';
@@ -60,6 +61,7 @@ interface ResearchItem {
 
 interface AnalyzedItem extends ResearchItem {
   fee: number;
+  feeRate: number;
   netProfit: number;
   marginRate: number;
   salesVat: number;
@@ -70,10 +72,10 @@ interface AnalyzedItem extends ResearchItem {
 
 type Verdict = 'good' | 'normal' | 'bad';
 
-const VERDICT_CONFIG: Record<Verdict, { label: string; icon: typeof CheckCircle; color: string; bg: string }> = {
-  good: { label: '적합', icon: CheckCircle, color: 'text-[#6b7a1a]', bg: 'bg-[#D6F74C]/15' },
-  normal: { label: '보통', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
-  bad: { label: '부적합', icon: XCircle, color: 'text-red-600', bg: 'bg-red-50' },
+const VERDICT_CONFIG: Record<Verdict, { label: string; icon: typeof CheckCircle; color: string; bg: string; border: string }> = {
+  good: { label: '적합', icon: CheckCircle, color: 'text-[#6b7a1a]', bg: 'bg-[#D6F74C]/15', border: 'border-[#D6F74C]/40' },
+  normal: { label: '보통', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  bad: { label: '부적합', icon: XCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
 };
 
 export default function MarketResearchPage() {
@@ -82,6 +84,7 @@ export default function MarketResearchPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [platformPresets, setPlatformPresets] = useState<Record<SalesChannel, PlatformPreset>>(PLATFORM_PRESETS);
   const [channel, setChannel] = useState<SalesChannel>('smartstore');
+  const [subOptionId, setSubOptionId] = useState<string | null>(null);
   const [goodThreshold, setGoodThreshold] = useState(25);
   const [normalThreshold, setNormalThreshold] = useState(15);
   const [defaultShipping, setDefaultShipping] = useState(0);
@@ -104,7 +107,25 @@ export default function MarketResearchPage() {
   }, []);
 
   const preset = platformPresets[channel];
-  const totalFeeRate = preset.platformFeeRate + preset.paymentFeeRate;
+  const currentSubOptions = useMemo(() => preset?.subOptions || [], [preset]);
+
+  const selectedSubOption = useMemo(() => {
+    if (!subOptionId) return null;
+    return currentSubOptions.find(opt => opt.id === subOptionId) || null;
+  }, [currentSubOptions, subOptionId]);
+
+  const activePlatformFeeRate = selectedSubOption?.platformFeeRate ?? preset.platformFeeRate;
+  const activePaymentFeeRate = selectedSubOption?.paymentFeeRate ?? preset.paymentFeeRate;
+  const totalFeeRate = activePlatformFeeRate + activePaymentFeeRate;
+
+  const handleChannelChange = useCallback((newChannel: SalesChannel) => {
+    setChannel(newChannel);
+    setSubOptionId(null);
+  }, []);
+
+  const handleSubOptionChange = useCallback((optionId: string) => {
+    setSubOptionId(prev => prev === optionId ? null : optionId);
+  }, []);
 
   const analyzeItem = useCallback((item: ResearchItem): AnalyzedItem => {
     const inputs: CalculatorInputs = {
@@ -112,8 +133,8 @@ export default function MarketResearchPage() {
       productCost: item.cost,
       discountRate: 0,
       discountAmount: 0,
-      platformFeeRate: preset.platformFeeRate,
-      paymentFeeRate: preset.paymentFeeRate,
+      platformFeeRate: activePlatformFeeRate,
+      paymentFeeRate: activePaymentFeeRate,
       couponBurden: 0,
       sellerShippingCost: item.shippingCost || defaultShipping,
       customerShippingCost: 0,
@@ -134,14 +155,14 @@ export default function MarketResearchPage() {
       else if (result.marginRate >= normalThreshold) verdict = 'normal';
 
       return {
-        ...item, fee, netProfit: result.netProfit, marginRate: result.marginRate,
+        ...item, fee, feeRate: totalFeeRate, netProfit: result.netProfit, marginRate: result.marginRate,
         salesVat: result.salesVat, totalPurchaseVat: result.totalPurchaseVat, vatPayable: result.vatPayable,
         verdict,
       };
     } catch {
-      return { ...item, fee: 0, netProfit: 0, marginRate: 0, salesVat: 0, totalPurchaseVat: 0, vatPayable: 0, verdict: 'bad' };
+      return { ...item, fee: 0, feeRate: totalFeeRate, netProfit: 0, marginRate: 0, salesVat: 0, totalPurchaseVat: 0, vatPayable: 0, verdict: 'bad' };
     }
-  }, [preset, defaultShipping, goodThreshold, normalThreshold]);
+  }, [activePlatformFeeRate, activePaymentFeeRate, totalFeeRate, defaultShipping, goodThreshold, normalThreshold]);
 
   const analyzed = useMemo(() => items.map(analyzeItem), [items, analyzeItem]);
 
@@ -201,7 +222,7 @@ export default function MarketResearchPage() {
       }
 
       setItems(prev => [...prev, ...newItems]);
-    } catch (err) {
+    } catch {
       alert('파일을 읽는 중 오류가 발생했습니다');
     } finally {
       setUploading(false);
@@ -259,6 +280,7 @@ export default function MarketResearchPage() {
       '판매가': item.sellingPrice,
       '배송비': item.shippingCost,
       '수수료': Math.round(item.fee),
+      '수수료율(%)': Number(item.feeRate.toFixed(2)),
       '매출부가세': Math.round(item.salesVat),
       '매입부가세': Math.round(item.totalPurchaseVat),
       '납부부가세': Math.round(item.vatPayable),
@@ -273,7 +295,6 @@ export default function MarketResearchPage() {
     XLSX.writeFile(wb, `시장조사_분석_${new Date().toISOString().split('T')[0]}.xlsx`);
   }, [analyzed]);
 
-  // 상품 추가 관련
   const [addingProductIds, setAddingProductIds] = useState<Set<string>>(new Set());
   const [addedProductIds, setAddedProductIds] = useState<Set<string>>(new Set());
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
@@ -291,9 +312,10 @@ export default function MarketResearchPage() {
           base_cost: item.cost,
           markets: [{
             channel,
+            sub_option_id: subOptionId,
             selling_price: item.sellingPrice,
-            platform_fee_rate: preset.platformFeeRate,
-            payment_fee_rate: preset.paymentFeeRate,
+            platform_fee_rate: activePlatformFeeRate,
+            payment_fee_rate: activePaymentFeeRate,
             additional_costs: { shipping: item.shippingCost },
           }],
         }),
@@ -307,7 +329,7 @@ export default function MarketResearchPage() {
       next.delete(item.id);
       return next;
     });
-  }, [channel, preset]);
+  }, [channel, subOptionId, activePlatformFeeRate, activePaymentFeeRate]);
 
   const handleBulkAdd = useCallback(async (targetVerdict: 'good' | 'all') => {
     const targets = targetVerdict === 'good'
@@ -331,9 +353,10 @@ export default function MarketResearchPage() {
             base_cost: item.cost,
             markets: [{
               channel,
+              sub_option_id: subOptionId,
               selling_price: item.sellingPrice,
-              platform_fee_rate: preset.platformFeeRate,
-              payment_fee_rate: preset.paymentFeeRate,
+              platform_fee_rate: activePlatformFeeRate,
+              payment_fee_rate: activePaymentFeeRate,
               additional_costs: { shipping: item.shippingCost },
             }],
           }),
@@ -351,7 +374,7 @@ export default function MarketResearchPage() {
 
     setBulkResult({ success, fail });
     setBulkAdding(false);
-  }, [analyzed, addedProductIds, channel, preset]);
+  }, [analyzed, addedProductIds, channel, subOptionId, activePlatformFeeRate, activePaymentFeeRate]);
 
   if (!authChecked) {
     return (
@@ -360,6 +383,8 @@ export default function MarketResearchPage() {
       </div>
     );
   }
+
+  const subOptionTags = Array.from(new Set(currentSubOptions.map(o => o.tag).filter(Boolean)));
 
   return (
     <div className="min-h-screen bg-background">
@@ -376,11 +401,11 @@ export default function MarketResearchPage() {
           <CardHeader>
             <CardTitle className="text-base">판별 설정</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>판매 채널</Label>
-                <Select value={channel} onValueChange={(v) => setChannel(v as SalesChannel)}>
+                <Select value={channel} onValueChange={(v) => handleChannelChange(v as SalesChannel)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -428,6 +453,68 @@ export default function MarketResearchPage() {
                 <p className="text-xs text-muted-foreground">엑셀에 없을 때 적용</p>
               </div>
             </div>
+
+            {/* 하위 옵션 (카테고리/유입경로 등) */}
+            {currentSubOptions.length > 0 && (
+              <div className="space-y-3 pt-2 border-t">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span>카테고리 / 판매방식 선택 (수수료 세분화)</span>
+                </div>
+                {subOptionTags.length > 1 ? (
+                  subOptionTags.map(tag => (
+                    <div key={tag} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{tag}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentSubOptions.filter(o => o.tag === tag).map((option) => {
+                          const rate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                          return (
+                            <Button
+                              key={option.id}
+                              variant={subOptionId === option.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handleSubOptionChange(option.id)}
+                              className="text-xs h-7"
+                            >
+                              {option.name}
+                              <span className="ml-1 opacity-70">({rate}%)</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentSubOptions.map((option) => {
+                      const rate = Math.round((option.platformFeeRate + option.paymentFeeRate) * 100) / 100;
+                      return (
+                        <Button
+                          key={option.id}
+                          variant={subOptionId === option.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleSubOptionChange(option.id)}
+                          className="text-xs h-7"
+                        >
+                          {option.name}
+                          <span className="ml-1 opacity-70">({rate}%)</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+                {selectedSubOption && (
+                  <div className="p-2.5 bg-[#D6F74C]/10 border border-[#D6F74C]/30 rounded-xl text-xs">
+                    <span className="font-medium">적용 수수료:</span>{' '}
+                    플랫폼 {activePlatformFeeRate}% + 결제 {activePaymentFeeRate}% ={' '}
+                    <span className="font-bold">합계 {totalFeeRate.toFixed(2)}%</span>
+                    {selectedSubOption.description && (
+                      <span className="text-muted-foreground ml-2">· {selectedSubOption.description}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -506,7 +593,7 @@ export default function MarketResearchPage() {
           </div>
         )}
 
-        {/* 결과 테이블 */}
+        {/* 결과: 데스크톱=테이블, 모바일=카드 */}
         {items.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-16 text-center">
@@ -518,128 +605,268 @@ export default function MarketResearchPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[140px]">상품명</TableHead>
-                    <TableHead className="text-right min-w-[100px]">원가<span className="text-[10px] text-muted-foreground ml-0.5">(VAT포함)</span></TableHead>
-                    <TableHead className="text-right min-w-[100px]">판매가</TableHead>
-                    <TableHead className="text-right">배송비</TableHead>
-                    <TableHead className="text-right">수수료</TableHead>
-                    <TableHead className="text-right">납부VAT</TableHead>
-                    <TableHead className="text-right">순이익</TableHead>
-                    <TableHead className="text-right">마진율</TableHead>
-                    <TableHead className="text-center">판정</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {analyzed.map((item) => {
-                    const vc = VERDICT_CONFIG[item.verdict];
-                    const VerdictIcon = vc.icon;
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <Input
-                            value={item.name}
-                            onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
-                            className="h-8 min-w-[120px]"
-                            placeholder="상품명"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input
-                            type="number"
-                            value={item.cost || ''}
-                            onChange={(e) => handleItemChange(item.id, 'cost', e.target.value)}
-                            className="h-8 w-24 text-right"
-                            placeholder="0"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input
-                            type="number"
-                            value={item.sellingPrice || ''}
-                            onChange={(e) => handleItemChange(item.id, 'sellingPrice', e.target.value)}
-                            className="h-8 w-24 text-right"
-                            placeholder="0"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input
-                            type="number"
-                            value={item.shippingCost || ''}
-                            onChange={(e) => handleItemChange(item.id, 'shippingCost', e.target.value)}
-                            className="h-8 w-20 text-right"
-                            placeholder="0"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
-                          {item.sellingPrice > 0 ? formatCurrency(item.fee) : '-'}
-                        </TableCell>
-                        <TableCell
-                          className="text-right text-sm text-muted-foreground cursor-help"
-                          title={item.sellingPrice > 0 ? `매출부가세: ${formatCurrency(item.salesVat)}\n매입부가세: ${formatCurrency(item.totalPurchaseVat)}\n납부부가세: ${formatCurrency(item.vatPayable)}` : ''}
-                        >
-                          {item.sellingPrice > 0 ? formatCurrency(item.vatPayable) : '-'}
-                        </TableCell>
-                        <TableCell className={`text-right font-medium ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
-                          {item.sellingPrice > 0 ? formatCurrency(item.netProfit) : '-'}
-                        </TableCell>
-                        <TableCell className={`text-right font-bold ${vc.color}`}>
-                          {item.sellingPrice > 0 ? `${item.marginRate.toFixed(1)}%` : '-'}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.sellingPrice > 0 ? (
-                            <Badge className={`${vc.bg} ${vc.color} border-0 gap-1`}>
-                              <VerdictIcon className="h-3 w-3" />
-                              {vc.label}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-0.5">
-                            {addedProductIds.has(item.id) ? (
-                              <span title="등록 완료">
-                                <CheckCircle className="h-4 w-4 text-[#6b7a1a]" />
-                              </span>
-                            ) : item.sellingPrice > 0 && item.name ? (
+          <>
+            {/* 데스크톱 테이블 */}
+            <Card className="hidden sm:block">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[140px]">상품명</TableHead>
+                      <TableHead className="text-right min-w-[100px]">원가<span className="text-[10px] text-muted-foreground ml-0.5">(VAT포함)</span></TableHead>
+                      <TableHead className="text-right min-w-[100px]">판매가</TableHead>
+                      <TableHead className="text-right">배송비</TableHead>
+                      <TableHead className="text-right">수수료</TableHead>
+                      <TableHead className="text-right">납부VAT</TableHead>
+                      <TableHead className="text-right">순이익</TableHead>
+                      <TableHead className="text-right">마진율</TableHead>
+                      <TableHead className="text-center">판정</TableHead>
+                      <TableHead className="w-[80px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analyzed.map((item) => {
+                      const vc = VERDICT_CONFIG[item.verdict];
+                      const VerdictIcon = vc.icon;
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <Input
+                              value={item.name}
+                              onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
+                              className="h-8 min-w-[120px]"
+                              placeholder="상품명"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              value={item.cost || ''}
+                              onChange={(e) => handleItemChange(item.id, 'cost', e.target.value)}
+                              className="h-8 w-24 text-right"
+                              placeholder="0"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              value={item.sellingPrice || ''}
+                              onChange={(e) => handleItemChange(item.id, 'sellingPrice', e.target.value)}
+                              className="h-8 w-24 text-right"
+                              placeholder="0"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Input
+                              type="number"
+                              value={item.shippingCost || ''}
+                              onChange={(e) => handleItemChange(item.id, 'shippingCost', e.target.value)}
+                              className="h-8 w-20 text-right"
+                              placeholder="0"
+                            />
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-muted-foreground">
+                            {item.sellingPrice > 0 ? formatCurrency(item.fee) : '-'}
+                          </TableCell>
+                          <TableCell
+                            className="text-right text-sm text-muted-foreground cursor-help"
+                            title={item.sellingPrice > 0 ? `매출부가세: ${formatCurrency(item.salesVat)}\n매입부가세: ${formatCurrency(item.totalPurchaseVat)}\n납부부가세: ${formatCurrency(item.vatPayable)}` : ''}
+                          >
+                            {item.sellingPrice > 0 ? formatCurrency(item.vatPayable) : '-'}
+                          </TableCell>
+                          <TableCell className={`text-right font-medium ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                            {item.sellingPrice > 0 ? formatCurrency(item.netProfit) : '-'}
+                          </TableCell>
+                          <TableCell className={`text-right font-bold ${vc.color}`}>
+                            {item.sellingPrice > 0 ? `${item.marginRate.toFixed(1)}%` : '-'}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.sellingPrice > 0 ? (
+                              <Badge className={`${vc.bg} ${vc.color} border-0 gap-1`}>
+                                <VerdictIcon className="h-3 w-3" />
+                                {vc.label}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-0.5">
+                              {addedProductIds.has(item.id) ? (
+                                <span title="등록 완료">
+                                  <CheckCircle className="h-4 w-4 text-[#6b7a1a]" />
+                                </span>
+                              ) : item.sellingPrice > 0 && item.name ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  title="상품관리에 추가"
+                                  onClick={() => addSingleProduct(item)}
+                                  disabled={addingProductIds.has(item.id)}
+                                >
+                                  {addingProductIds.has(item.id) ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <PackagePlus className="h-3.5 w-3.5 text-primary" />
+                                  )}
+                                </Button>
+                              ) : null}
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7"
-                                title="상품관리에 추가"
-                                onClick={() => addSingleProduct(item)}
-                                disabled={addingProductIds.has(item.id)}
+                                onClick={() => handleDeleteItem(item.id)}
                               >
-                                {addingProductIds.has(item.id) ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <PackagePlus className="h-3.5 w-3.5 text-primary" />
-                                )}
+                                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                               </Button>
-                            ) : null}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => handleDeleteItem(item.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                            </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+
+            {/* 모바일 카드 뷰 */}
+            <div className="sm:hidden space-y-3">
+              {analyzed.map((item) => {
+                const vc = VERDICT_CONFIG[item.verdict];
+                const VerdictIcon = vc.icon;
+                const hasResult = item.sellingPrice > 0;
+                return (
+                  <Card key={item.id} className={`overflow-hidden ${hasResult ? vc.border : ''}`}>
+                    {/* 판정 헤더 */}
+                    {hasResult && (
+                      <div className={`${vc.bg} px-4 py-2 flex items-center justify-between`}>
+                        <div className="flex items-center gap-1.5">
+                          <VerdictIcon className={`h-4 w-4 ${vc.color}`} />
+                          <span className={`text-sm font-bold ${vc.color}`}>{vc.label}</span>
+                        </div>
+                        <span className={`text-lg font-bold ${vc.color}`}>
+                          {item.marginRate.toFixed(1)}%
+                        </span>
+                      </div>
+                    )}
+
+                    <CardContent className="pt-4 space-y-3">
+                      {/* 상품명 */}
+                      <Input
+                        value={item.name}
+                        onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
+                        className="h-9"
+                        placeholder="상품명 입력"
+                      />
+
+                      {/* 입력 필드: 2열 그리드 */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">원가 (VAT포함)</Label>
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            value={item.cost || ''}
+                            onChange={(e) => handleItemChange(item.id, 'cost', e.target.value)}
+                            className="h-9 text-right"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">판매가</Label>
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            value={item.sellingPrice || ''}
+                            onChange={(e) => handleItemChange(item.id, 'sellingPrice', e.target.value)}
+                            className="h-9 text-right"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">배송비</Label>
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            value={item.shippingCost || ''}
+                            onChange={(e) => handleItemChange(item.id, 'shippingCost', e.target.value)}
+                            className="h-9 text-right"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">수수료 ({totalFeeRate.toFixed(1)}%)</Label>
+                          <div className="h-9 flex items-center justify-end px-3 bg-muted/50 rounded-md text-sm">
+                            {hasResult ? formatCurrency(item.fee) : '-'}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                        </div>
+                      </div>
+
+                      {/* 결과 요약 */}
+                      {hasResult && (
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                          <div className="text-center">
+                            <p className="text-[10px] text-muted-foreground">순이익</p>
+                            <p className={`text-sm font-bold ${item.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                              {formatCurrency(item.netProfit)}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[10px] text-muted-foreground">납부VAT</p>
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {formatCurrency(item.vatPayable)}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[10px] text-muted-foreground">마진율</p>
+                            <p className={`text-sm font-bold ${vc.color}`}>
+                              {item.marginRate.toFixed(1)}%
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 액션 버튼 */}
+                      <div className="flex items-center gap-2 pt-1">
+                        {addedProductIds.has(item.id) ? (
+                          <div className="flex items-center gap-1.5 text-sm text-[#6b7a1a]">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>등록 완료</span>
+                          </div>
+                        ) : hasResult && item.name ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => addSingleProduct(item)}
+                            disabled={addingProductIds.has(item.id)}
+                          >
+                            {addingProductIds.has(item.id) ? (
+                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                              <PackagePlus className="h-3.5 w-3.5 mr-1.5" />
+                            )}
+                            상품 추가
+                          </Button>
+                        ) : null}
+                        <div className="flex-1" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs text-muted-foreground hover:text-red-600"
+                          onClick={() => handleDeleteItem(item.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" />
+                          삭제
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-          </Card>
+          </>
         )}
 
         {/* 일괄 추가 다이얼로그 */}
@@ -674,11 +901,11 @@ export default function MarketResearchPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">판매 채널</span>
-                    <span>{preset.name}</span>
+                    <span>{preset.name}{selectedSubOption ? ` · ${selectedSubOption.name}` : ''}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">수수료</span>
-                    <span>{preset.platformFeeRate}% + {preset.paymentFeeRate}%</span>
+                    <span>{activePlatformFeeRate}% + {activePaymentFeeRate}% = {totalFeeRate.toFixed(2)}%</span>
                   </div>
                   {addedProductIds.size > 0 && (
                     <p className="text-xs text-muted-foreground pt-1 border-t">

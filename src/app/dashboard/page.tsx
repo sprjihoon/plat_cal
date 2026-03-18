@@ -30,6 +30,7 @@ import {
   Package,
   Upload,
   Search,
+  Receipt,
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/calculator';
@@ -475,6 +476,37 @@ export default function DashboardPage() {
                 </Card>
               )}
             </div>
+
+            {/* 부가세 요약 */}
+            {data.summary.revenue > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Receipt className="h-4 w-4" />
+                    부가세 요약
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl text-center">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">매출부가세</p>
+                      <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(data.summary.salesVat))}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">매출 ÷ 11</p>
+                    </div>
+                    <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-xl text-center">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">매입부가세</p>
+                      <p className="text-lg font-bold text-green-700 dark:text-green-400">{formatCurrency(Math.round(data.summary.purchaseVat))}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">수수료 VAT 공제</p>
+                    </div>
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-center">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">납부부가세</p>
+                      <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(data.summary.vatPayable))}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">매출VAT - 매입VAT</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* 수익성 요약 테이블 */}
             <Card>

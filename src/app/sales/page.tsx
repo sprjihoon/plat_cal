@@ -84,9 +84,11 @@ export default function SalesPage() {
       totalRevenue: acc.totalRevenue + sale.total_revenue,
       totalProfit: acc.totalProfit + sale.net_profit,
       totalQuantity: acc.totalQuantity + sale.quantity,
+      salesVat: acc.salesVat + sale.total_revenue / 11,
+      purchaseVat: acc.purchaseVat + (sale.platform_fee || 0) / 11 + (sale.payment_fee || 0) / 11,
     }),
-    { totalRevenue: 0, totalProfit: 0, totalQuantity: 0 }
-  ) || { totalRevenue: 0, totalProfit: 0, totalQuantity: 0 };
+    { totalRevenue: 0, totalProfit: 0, totalQuantity: 0, salesVat: 0, purchaseVat: 0 }
+  ) || { totalRevenue: 0, totalProfit: 0, totalQuantity: 0, salesVat: 0, purchaseVat: 0 };
 
   const dailySummary = useMemo(() => {
     if (!data?.sales) return [];
@@ -187,6 +189,30 @@ export default function SalesPage() {
           </Card>
         </div>
 
+        {/* 부가세 요약 */}
+        {summary.totalRevenue > 0 && (
+          <div className="grid grid-cols-3 gap-4">
+            <Card className="bg-blue-50 dark:bg-blue-950/30 ring-0 border-0">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">매출부가세</p>
+                <p className="text-base font-bold text-blue-700 dark:text-blue-400">{formatCurrency(Math.round(summary.salesVat))}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50 dark:bg-green-950/30 ring-0 border-0">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">매입부가세</p>
+                <p className="text-base font-bold text-green-700 dark:text-green-400">{formatCurrency(Math.round(summary.purchaseVat))}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-amber-50 dark:bg-amber-950/30 ring-0 border-0">
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">납부부가세</p>
+                <p className="text-base font-bold text-amber-700 dark:text-amber-400">{formatCurrency(Math.round(summary.salesVat - summary.purchaseVat))}</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* 날짜 필터 */}
         <DateFilter
           startDate={startDate}
@@ -256,14 +282,14 @@ export default function SalesPage() {
             {dailySummary.map((day) => (
               <Card key={day.date}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <CardTitle className="text-lg">
-                        {new Date(day.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+                      <CardTitle className="text-base sm:text-lg">
+                        {new Date(day.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
                       </CardTitle>
                       <Badge variant="secondary">{day.count}건</Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-3 text-xs sm:text-sm">
                       <div>
                         <span className="text-muted-foreground">매출 </span>
                         <span className="font-bold">{formatCurrency(day.revenue)}</span>
@@ -279,7 +305,8 @@ export default function SalesPage() {
                     </div>
                   </div>
                 </CardHeader>
-                <div className="overflow-x-auto">
+                {/* 데스크톱 테이블 */}
+                <div className="hidden sm:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -331,13 +358,66 @@ export default function SalesPage() {
                     </TableBody>
                   </Table>
                 </div>
+                {/* 모바일 카드 리스트 */}
+                <div className="sm:hidden px-4 pb-4 space-y-2">
+                  {day.sales.map((sale) => (
+                    <div
+                      key={sale.id}
+                      className={`p-3 rounded-lg border ${(sale as any).status === 'returned' || (sale as any).status === 'cancelled' ? 'opacity-60' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{sale.products?.name || '-'}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-[10px] h-5">{getChannelName(sale.channel)}</Badge>
+                            <select
+                              className="text-[10px] border rounded px-1 py-0.5 h-5"
+                              value={(sale as any).status || 'completed'}
+                              onChange={(e) => handleStatusChange(sale.id, e.target.value as SaleStatus)}
+                            >
+                              <option value="completed">완료</option>
+                              <option value="returned">반품</option>
+                              <option value="cancelled">취소</option>
+                              <option value="exchanged">교환</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <Link href={`/sales/${sale.id}/edit`}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-3.5 w-3.5" /></Button>
+                          </Link>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteId(sale.id)}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">수량 x 단가</p>
+                          <p className="text-xs font-medium">{sale.quantity} x {formatCurrency(sale.unit_price)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] text-muted-foreground">매출</p>
+                          <p className="text-xs font-medium">{formatCurrency(sale.total_revenue)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-muted-foreground">순이익</p>
+                          <p className={`text-xs font-bold ${sale.net_profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                            {formatCurrency(sale.net_profit)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Card>
             ))}
           </div>
         ) : (
-          /* 기존 목록 뷰 */
+          /* 목록 뷰 */
           <>
-            <Card>
+            {/* 데스크톱 테이블 */}
+            <Card className="hidden sm:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -391,6 +471,59 @@ export default function SalesPage() {
                 </TableBody>
               </Table>
             </Card>
+
+            {/* 모바일 카드 뷰 */}
+            <div className="sm:hidden space-y-3">
+              {data?.sales.map((sale) => (
+                <Card key={sale.id} className={(sale as any).status === 'returned' || (sale as any).status === 'cancelled' ? 'opacity-60' : ''}>
+                  <CardContent className="py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{sale.products?.name || '-'}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-[10px] h-5">{getChannelName(sale.channel)}</Badge>
+                          <span className="text-xs text-muted-foreground">{new Date(sale.sale_date).toLocaleDateString('ko-KR')}</span>
+                          <select
+                            className="text-[10px] border rounded px-1 py-0.5 h-5"
+                            value={(sale as any).status || 'completed'}
+                            onChange={(e) => handleStatusChange(sale.id, e.target.value as SaleStatus)}
+                          >
+                            <option value="completed">완료</option>
+                            <option value="returned">반품</option>
+                            <option value="cancelled">취소</option>
+                            <option value="exchanged">교환</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Link href={`/sales/${sale.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-3.5 w-3.5" /></Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteId(sale.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">수량 x 단가</p>
+                        <p className="text-xs font-medium">{sale.quantity} x {formatCurrency(sale.unit_price)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground">매출</p>
+                        <p className="text-xs font-medium">{formatCurrency(sale.total_revenue)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-muted-foreground">순이익</p>
+                        <p className={`text-xs font-bold ${sale.net_profit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
+                          {formatCurrency(sale.net_profit)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             {data && (
               <Pagination

@@ -142,7 +142,8 @@ export default function ProductsPage() {
           </Card>
         ) : (
           <>
-            <Card>
+            {/* 데스크톱 테이블 */}
+            <Card className="hidden sm:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -210,6 +211,57 @@ export default function ProductsPage() {
                 </TableBody>
               </Table>
             </Card>
+
+            {/* 모바일 카드 뷰 */}
+            <div className="sm:hidden space-y-3">
+              {data?.products.map((product) => (
+                <Card key={product.id}>
+                  <CardContent className="py-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/products/${product.id}`} className="font-medium hover:underline block truncate">
+                          {product.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          {product.sku && <span>SKU: {product.sku}</span>}
+                          <span>{new Date(product.created_at).toLocaleDateString('ko-KR')}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Link href={`/products/${product.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteId(product.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">원가</p>
+                        <p className="text-sm font-semibold">{formatCurrency(product.base_cost)}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {product.product_markets.length > 0 ? (
+                          product.product_markets.slice(0, 3).map((market) => (
+                            <Badge key={market.id} variant="secondary" className="text-xs">
+                              {getChannelName(market.channel)}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground text-xs">마켓 미설정</span>
+                        )}
+                        {product.product_markets.length > 3 && (
+                          <Badge variant="outline" className="text-xs">+{product.product_markets.length - 3}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             {data && (
               <Pagination

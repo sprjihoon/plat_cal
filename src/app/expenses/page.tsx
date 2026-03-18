@@ -242,7 +242,8 @@ export default function ExpensesPage() {
           </Card>
         ) : (
           <>
-            <Card>
+            {/* 데스크톱 테이블 */}
+            <Card className="hidden sm:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -311,6 +312,60 @@ export default function ExpensesPage() {
                 </TableBody>
               </Table>
             </Card>
+
+            {/* 모바일 카드 뷰 */}
+            <div className="sm:hidden space-y-3">
+              {adData?.advertising.map((ad) => (
+                <Card key={ad.id}>
+                  <CardContent className="py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-xs">{getChannelName(ad.channel)}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(ad.ad_date).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                        {ad.campaign_name && (
+                          <p className="text-sm text-muted-foreground mt-1 truncate">{ad.campaign_name}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Link href={`/expenses/${ad.id}/edit`}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-3.5 w-3.5" /></Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteId(ad.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className={`grid gap-2 mt-2 pt-2 border-t ${hasMetrics ? 'grid-cols-3' : 'grid-cols-1'}`}>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">광고비</p>
+                        <p className="text-sm font-bold">{formatCurrency(ad.cost)}</p>
+                      </div>
+                      {hasMetrics && (
+                        <>
+                          <div className="text-center">
+                            <p className="text-[10px] text-muted-foreground">클릭 / 전환</p>
+                            <p className="text-xs font-medium">
+                              {ad.clicks > 0 ? ad.clicks.toLocaleString() : '-'} / {ad.conversions > 0 ? ad.conversions.toLocaleString() : '-'}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] text-muted-foreground">CPC</p>
+                            <p className="text-xs font-medium">
+                              {ad.clicks > 0 ? formatCurrency(calculateCPC(ad.cost, ad.clicks)) : '-'}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
             {adData && (
               <Pagination
                 page={page}

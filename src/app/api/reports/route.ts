@@ -111,6 +111,12 @@ export async function GET(request: NextRequest) {
     const roas = adCost > 0 ? (revenue / adCost) * 100 : 0;
     const roi = totalCost > 0 ? ((profit - totalCost) / totalCost) * 100 : 0;
 
+    const pSalesVat = revenue / 11;
+    const pPurchaseVat = pSales.reduce((s: number, r: any) => {
+      return s + (r.platform_fee || 0) / 11 + (r.payment_fee || 0) / 11;
+    }, 0);
+    const pVatPayable = pSalesVat - pPurchaseVat;
+
     return {
       period: key,
       revenue,
@@ -129,6 +135,9 @@ export async function GET(request: NextRequest) {
       netProfitAfterAll,
       roas,
       roi,
+      salesVat: pSalesVat,
+      purchaseVat: pPurchaseVat,
+      vatPayable: pVatPayable,
     };
   });
 
@@ -140,6 +149,10 @@ export async function GET(request: NextRequest) {
   const totalAdCost = sum(periodSummaries, 'adCost');
   const totalOperatingCost = sum(periodSummaries, 'operatingCost');
   const totalAllCost = totalAdCost + totalOperatingCost;
+
+  const totalSalesVat = sum(periodSummaries, 'salesVat');
+  const totalPurchaseVat = sum(periodSummaries, 'purchaseVat');
+  const totalVatPayable = totalSalesVat - totalPurchaseVat;
 
   const totalSummary = {
     revenue: totalRevenue,
@@ -159,6 +172,9 @@ export async function GET(request: NextRequest) {
     roas: totalAdCost > 0 ? (totalRevenue / totalAdCost) * 100 : 0,
     roi: totalAllCost > 0 ? ((totalProfit - totalAllCost) / totalAllCost) * 100 : 0,
     marginRate: totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0,
+    salesVat: totalSalesVat,
+    purchaseVat: totalPurchaseVat,
+    vatPayable: totalVatPayable,
   };
 
   const channelSummary: Record<string, any> = {};

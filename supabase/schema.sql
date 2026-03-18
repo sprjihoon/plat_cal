@@ -70,6 +70,7 @@ create table if not exists public.sales_records (
   platform_fee numeric default 0,
   payment_fee numeric default 0,
   net_profit numeric default 0,
+  status text default 'completed' not null,
   notes text,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
@@ -117,6 +118,7 @@ create index if not exists idx_sales_records_user_id on public.sales_records(use
 create index if not exists idx_sales_records_product_id on public.sales_records(product_id);
 create index if not exists idx_sales_records_sale_date on public.sales_records(sale_date);
 create index if not exists idx_sales_records_channel on public.sales_records(channel);
+create index if not exists idx_sales_records_status on public.sales_records(status);
 create index if not exists idx_advertising_costs_user_id on public.advertising_costs(user_id);
 create index if not exists idx_advertising_costs_ad_date on public.advertising_costs(ad_date);
 create index if not exists idx_operating_expenses_user_id on public.operating_expenses(user_id);

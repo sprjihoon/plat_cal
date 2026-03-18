@@ -37,20 +37,27 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      data = (sales || []).map((s: any) => ({
-        날짜: s.sale_date,
-        상품명: s.products?.name || '',
-        SKU: s.products?.sku || '',
-        채널: s.channel,
-        수량: s.quantity,
-        단가: s.unit_price,
-        매출: s.total_revenue,
-        플랫폼수수료: s.platform_fee,
-        결제수수료: s.payment_fee,
-        순이익: s.net_profit,
-        메모: s.notes || '',
-      }));
-      headers = ['날짜', '상품명', 'SKU', '채널', '수량', '단가', '매출', '플랫폼수수료', '결제수수료', '순이익', '메모'];
+      data = (sales || []).map((s: any) => {
+        const sVat = s.total_revenue / 11;
+        const pVat = (s.platform_fee || 0) / 11 + (s.payment_fee || 0) / 11;
+        return {
+          날짜: s.sale_date,
+          상품명: s.products?.name || '',
+          SKU: s.products?.sku || '',
+          채널: s.channel,
+          수량: s.quantity,
+          단가: s.unit_price,
+          매출: s.total_revenue,
+          플랫폼수수료: s.platform_fee,
+          결제수수료: s.payment_fee,
+          순이익: s.net_profit,
+          매출부가세: Math.round(sVat),
+          매입부가세: Math.round(pVat),
+          납부부가세: Math.round(sVat - pVat),
+          메모: s.notes || '',
+        };
+      });
+      headers = ['날짜', '상품명', 'SKU', '채널', '수량', '단가', '매출', '플랫폼수수료', '결제수수료', '순이익', '매출부가세', '매입부가세', '납부부가세', '메모'];
       filename = `판매기록_${startDate || 'all'}_${endDate || 'all'}`;
       break;
     }
@@ -140,6 +147,12 @@ export async function GET(request: NextRequest) {
       const netProfitAfterAd = totalProfit - totalAdCost;
       const roas = totalAdCost > 0 ? (totalRevenue / totalAdCost) * 100 : 0;
 
+      const totalSalesVat = totalRevenue / 11;
+      const totalPurchaseVat = (sales || []).reduce((sum: number, s: any) => {
+        return sum + (s.platform_fee || 0) / 11 + (s.payment_fee || 0) / 11;
+      }, 0);
+      const totalVatPayable = totalSalesVat - totalPurchaseVat;
+
       data = [{
         기간: `${startDate} ~ ${endDate}`,
         총매출: totalRevenue,
@@ -149,8 +162,11 @@ export async function GET(request: NextRequest) {
         총광고비: totalAdCost,
         광고후순이익: netProfitAfterAd,
         ROAS: roas.toFixed(0) + '%',
+        매출부가세: Math.round(totalSalesVat),
+        매입부가세: Math.round(totalPurchaseVat),
+        납부부가세: Math.round(totalVatPayable),
       }];
-      headers = ['기간', '총매출', '총순이익', '총판매수량', '판매건수', '총광고비', '광고후순이익', 'ROAS'];
+      headers = ['기간', '총매출', '총순이익', '총판매수량', '판매건수', '총광고비', '광고후순이익', 'ROAS', '매출부가세', '매입부가세', '납부부가세'];
       filename = `결산리포트_${startDate}_${endDate}`;
       break;
     }
