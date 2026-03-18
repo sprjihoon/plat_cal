@@ -89,11 +89,8 @@ export function getMarginColorClass(marginRate: number): string {
 /**
  * 마진율에 따른 배경 색상 클래스 반환
  */
-export function getMarginBgClass(marginRate: number): string {
-  if (marginRate >= 40) return 'bg-[#8C9EFF]/10 border-[#8C9EFF]/30';
-  if (marginRate >= 25) return 'bg-blue-50 border-blue-200';
-  if (marginRate >= 15) return 'bg-yellow-50 border-yellow-200';
-  return 'bg-red-50 border-red-200';
+export function getMarginBgClass(_marginRate: number): string {
+  return 'bg-white border-border';
 }
 
 /**

@@ -59,16 +59,7 @@ export function OperationJudgment({ result, isValid }: OperationJudgmentProps) {
   };
 
   const getAlertClass = () => {
-    switch (level) {
-      case 'stable':
-        return 'border-[#8C9EFF]/30 bg-[#8C9EFF]/10';
-      case 'manageable':
-        return 'border-blue-200 bg-blue-50';
-      case 'caution':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'danger':
-        return 'border-red-200 bg-red-50';
-    }
+    return 'border-border bg-white';
   };
 
   return (

@@ -37,7 +37,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
   const isValidCost = result && result.calculatedMaxCost > 0;
 
   return (
-    <Card className="border-2 border-orange-300 bg-orange-50">
+    <Card className="border-2 border-border bg-white">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Package className="h-4 w-4" />

@@ -37,7 +37,7 @@ export function TargetMarginResult({ result, targetMarginRate, isValid }: Target
   const isValidPrice = result && result.targetRecommendedPrice > 0 && result.targetRecommendedPrice < Infinity;
 
   return (
-    <Card className="border-2 border-primary/30 bg-primary/5">
+    <Card className="border-2 border-border bg-white">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Target className="h-4 w-4" />
