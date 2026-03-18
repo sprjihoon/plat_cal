@@ -128,20 +128,36 @@ export default function NewSalePage() {
               <CardTitle>판매 정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>판매일 *</Label>
-                <Input
-                  type="date"
-                  value={saleDate}
-                  onChange={(e) => setSaleDate(e.target.value)}
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>판매일 *</Label>
+                  <Input
+                    type="date"
+                    value={saleDate}
+                    onChange={(e) => setSaleDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>판매 채널 *</Label>
+                  <select
+                    className="w-full h-10 px-3 border rounded-md text-sm"
+                    value={channel}
+                    onChange={(e) => setChannel(e.target.value)}
+                    required
+                  >
+                    {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
+                      <option key={key} value={key}>{preset.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label>상품 *</Label>
                 <select
-                  className="w-full h-10 px-3 border rounded-md"
+                  className="w-full h-10 px-3 border rounded-md text-sm"
                   value={productId}
                   onChange={(e) => setProductId(e.target.value)}
                   required
@@ -154,31 +170,18 @@ export default function NewSalePage() {
                   ))}
                 </select>
                 {selectedProduct && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     원가: {formatCurrency(selectedProduct.base_cost)}
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>판매 채널 *</Label>
-                <select
-                  className="w-full h-10 px-3 border rounded-md"
-                  value={channel}
-                  onChange={(e) => setChannel(e.target.value)}
-                  required
-                >
-                  {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
-                    <option key={key} value={key}>{preset.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>판매 수량 *</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">판매 수량 *</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     min="1"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
@@ -186,10 +189,11 @@ export default function NewSalePage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>판매 단가 (원) *</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">판매 단가 (원) *</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     min="0"
                     value={unitPrice}
                     onChange={(e) => setUnitPrice(Number(e.target.value))}
@@ -198,21 +202,23 @@ export default function NewSalePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>플랫폼 수수료 (%)</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">플랫폼 수수료 (%)</Label>
                   <Input
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     value={platformFeeRate}
                     onChange={(e) => setPlatformFeeRate(Number(e.target.value))}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>결제 수수료 (%)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">결제 수수료 (%)</Label>
                   <Input
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     value={paymentFeeRate}
                     onChange={(e) => setPaymentFeeRate(Number(e.target.value))}

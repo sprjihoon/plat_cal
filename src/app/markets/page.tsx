@@ -217,23 +217,20 @@ export default function MarketsPage() {
                     return (
                       <Card key={market.id} className={!market.is_active ? 'opacity-60' : ''}>
                         <CardContent className="py-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Badge variant={market.is_active ? 'default' : 'secondary'}>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Badge variant={market.is_active ? 'default' : 'secondary'} className="text-xs">
                                   {getChannelName(market.channel)}
                                 </Badge>
                                 {getSubOptionName(market.channel, market.sub_option_id) && (
-                                  <Badge variant="outline" className="text-xs">
+                                  <Badge variant="outline" className="text-[10px]">
                                     {getSubOptionName(market.channel, market.sub_option_id)}
                                   </Badge>
                                 )}
                                 {!market.is_active && (
-                                  <Badge variant="secondary" className="text-xs">비활성</Badge>
+                                  <Badge variant="secondary" className="text-[10px]">비활성</Badge>
                                 )}
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(market.created_at).toLocaleDateString('ko-KR')}
-                                </span>
                               </div>
                               <Link
                                 href={`/products/${market.productId}`}
@@ -244,51 +241,59 @@ export default function MarketsPage() {
                                   <span className="text-muted-foreground ml-1">({market.productSku})</span>
                                 )}
                               </Link>
-                              <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                                <span>판매가: {formatCurrency(market.selling_price)}</span>
-                                <span>수수료: {(market.platform_fee_rate + market.payment_fee_rate).toFixed(1)}%</span>
-                                <span>원가: {formatCurrency(market.baseCost)}</span>
-                              </div>
                             </div>
+                            <Link href={`/products/${market.productId}/edit`}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                            </Link>
+                          </div>
 
-                            <div className="flex items-center gap-4">
-                              {result ? (
-                                <>
-                                  <div className="text-right">
-                                    <p className="text-xs text-muted-foreground">순이익</p>
-                                    <p className={`text-sm font-bold ${result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
-                                      {formatCurrency(result.netProfit)}
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3 pt-3 border-t">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">판매가</p>
+                              <p className="text-xs font-medium">{formatCurrency(market.selling_price)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">원가</p>
+                              <p className="text-xs font-medium">{formatCurrency(market.baseCost)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">수수료</p>
+                              <p className="text-xs font-medium">{(market.platform_fee_rate + market.payment_fee_rate).toFixed(1)}%</p>
+                            </div>
+                            {result ? (
+                              <>
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground">순이익</p>
+                                  <p className={`text-xs font-bold ${result.netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
+                                    {formatCurrency(result.netProfit)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-muted-foreground">마진율</p>
+                                  <div className="flex items-center gap-0.5">
+                                    {marginRate > 20 ? (
+                                      <TrendingUp className="h-3 w-3 text-[#4a5abf]" />
+                                    ) : marginRate > 0 ? (
+                                      <Minus className="h-3 w-3 text-yellow-600" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3 text-red-600" />
+                                    )}
+                                    <p className={`text-xs font-bold ${
+                                      marginRate > 20 ? 'text-[#4a5abf]' :
+                                      marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
+                                    }`}>
+                                      {marginRate.toFixed(1)}%
                                     </p>
                                   </div>
-                                  <div className="text-right">
-                                    <p className="text-xs text-muted-foreground">마진율</p>
-                                    <div className="flex items-center gap-1">
-                                      {marginRate > 20 ? (
-                                        <TrendingUp className="h-3 w-3 text-[#6b7a1a]" />
-                                      ) : marginRate > 0 ? (
-                                        <Minus className="h-3 w-3 text-yellow-600" />
-                                      ) : (
-                                        <TrendingDown className="h-3 w-3 text-red-600" />
-                                      )}
-                                      <p className={`text-sm font-bold ${
-                                        marginRate > 20 ? 'text-[#6b7a1a]' :
-                                        marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
-                                      }`}>
-                                        {marginRate.toFixed(1)}%
-                                      </p>
-                                    </div>
-                                  </div>
-                                </>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">계산 불가</span>
-                              )}
-
-                              <Link href={`/products/${market.productId}/edit`}>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                              </Link>
-                            </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="col-span-2">
+                                <p className="text-xs text-muted-foreground">계산 불가</p>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

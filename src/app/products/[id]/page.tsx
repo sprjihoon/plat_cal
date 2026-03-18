@@ -158,11 +158,8 @@ export default function ProductDetailPage({ params }: PageProps) {
                   const marginRate = result?.marginRate || 0;
                   
                   return (
-                    <div
-                      key={market.id}
-                      className="p-4 border rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3">
+                    <div key={market.id} className="p-4 border rounded-lg space-y-3">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={market.is_active ? 'default' : 'secondary'}>
                           {getChannelName(market.channel)}
                         </Badge>
@@ -171,41 +168,46 @@ export default function ProductDetailPage({ params }: PageProps) {
                             {getSubOptionName(market.channel, market.sub_option_id)}
                           </Badge>
                         )}
-                        <span className="text-muted-foreground">
-                          판매가: {formatCurrency(market.selling_price)}
-                        </span>
                       </div>
                       
-                      {result ? (
-                        <div className="flex items-center gap-6">
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">순이익</p>
-                            <p className={`text-lg font-bold ${result.netProfit >= 0 ? 'text-[#6b7a1a]' : 'text-red-600'}`}>
-                              {formatCurrency(result.netProfit)}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">마진율</p>
-                            <div className="flex items-center gap-1">
-                              {marginRate > 20 ? (
-                                <TrendingUp className="h-4 w-4 text-[#6b7a1a]" />
-                              ) : marginRate > 0 ? (
-                                <Minus className="h-4 w-4 text-yellow-600" />
-                              ) : (
-                                <TrendingDown className="h-4 w-4 text-red-600" />
-                              )}
-                              <p className={`text-lg font-bold ${
-                                marginRate > 20 ? 'text-[#6b7a1a]' : 
-                                marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>
-                                {marginRate.toFixed(1)}%
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">판매가</p>
+                          <p className="text-sm sm:text-base font-semibold">{formatCurrency(market.selling_price)}</p>
+                        </div>
+                        {result ? (
+                          <>
+                            <div>
+                              <p className="text-xs text-muted-foreground">순이익</p>
+                              <p className={`text-sm sm:text-base font-bold ${result.netProfit >= 0 ? 'text-[#4a5abf]' : 'text-red-600'}`}>
+                                {formatCurrency(result.netProfit)}
                               </p>
                             </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">마진율</p>
+                              <div className="flex items-center gap-1">
+                                {marginRate > 20 ? (
+                                  <TrendingUp className="h-3.5 w-3.5 text-[#4a5abf]" />
+                                ) : marginRate > 0 ? (
+                                  <Minus className="h-3.5 w-3.5 text-yellow-600" />
+                                ) : (
+                                  <TrendingDown className="h-3.5 w-3.5 text-red-600" />
+                                )}
+                                <p className={`text-sm sm:text-base font-bold ${
+                                  marginRate > 20 ? 'text-[#4a5abf]' : 
+                                  marginRate > 0 ? 'text-yellow-600' : 'text-red-600'
+                                }`}>
+                                  {marginRate.toFixed(1)}%
+                                </p>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="col-span-2 flex items-center">
+                            <span className="text-muted-foreground text-sm">계산 불가</span>
                           </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">계산 불가</span>
-                      )}
+                        )}
+                      </div>
                     </div>
                   );
                 })}

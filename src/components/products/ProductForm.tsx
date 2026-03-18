@@ -234,38 +234,36 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>판매 채널</Label>
+                  <select
+                    className="w-full h-10 px-3 border rounded-md bg-white text-sm"
+                    value={market.channel}
+                    onChange={(e) => handleMarketChange(index, 'channel', e.target.value)}
+                  >
+                    {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
+                      <option key={key} value={key}>{preset.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {getSubOptions(market.channel).length > 0 && (
                   <div className="space-y-2">
-                    <Label>판매 채널</Label>
+                    <Label>판매방식 / 카테고리</Label>
                     <select
                       className="w-full h-10 px-3 border rounded-md bg-white text-sm"
-                      value={market.channel}
-                      onChange={(e) => handleMarketChange(index, 'channel', e.target.value)}
+                      value={market.sub_option_id || ''}
+                      onChange={(e) => handleSubOptionChange(index, e.target.value)}
                     >
-                      {Object.entries(PLATFORM_PRESETS).map(([key, preset]) => (
-                        <option key={key} value={key}>{preset.name}</option>
+                      <option value="">기본 수수료</option>
+                      {getSubOptions(market.channel).map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.name} ({opt.platformFeeRate + opt.paymentFeeRate}%)
+                        </option>
                       ))}
                     </select>
                   </div>
-
-                  {getSubOptions(market.channel).length > 0 && (
-                    <div className="space-y-2">
-                      <Label>판매방식 / 카테고리</Label>
-                      <select
-                        className="w-full h-10 px-3 border rounded-md bg-white text-sm"
-                        value={market.sub_option_id || ''}
-                        onChange={(e) => handleSubOptionChange(index, e.target.value)}
-                      >
-                        <option value="">기본 수수료</option>
-                        {getSubOptions(market.channel).map((opt) => (
-                          <option key={opt.id} value={opt.id}>
-                            {opt.name} ({opt.platformFeeRate + opt.paymentFeeRate}%)
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {market.sub_option_id && (() => {
                   const subOpt = getSubOptions(market.channel).find(o => o.id === market.sub_option_id);
@@ -280,25 +278,28 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   <Label>판매가 (원)</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     value={market.selling_price}
                     onChange={(e) => handleMarketChange(index, 'selling_price', Number(e.target.value))}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>플랫폼 수수료 (%)</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">플랫폼 수수료 (%)</Label>
                     <Input
                       type="number"
+                      inputMode="decimal"
                       step="0.1"
                       value={market.platform_fee_rate}
                       onChange={(e) => handleMarketChange(index, 'platform_fee_rate', Number(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>결제 수수료 (%)</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">결제 수수료 (%)</Label>
                     <Input
                       type="number"
+                      inputMode="decimal"
                       step="0.1"
                       value={market.payment_fee_rate}
                       onChange={(e) => handleMarketChange(index, 'payment_fee_rate', Number(e.target.value))}
@@ -306,19 +307,25 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>배송비 (원)</Label>
+                <div className="p-2 bg-muted/50 rounded-md text-xs text-muted-foreground text-center">
+                  수수료 합계: {(market.platform_fee_rate + market.payment_fee_rate).toFixed(2)}%
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">배송비 (원)</Label>
                     <Input
                       type="number"
+                      inputMode="numeric"
                       value={market.additional_costs.shipping_cost || 0}
                       onChange={(e) => handleAdditionalCostChange(index, 'shipping_cost', Number(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>포장비 (원)</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">포장비 (원)</Label>
                     <Input
                       type="number"
+                      inputMode="numeric"
                       value={market.additional_costs.packaging_cost || 0}
                       onChange={(e) => handleAdditionalCostChange(index, 'packaging_cost', Number(e.target.value))}
                     />

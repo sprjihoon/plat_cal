@@ -79,7 +79,7 @@ export default function NewExpensePage() {
               <CardTitle>광고 정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>광고일 *</Label>
                   <Input
@@ -93,7 +93,7 @@ export default function NewExpensePage() {
                 <div className="space-y-2">
                   <Label>채널 *</Label>
                   <select
-                    className="w-full h-10 px-3 border rounded-md"
+                    className="w-full h-10 px-3 border rounded-md text-sm"
                     value={channel}
                     onChange={(e) => setChannel(e.target.value)}
                     required
@@ -105,11 +105,11 @@ export default function NewExpensePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>광고 유형</Label>
                   <select
-                    className="w-full h-10 px-3 border rounded-md"
+                    className="w-full h-10 px-3 border rounded-md text-sm"
                     value={adType}
                     onChange={(e) => setAdType(e.target.value)}
                   >
@@ -139,6 +139,7 @@ export default function NewExpensePage() {
                 <Label>광고비 (원) *</Label>
                 <Input
                   type="number"
+                  inputMode="numeric"
                   min="0"
                   value={cost}
                   onChange={(e) => setCost(Number(e.target.value))}
@@ -162,29 +163,32 @@ export default function NewExpensePage() {
             </button>
             {showMetrics && (
               <CardContent className="space-y-4 pt-0">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>노출수</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">노출수</Label>
                     <Input
                       type="number"
+                      inputMode="numeric"
                       min="0"
                       value={impressions}
                       onChange={(e) => setImpressions(Number(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>클릭수</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs sm:text-sm">클릭수</Label>
                     <Input
                       type="number"
+                      inputMode="numeric"
                       min="0"
                       value={clicks}
                       onChange={(e) => setClicks(Number(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>전환수</Label>
+                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
+                    <Label className="text-xs sm:text-sm">전환수</Label>
                     <Input
                       type="number"
+                      inputMode="numeric"
                       min="0"
                       value={conversions}
                       onChange={(e) => setConversions(Number(e.target.value))}
