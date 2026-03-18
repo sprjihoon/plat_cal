@@ -59,7 +59,7 @@ export function OperationJudgment({ result, isValid }: OperationJudgmentProps) {
   };
 
   const getAlertClass = () => {
-    return 'border-border bg-white';
+    return 'border-border bg-card';
   };
 
   return (

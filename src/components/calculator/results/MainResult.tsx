@@ -54,7 +54,7 @@ export function MainResult({ result, isValid }: MainResultProps) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           {/* 예상 순이익 */}
-          <div className="text-center p-4 bg-white/50 rounded-lg">
+          <div className="text-center p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">예상 순이익</p>
             <p className={cn(
               'text-3xl font-bold',
@@ -66,13 +66,13 @@ export function MainResult({ result, isValid }: MainResultProps) {
 
           {/* 마진율과 총 차감 비용 */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="text-center p-3 bg-white/50 rounded-lg">
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">최종 마진율</p>
               <p className={cn('text-2xl font-bold', marginColorClass)}>
                 {formatPercent(result.marginRate)}
               </p>
             </div>
-            <div className="text-center p-3 bg-white/50 rounded-lg">
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">총 차감 비용</p>
               <p className="text-2xl font-bold text-gray-700">
                 {formatCurrency(result.totalDeductions)}

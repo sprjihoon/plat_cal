@@ -35,7 +35,7 @@ export function ChannelPieChart({ data }: ChannelPieChartProps) {
     if (active && payload && payload.length) {
       const entry = payload[0];
       return (
-        <div className="bg-white p-3 border rounded-lg shadow-lg">
+        <div className="bg-popover p-3 border rounded-lg shadow-lg">
           <p className="font-medium">{entry.name}</p>
           <p className="text-sm text-muted-foreground">
             {formatCurrency(entry.value)}

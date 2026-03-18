@@ -37,7 +37,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
   const isValidCost = result && result.calculatedMaxCost > 0;
 
   return (
-    <Card className="border-2 border-border bg-white">
+    <Card className="border-2 border-border bg-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Package className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
       <CardContent className="space-y-4">
         {isValidCost ? (
           <>
-            <div className="text-center p-6 bg-white/50 rounded-lg">
+            <div className="text-center p-6 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">맞출 수 있는 최대 원가</p>
               <p className="text-4xl font-bold text-orange-600">
                 {formatCurrency(result.calculatedMaxCost)}
@@ -62,13 +62,13 @@ export function MaxCostResult({ result, targetMarginRate, isValid }: MaxCostResu
 
             {result && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-white/50 rounded-lg">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">예상 순이익</p>
                   <p className="text-xl font-semibold text-[#4a5abf]">
                     {formatCurrency(result.netProfit)}
                   </p>
                 </div>
-                <div className="text-center p-3 bg-white/50 rounded-lg">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">예상 마진율</p>
                   <p className="text-xl font-semibold text-orange-600">
                     {formatPercent(result.marginRate)}

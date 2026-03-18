@@ -90,7 +90,7 @@ export function getMarginColorClass(marginRate: number): string {
  * 마진율에 따른 배경 색상 클래스 반환
  */
 export function getMarginBgClass(_marginRate: number): string {
-  return 'bg-white border-border';
+  return 'bg-card border-border';
 }
 
 /**

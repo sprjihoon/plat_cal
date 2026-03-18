@@ -419,10 +419,10 @@ export function MarginCalculator() {
   const getJudgmentInfo = () => {
     if (!result) return null;
     const rate = result.marginRate;
-    if (rate >= 40) return { color: 'text-[#4a5abf]', bg: 'bg-white', border: 'border-border', message: '안정적' };
-    if (rate >= 25) return { color: 'text-blue-600', bg: 'bg-white', border: 'border-border', message: '양호' };
-    if (rate >= 15) return { color: 'text-yellow-600', bg: 'bg-white', border: 'border-border', message: '주의' };
-    return { color: 'text-red-600', bg: 'bg-white', border: 'border-border', message: '위험' };
+    if (rate >= 40) return { color: 'text-[#4a5abf]', bg: 'bg-card', border: 'border-border', message: '안정적' };
+    if (rate >= 25) return { color: 'text-blue-600', bg: 'bg-card', border: 'border-border', message: '양호' };
+    if (rate >= 15) return { color: 'text-yellow-600', bg: 'bg-card', border: 'border-border', message: '주의' };
+    return { color: 'text-red-600', bg: 'bg-card', border: 'border-border', message: '위험' };
   };
 
   const judgment = getJudgmentInfo();

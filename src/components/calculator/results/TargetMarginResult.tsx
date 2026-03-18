@@ -37,7 +37,7 @@ export function TargetMarginResult({ result, targetMarginRate, isValid }: Target
   const isValidPrice = result && result.targetRecommendedPrice > 0 && result.targetRecommendedPrice < Infinity;
 
   return (
-    <Card className="border-2 border-border bg-white">
+    <Card className="border-2 border-border bg-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Target className="h-4 w-4" />
@@ -50,7 +50,7 @@ export function TargetMarginResult({ result, targetMarginRate, isValid }: Target
       <CardContent className="space-y-4">
         {isValidPrice ? (
           <>
-            <div className="text-center p-6 bg-white/50 rounded-lg">
+            <div className="text-center p-6 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">권장 판매가</p>
               <p className="text-4xl font-bold text-primary">
                 {formatCurrency(result.targetRecommendedPrice)}
@@ -62,13 +62,13 @@ export function TargetMarginResult({ result, targetMarginRate, isValid }: Target
 
             {result && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-white/50 rounded-lg">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">예상 순이익</p>
                   <p className="text-xl font-semibold text-[#4a5abf]">
                     {formatCurrency(result.netProfit)}
                   </p>
                 </div>
-                <div className="text-center p-3 bg-white/50 rounded-lg">
+                <div className="text-center p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">총 차감 비용</p>
                   <p className="text-xl font-semibold text-gray-700">
                     {formatCurrency(result.totalDeductions)}

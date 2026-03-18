@@ -175,7 +175,7 @@ export default function MarketsPage() {
                 />
               </div>
               <select
-                className="h-10 px-3 border rounded-md bg-white text-sm"
+                className="h-10 px-3 border rounded-md bg-background text-sm"
                 value={channelFilter}
                 onChange={(e) => { setChannelFilter(e.target.value); setPage(1); }}
               >

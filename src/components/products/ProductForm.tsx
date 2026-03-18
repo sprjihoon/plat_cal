@@ -237,7 +237,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 <div className="space-y-2">
                   <Label>판매 채널</Label>
                   <select
-                    className="w-full h-10 px-3 border rounded-md bg-white text-sm"
+                    className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                     value={market.channel}
                     onChange={(e) => handleMarketChange(index, 'channel', e.target.value)}
                   >
@@ -251,7 +251,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   <div className="space-y-2">
                     <Label>판매방식 / 카테고리</Label>
                     <select
-                      className="w-full h-10 px-3 border rounded-md bg-white text-sm"
+                      className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                       value={market.sub_option_id || ''}
                       onChange={(e) => handleSubOptionChange(index, e.target.value)}
                     >
