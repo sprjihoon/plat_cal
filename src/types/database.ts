@@ -465,6 +465,52 @@ export interface Database {
           duration_seconds?: number | null;
         };
       };
+      ad_banners: {
+        Row: {
+          id: string;
+          title: string;
+          subtitle: string | null;
+          highlight: string | null;
+          link_url: string | null;
+          image_url: string | null;
+          bg_color: string;
+          text_color: string;
+          highlight_color: string;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          subtitle?: string | null;
+          highlight?: string | null;
+          link_url?: string | null;
+          image_url?: string | null;
+          bg_color?: string;
+          text_color?: string;
+          highlight_color?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          subtitle?: string | null;
+          highlight?: string | null;
+          link_url?: string | null;
+          image_url?: string | null;
+          bg_color?: string;
+          text_color?: string;
+          highlight_color?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          updated_at?: string;
+        };
+      };
       user_sessions: {
         Row: {
           id: string;
@@ -540,5 +586,9 @@ export type GoalUpdate = Database['public']['Tables']['goals']['Update'];
 
 export type Notification = Database['public']['Tables']['notifications']['Row'];
 export type NotificationInsert = Database['public']['Tables']['notifications']['Insert'];
+
+export type AdBanner = Database['public']['Tables']['ad_banners']['Row'];
+export type AdBannerInsert = Database['public']['Tables']['ad_banners']['Insert'];
+export type AdBannerUpdate = Database['public']['Tables']['ad_banners']['Update'];
 
 export type SaleStatus = 'completed' | 'returned' | 'cancelled' | 'exchanged';

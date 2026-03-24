@@ -1,33 +1,99 @@
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
 
-function AdBanner() {
-  return (
-    <a
-      href="https://spring.co.kr"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block w-full bg-[#1a1a2e] text-white py-16 md:py-20 hover:bg-[#16162a] transition-colors cursor-pointer"
-    >
-      <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
-        <p className="text-sm md:text-base tracking-[0.3em] uppercase text-white/50 font-medium">
-          Fashion Fulfillment
-        </p>
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-          패션풀필먼트는{' '}
-          <span className="text-[#8C9EFF]">스프링</span>
-        </h2>
-        <p className="text-white/40 text-sm md:text-base pt-2">
-          spring.co.kr
-        </p>
-      </div>
-    </a>
-  );
+interface AdBannerRow {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  highlight: string | null;
+  link_url: string | null;
+  image_url: string | null;
+  bg_color: string;
+  text_color: string;
+  highlight_color: string;
+  is_active: boolean;
+  sort_order: number;
 }
 
-export function Footer() {
+async function getAdBanners(): Promise<AdBannerRow[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await (supabase as any)
+      .from('ad_banners')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+function AdBannerCard({ banner }: { banner: AdBannerRow }) {
+  const content = (
+    <div
+      className="w-full py-12 md:py-16 px-4 transition-opacity hover:opacity-90"
+      style={{ backgroundColor: banner.bg_color, color: banner.text_color }}
+    >
+      <div className="max-w-4xl mx-auto text-center space-y-3">
+        {banner.image_url && (
+          <img
+            src={banner.image_url}
+            alt=""
+            className="max-h-24 mx-auto mb-4 object-contain rounded"
+          />
+        )}
+        {banner.subtitle && (
+          <p className="text-sm md:text-base tracking-[0.3em] uppercase font-medium opacity-50">
+            {banner.subtitle}
+          </p>
+        )}
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+          {banner.title}
+          {banner.highlight && (
+            <>
+              {' '}
+              <span style={{ color: banner.highlight_color }}>{banner.highlight}</span>
+            </>
+          )}
+        </h2>
+        {banner.link_url && (
+          <p className="text-sm md:text-base pt-1 opacity-40">
+            {banner.link_url.replace(/^https?:\/\//, '')}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  if (banner.link_url) {
+    return (
+      <a
+        href={banner.link_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block cursor-pointer"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return content;
+}
+
+export async function Footer() {
+  const banners = await getAdBanners();
+
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
-      <AdBanner />
+      {banners.length > 0 && (
+        <div className="divide-y divide-white/10">
+          {banners.map((banner) => (
+            <AdBannerCard key={banner.id} banner={banner} />
+          ))}
+        </div>
+      )}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="space-y-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">

@@ -24,7 +24,8 @@ import {
   Users, Bell, Megaphone, BarChart3, Loader2, Shield, Search,
   Trash2, Pause, Play, RotateCcw, Send, Plus, TrendingUp,
   TrendingDown, Activity, UserCheck, UserX, Eye, Globe, Database,
-  Clock, ArrowRightLeft, LogIn, LogOut, Monitor,
+  Clock, ArrowRightLeft, LogIn, LogOut, Monitor, Image, ExternalLink,
+  GripVertical, Pencil, ChevronUp, ChevronDown,
 } from 'lucide-react';
 
 interface UserData {
@@ -73,6 +74,22 @@ interface LogEntry {
   metadata: any;
   created_at: string;
   profiles?: { name: string; email: string };
+}
+
+interface AdBannerData {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  highlight: string | null;
+  link_url: string | null;
+  image_url: string | null;
+  bg_color: string;
+  text_color: string;
+  highlight_color: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface PageStatsData {
@@ -146,7 +163,7 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v || 'dashboard')}>
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="dashboard" className="flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">통계</span>
             </TabsTrigger>
@@ -162,6 +179,9 @@ export default function AdminPage() {
             <TabsTrigger value="announcements" className="flex items-center gap-1.5">
               <Megaphone className="h-4 w-4" /><span className="hidden sm:inline">공지</span>
             </TabsTrigger>
+            <TabsTrigger value="ads" className="flex items-center gap-1.5">
+              <Image className="h-4 w-4" /><span className="hidden sm:inline">광고</span>
+            </TabsTrigger>
             <TabsTrigger value="logs" className="flex items-center gap-1.5">
               <Activity className="h-4 w-4" /><span className="hidden sm:inline">로그</span>
             </TabsTrigger>
@@ -172,6 +192,7 @@ export default function AdminPage() {
           <TabsContent value="usage"><UsageTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="announcements"><AnnouncementsTab /></TabsContent>
+          <TabsContent value="ads"><AdsTab /></TabsContent>
           <TabsContent value="logs"><LogsTab /></TabsContent>
         </Tabs>
       </main>
@@ -1314,6 +1335,265 @@ function LogsTab() {
           <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / 30)} onClick={() => setPage(page + 1)}>다음</Button>
         </div>
       )}
+    </div>
+  );
+}
+
+function AdsTab() {
+  const [banners, setBanners] = useState<AdBannerData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    title: '', subtitle: '', highlight: '', link_url: '', image_url: '',
+    bg_color: '#1a1a2e', text_color: '#ffffff', highlight_color: '#8C9EFF', sort_order: 0,
+  });
+
+  const fetchBanners = useCallback(async () => {
+    const res = await fetch('/api/admin/ads');
+    const data = await res.json();
+    setBanners(data.banners || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchBanners(); }, [fetchBanners]);
+
+  const resetForm = () => {
+    setForm({ title: '', subtitle: '', highlight: '', link_url: '', image_url: '', bg_color: '#1a1a2e', text_color: '#ffffff', highlight_color: '#8C9EFF', sort_order: 0 });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const startEdit = (b: AdBannerData) => {
+    setForm({
+      title: b.title, subtitle: b.subtitle || '', highlight: b.highlight || '',
+      link_url: b.link_url || '', image_url: b.image_url || '',
+      bg_color: b.bg_color, text_color: b.text_color, highlight_color: b.highlight_color,
+      sort_order: b.sort_order,
+    });
+    setEditingId(b.id);
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.title) return;
+    setSaving(true);
+
+    if (editingId) {
+      await fetch(`/api/admin/ads/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+    } else {
+      await fetch('/api/admin/ads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+    }
+
+    setSaving(false);
+    resetForm();
+    fetchBanners();
+  };
+
+  const handleToggle = async (id: string, isActive: boolean) => {
+    await fetch(`/api/admin/ads/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !isActive }),
+    });
+    fetchBanners();
+  };
+
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/admin/ads/${id}`, { method: 'DELETE' });
+    fetchBanners();
+  };
+
+  const handleMove = async (id: string, direction: 'up' | 'down') => {
+    const idx = banners.findIndex(b => b.id === id);
+    if (idx < 0) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= banners.length) return;
+
+    const current = banners[idx];
+    const swap = banners[swapIdx];
+
+    await Promise.all([
+      fetch(`/api/admin/ads/${current.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sort_order: swap.sort_order }),
+      }),
+      fetch(`/api/admin/ads/${swap.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sort_order: current.sort_order }),
+      }),
+    ]);
+    fetchBanners();
+  };
+
+  return (
+    <div className="space-y-6 mt-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2"><Image className="h-4 w-4" />광고 배너 관리</CardTitle>
+            <CardDescription>하단 광고 영역에 표시되는 배너를 관리합니다</CardDescription>
+          </div>
+          <Button size="sm" onClick={() => { resetForm(); setShowForm(true); }}>
+            <Plus className="h-4 w-4 mr-1" />새 배너
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {showForm && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+              <h3 className="font-medium text-sm">{editingId ? '배너 수정' : '새 배너 추가'}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>메인 문구 *</Label>
+                  <Input placeholder="예: 패션풀필먼트는" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>강조 텍스트</Label>
+                  <Input placeholder="예: 스프링" value={form.highlight} onChange={(e) => setForm({ ...form, highlight: e.target.value })} />
+                </div>
+                <div>
+                  <Label>상단 서브 문구</Label>
+                  <Input placeholder="예: Fashion Fulfillment" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+                </div>
+                <div>
+                  <Label>링크 URL</Label>
+                  <Input placeholder="https://example.com" value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>이미지 URL</Label>
+                  <Input placeholder="https://example.com/banner.png" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                </div>
+                <div>
+                  <Label>배경색</Label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={form.bg_color} onChange={(e) => setForm({ ...form, bg_color: e.target.value })} className="h-9 w-12 rounded border cursor-pointer" />
+                    <Input value={form.bg_color} onChange={(e) => setForm({ ...form, bg_color: e.target.value })} className="flex-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label>텍스트 색상</Label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={form.text_color} onChange={(e) => setForm({ ...form, text_color: e.target.value })} className="h-9 w-12 rounded border cursor-pointer" />
+                    <Input value={form.text_color} onChange={(e) => setForm({ ...form, text_color: e.target.value })} className="flex-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label>강조 색상</Label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={form.highlight_color} onChange={(e) => setForm({ ...form, highlight_color: e.target.value })} className="h-9 w-12 rounded border cursor-pointer" />
+                    <Input value={form.highlight_color} onChange={(e) => setForm({ ...form, highlight_color: e.target.value })} className="flex-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label>정렬 순서</Label>
+                  <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
+                </div>
+              </div>
+
+              {/* 미리보기 */}
+              <div>
+                <Label className="mb-2 block">미리보기</Label>
+                <div
+                  className="rounded-lg py-8 px-4 text-center space-y-2"
+                  style={{ backgroundColor: form.bg_color, color: form.text_color }}
+                >
+                  {form.image_url && (
+                    <img src={form.image_url} alt="" className="max-h-20 mx-auto mb-3 object-contain rounded" />
+                  )}
+                  {form.subtitle && (
+                    <p className="text-xs tracking-[0.2em] uppercase opacity-50">{form.subtitle}</p>
+                  )}
+                  <p className="text-xl font-bold">
+                    {form.title}{' '}
+                    {form.highlight && <span style={{ color: form.highlight_color }}>{form.highlight}</span>}
+                  </p>
+                  {form.link_url && (
+                    <p className="text-xs opacity-40">{form.link_url.replace(/^https?:\/\//, '')}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleSave} disabled={saving || !form.title}>
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingId ? '수정' : '추가'}
+                </Button>
+                <Button variant="outline" onClick={resetForm}>취소</Button>
+              </div>
+            </div>
+          )}
+
+          {loading ? <LoadingSpinner /> : banners.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">등록된 광고 배너가 없습니다</p>
+          ) : (
+            <div className="space-y-3">
+              {banners.map((b, i) => (
+                <div key={b.id} className="border rounded-lg overflow-hidden">
+                  {/* 배너 미리보기 */}
+                  <div
+                    className="py-6 px-4 text-center space-y-1"
+                    style={{ backgroundColor: b.bg_color, color: b.text_color }}
+                  >
+                    {b.image_url && (
+                      <img src={b.image_url} alt="" className="max-h-16 mx-auto mb-2 object-contain rounded" />
+                    )}
+                    {b.subtitle && (
+                      <p className="text-xs tracking-[0.2em] uppercase opacity-50">{b.subtitle}</p>
+                    )}
+                    <p className="text-lg font-bold">
+                      {b.title}{' '}
+                      {b.highlight && <span style={{ color: b.highlight_color }}>{b.highlight}</span>}
+                    </p>
+                    {b.link_url && (
+                      <p className="text-xs opacity-40">{b.link_url.replace(/^https?:\/\//, '')}</p>
+                    )}
+                  </div>
+                  {/* 컨트롤 바 */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-background border-t">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={b.is_active ? 'default' : 'secondary'}>
+                        {b.is_active ? '활성' : '비활성'}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">순서: {b.sort_order}</span>
+                      {b.link_url && (
+                        <a href={b.link_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                          <ExternalLink className="h-3 w-3" />{b.link_url.replace(/^https?:\/\//, '')}
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" title="위로" onClick={() => handleMove(b.id, 'up')} disabled={i === 0}>
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="아래로" onClick={() => handleMove(b.id, 'down')} disabled={i === banners.length - 1}>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title={b.is_active ? '비활성화' : '활성화'} onClick={() => handleToggle(b.id, b.is_active)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="수정" onClick={() => startEdit(b)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="삭제" onClick={() => handleDelete(b.id)}>
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
