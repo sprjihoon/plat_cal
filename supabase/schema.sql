@@ -528,6 +528,8 @@ create table if not exists public.ad_banners (
   highlight_color text not null default '#D6F74C',
   is_active boolean not null default true,
   sort_order integer not null default 0,
+  impression_count integer not null default 0,
+  click_count integer not null default 0,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -540,4 +542,34 @@ create policy "Anyone can view active banners"
 
 create policy "Admins can manage banners"
   on public.ad_banners for all
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+-- 광고 클릭/노출 로그
+create table if not exists public.ad_click_logs (
+  id uuid default uuid_generate_v4() primary key,
+  banner_id uuid references public.ad_banners on delete cascade not null,
+  event_type text not null default 'click',
+  user_id uuid references auth.users on delete set null,
+  session_id text,
+  page_path text,
+  referrer text,
+  user_agent text,
+  device_type text,
+  ip_hash text,
+  created_at timestamptz default now() not null
+);
+
+create index if not exists idx_ad_click_logs_banner on public.ad_click_logs(banner_id, created_at desc);
+create index if not exists idx_ad_click_logs_event on public.ad_click_logs(event_type, created_at desc);
+create index if not exists idx_ad_click_logs_created on public.ad_click_logs(created_at desc);
+create index if not exists idx_ad_click_logs_device on public.ad_click_logs(device_type, created_at desc);
+
+alter table public.ad_click_logs enable row level security;
+
+create policy "Anyone can insert ad logs"
+  on public.ad_click_logs for insert
+  with check (true);
+
+create policy "Admins can view ad logs"
+  on public.ad_click_logs for select
   using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));

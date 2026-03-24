@@ -60,7 +60,7 @@ export default function RootLayout({
           <TooltipProvider>
             <ErrorBoundary>
               <PageTracker />
-              <div className="flex-1">{children}</div>
+              <div className="flex-1 page-container">{children}</div>
               <Footer />
             </ErrorBoundary>
           </TooltipProvider>

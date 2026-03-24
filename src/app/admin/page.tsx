@@ -25,7 +25,8 @@ import {
   Trash2, Pause, Play, RotateCcw, Send, Plus, TrendingUp,
   TrendingDown, Activity, UserCheck, UserX, Eye, Globe, Database,
   Clock, ArrowRightLeft, LogIn, LogOut, Monitor, Image, ExternalLink,
-  GripVertical, Pencil, ChevronUp, ChevronDown,
+  GripVertical, Pencil, ChevronUp, ChevronDown, MousePointerClick,
+  Smartphone, TabletSmartphone, MonitorSmartphone,
 } from 'lucide-react';
 
 interface UserData {
@@ -163,7 +164,7 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v || 'dashboard')}>
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">통계</span>
             </TabsTrigger>
@@ -182,6 +183,9 @@ export default function AdminPage() {
             <TabsTrigger value="ads" className="flex items-center gap-1.5">
               <Image className="h-4 w-4" /><span className="hidden sm:inline">광고</span>
             </TabsTrigger>
+            <TabsTrigger value="ad-analytics" className="flex items-center gap-1.5">
+              <MousePointerClick className="h-4 w-4" /><span className="hidden sm:inline">광고성과</span>
+            </TabsTrigger>
             <TabsTrigger value="logs" className="flex items-center gap-1.5">
               <Activity className="h-4 w-4" /><span className="hidden sm:inline">로그</span>
             </TabsTrigger>
@@ -193,6 +197,7 @@ export default function AdminPage() {
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="announcements"><AnnouncementsTab /></TabsContent>
           <TabsContent value="ads"><AdsTab /></TabsContent>
+          <TabsContent value="ad-analytics"><AdAnalyticsTab /></TabsContent>
           <TabsContent value="logs"><LogsTab /></TabsContent>
         </Tabs>
       </main>
@@ -1619,6 +1624,300 @@ function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center py-12">
       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
+// ─── 광고 성과 분석 탭 ─────────────────────────────────
+interface AdAnalyticsData {
+  summary: { totalImpressions: number; totalClicks: number; overallCTR: number; uniqueUsers: number; uniqueIPs: number; period: number };
+  bannerStats: { id: string; title: string; highlight: string | null; link_url: string | null; is_active: boolean; impressions: number; clicks: number; uniqueClickers: number; ctr: number }[];
+  deviceBreakdown: { device: string; impressions: number; clicks: number }[];
+  topPages: { path: string; clicks: number }[];
+  topReferrers: { source: string; clicks: number }[];
+  dailyTrend: { date: string; impressions: number; clicks: number }[];
+  hourlyClicks: number[];
+}
+
+const DEVICE_LABELS: Record<string, string> = { mobile: '모바일', tablet: '태블릿', desktop: '데스크톱', unknown: '기타' };
+const DEVICE_ICONS: Record<string, any> = { mobile: Smartphone, tablet: TabletSmartphone, desktop: Monitor, unknown: Globe };
+
+function AdAnalyticsTab() {
+  const [data, setData] = useState<AdAnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
+
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch(`/api/admin/ads/analytics?days=${days}`);
+    const json = await res.json();
+    setData(json);
+    setLoading(false);
+  }, [days]);
+
+  useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
+
+  if (loading) return <LoadingSpinner />;
+  if (!data) return <p className="text-center text-muted-foreground py-8">데이터를 불러올 수 없습니다</p>;
+
+  const { summary, bannerStats, deviceBreakdown, topPages, topReferrers, dailyTrend, hourlyClicks } = data;
+  const maxHourly = Math.max(...hourlyClicks, 1);
+
+  return (
+    <div className="space-y-6 mt-4">
+      {/* 기간 선택 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <MousePointerClick className="h-5 w-5 text-primary" />
+          광고 성과 분석
+        </h2>
+        <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">최근 7일</SelectItem>
+            <SelectItem value="14">최근 14일</SelectItem>
+            <SelectItem value="30">최근 30일</SelectItem>
+            <SelectItem value="90">최근 90일</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 요약 카드 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">노출 수</p>
+            <p className="text-2xl font-bold text-[#4a5abf]">{summary.totalImpressions.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">클릭 수</p>
+            <p className="text-2xl font-bold text-[#4a5abf]">{summary.totalClicks.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">CTR</p>
+            <p className="text-2xl font-bold">{summary.overallCTR}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">고유 방문자</p>
+            <p className="text-2xl font-bold">{summary.uniqueIPs.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 일별 추이 차트 */}
+      {dailyTrend.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">일별 노출/클릭 추이</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {dailyTrend.slice(-14).map((d) => {
+                const maxVal = Math.max(...dailyTrend.map(t => t.impressions), 1);
+                return (
+                  <div key={d.date} className="flex items-center gap-2 text-xs">
+                    <span className="w-20 text-muted-foreground shrink-0">{d.date.slice(5)}</span>
+                    <div className="flex-1 flex items-center gap-1">
+                      <div className="h-4 bg-[#8C9EFF]/30 rounded-sm" style={{ width: `${(d.impressions / maxVal) * 100}%`, minWidth: d.impressions > 0 ? '4px' : '0' }} />
+                      <span className="text-muted-foreground w-12 text-right">{d.impressions}</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-1">
+                      <div className="h-4 bg-[#D6F74C]/60 rounded-sm" style={{ width: `${(d.clicks / maxVal) * 100}%`, minWidth: d.clicks > 0 ? '4px' : '0' }} />
+                      <span className="text-muted-foreground w-12 text-right">{d.clicks}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#8C9EFF]/30 rounded-sm inline-block" /> 노출</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#D6F74C]/60 rounded-sm inline-block" /> 클릭</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 배너별 성과 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">배너별 성과</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {bannerStats.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">등록된 배너가 없습니다</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>배너</TableHead>
+                    <TableHead className="text-right">노출</TableHead>
+                    <TableHead className="text-right">클릭</TableHead>
+                    <TableHead className="text-right">고유 클릭</TableHead>
+                    <TableHead className="text-right">CTR</TableHead>
+                    <TableHead className="text-center">상태</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bannerStats.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{b.title} {b.highlight && <span className="text-primary">{b.highlight}</span>}</p>
+                          {b.link_url && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{b.link_url}</p>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">{b.impressions.toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono">{b.clicks.toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono">{b.uniqueClickers.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={b.ctr >= 5 ? 'default' : b.ctr >= 1 ? 'secondary' : 'outline'}>
+                          {b.ctr}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={b.is_active ? 'default' : 'secondary'}>
+                          {b.is_active ? '활성' : '비활성'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 디바이스별 분포 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <MonitorSmartphone className="h-4 w-4" />
+              디바이스별 분포
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {deviceBreakdown.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+            ) : (
+              <div className="space-y-3">
+                {deviceBreakdown.map((d) => {
+                  const DevIcon = DEVICE_ICONS[d.device] || Globe;
+                  const totalDevice = d.impressions + d.clicks;
+                  const deviceCTR = d.impressions > 0 ? (d.clicks / d.impressions * 100).toFixed(1) : '0';
+                  return (
+                    <div key={d.device} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <DevIcon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{DEVICE_LABELS[d.device] || d.device}</p>
+                        <p className="text-xs text-muted-foreground">
+                          노출 {d.impressions.toLocaleString()} · 클릭 {d.clicks.toLocaleString()} · CTR {deviceCTR}%
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 시간대별 클릭 분포 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              시간대별 클릭
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-0.5 h-32">
+              {hourlyClicks.map((count, h) => (
+                <div key={h} className="flex-1 flex flex-col items-center justify-end gap-0.5 group relative">
+                  <div
+                    className="w-full bg-[#8C9EFF]/40 hover:bg-[#8C9EFF]/70 rounded-t-sm transition-colors"
+                    style={{ height: `${(count / maxHourly) * 100}%`, minHeight: count > 0 ? '2px' : '0' }}
+                  />
+                  <div className="absolute -top-6 bg-foreground text-background text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    {h}시: {count}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-0.5">
+              <span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>23시</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 클릭 발생 페이지 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              클릭 발생 페이지 TOP 10
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topPages.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+            ) : (
+              <div className="space-y-2">
+                {topPages.map((p, i) => (
+                  <div key={p.path} className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
+                      <span className="text-sm truncate">{p.path}</span>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0 ml-2">{p.clicks}회</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 유입 경로 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4" />
+              유입 경로 (Referrer)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topReferrers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+            ) : (
+              <div className="space-y-2">
+                {topReferrers.map((r, i) => (
+                  <div key={r.source} className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
+                      <span className="text-sm truncate">{r.source}</span>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0 ml-2">{r.clicks}회</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

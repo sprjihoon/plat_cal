@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface AdBanner {
   id: string;
@@ -14,9 +14,35 @@ interface AdBanner {
   highlight_color: string;
 }
 
+function getSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let sid = sessionStorage.getItem('ad_session_id');
+  if (!sid) {
+    sid = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    sessionStorage.setItem('ad_session_id', sid);
+  }
+  return sid;
+}
+
+function trackAdEvent(bannerId: string, eventType: 'click' | 'impression') {
+  const body = {
+    banner_id: bannerId,
+    event_type: eventType,
+    page_path: window.location.pathname,
+    session_id: getSessionId(),
+  };
+
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/api/ads/track', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+  } else {
+    fetch('/api/ads/track', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
+  }
+}
+
 export function AdBannerCarousel({ banners }: { banners: AdBanner[] }) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const trackedImpressions = useRef<Set<string>>(new Set());
 
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % banners.length);
@@ -28,9 +54,22 @@ export function AdBannerCarousel({ banners }: { banners: AdBanner[] }) {
     return () => clearInterval(timer);
   }, [banners.length, paused, next]);
 
+  useEffect(() => {
+    if (banners.length === 0) return;
+    const banner = banners[current];
+    if (!trackedImpressions.current.has(banner.id)) {
+      trackedImpressions.current.add(banner.id);
+      trackAdEvent(banner.id, 'impression');
+    }
+  }, [current, banners]);
+
   if (banners.length === 0) return null;
 
   const banner = banners[current];
+
+  const handleClick = () => {
+    trackAdEvent(banner.id, 'click');
+  };
 
   const content = (
     <div
@@ -96,11 +135,12 @@ export function AdBannerCarousel({ banners }: { banners: AdBanner[] }) {
         target="_blank"
         rel="noopener noreferrer"
         className="block cursor-pointer"
+        onClick={handleClick}
       >
         {content}
       </a>
     );
   }
 
-  return content;
+  return <div onClick={handleClick}>{content}</div>;
 }
