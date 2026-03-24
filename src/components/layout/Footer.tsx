@@ -1,8 +1,33 @@
 import Link from 'next/link';
 
+function AdBanner() {
+  return (
+    <a
+      href="https://spring.co.kr"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block w-full bg-[#1a1a2e] text-white py-16 md:py-20 hover:bg-[#16162a] transition-colors cursor-pointer"
+    >
+      <div className="max-w-4xl mx-auto px-4 text-center space-y-4">
+        <p className="text-sm md:text-base tracking-[0.3em] uppercase text-white/50 font-medium">
+          Fashion Fulfillment
+        </p>
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+          패션풀필먼트는{' '}
+          <span className="text-[#8C9EFF]">스프링</span>
+        </h2>
+        <p className="text-white/40 text-sm md:text-base pt-2">
+          spring.co.kr
+        </p>
+      </div>
+    </a>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
+      <AdBanner />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="space-y-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
