@@ -5,13 +5,17 @@ import { AdBannerCarousel } from './AdBannerCarousel';
 export async function getAdBanners() {
   try {
     const supabase = await createClient();
-    const { data } = await (supabase as any)
+    const { data, error } = await (supabase as any)
       .from('ad_banners')
       .select('id,title,subtitle,highlight,link_url,image_url,bg_color,text_color,highlight_color')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
+    if (error) {
+      console.error('[AdBanners] Supabase error:', error.message, error.code);
+    }
     return data || [];
-  } catch {
+  } catch (e) {
+    console.error('[AdBanners] Exception:', e);
     return [];
   }
 }
