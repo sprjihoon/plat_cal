@@ -6,9 +6,9 @@ create table if not exists public.ad_banners (
   highlight text,
   link_url text,
   image_url text,
-  bg_color text not null default '#1a1a2e',
+  bg_color text not null default '#4a5abf',
   text_color text not null default '#ffffff',
-  highlight_color text not null default '#8C9EFF',
+  highlight_color text not null default '#D6F74C',
   is_active boolean not null default true,
   sort_order integer not null default 0,
   created_at timestamptz default now(),
@@ -25,8 +25,8 @@ create policy "Admins can manage banners"
   on public.ad_banners for all
   using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
 
--- 기본 배너 데이터
+-- 기본 배너 데이터 (메인 컬러 기반: Primary #8C9EFF / Secondary #D6F74C)
 insert into public.ad_banners (title, subtitle, highlight, link_url, bg_color, text_color, highlight_color, sort_order)
 values
-  ('패션풀필먼트는', 'Fashion Fulfillment', '스프링', 'https://spring3pl.co.kr', '#1a1a2e', '#ffffff', '#8C9EFF', 0),
-  ('뷰티풀필먼트는', 'Beauty Fulfillment', '스프링', 'https://spring3pl.co.kr', '#1a1a2e', '#ffffff', '#FF8A9E', 1);
+  ('패션풀필먼트는', 'Fashion Fulfillment', '스프링', 'https://spring3pl.co.kr', '#4a5abf', '#ffffff', '#D6F74C', 0),
+  ('뷰티풀필먼트는', 'Beauty Fulfillment', '스프링', 'https://spring3pl.co.kr', '#3d4d10', '#D6F74C', '#8C9EFF', 1);

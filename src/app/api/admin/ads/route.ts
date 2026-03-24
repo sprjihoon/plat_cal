@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
       highlight: highlight || null,
       link_url: link_url || null,
       image_url: image_url || null,
-      bg_color: bg_color || '#1a1a2e',
+      bg_color: bg_color || '#4a5abf',
       text_color: text_color || '#ffffff',
-      highlight_color: highlight_color || '#8C9EFF',
+      highlight_color: highlight_color || '#D6F74C',
       sort_order: sort_order ?? 0,
     })
     .select()

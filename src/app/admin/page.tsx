@@ -1347,7 +1347,7 @@ function AdsTab() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: '', subtitle: '', highlight: '', link_url: '', image_url: '',
-    bg_color: '#1a1a2e', text_color: '#ffffff', highlight_color: '#8C9EFF', sort_order: 0,
+    bg_color: '#4a5abf', text_color: '#ffffff', highlight_color: '#D6F74C', sort_order: 0,
   });
 
   const fetchBanners = useCallback(async () => {
@@ -1360,7 +1360,7 @@ function AdsTab() {
   useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
   const resetForm = () => {
-    setForm({ title: '', subtitle: '', highlight: '', link_url: '', image_url: '', bg_color: '#1a1a2e', text_color: '#ffffff', highlight_color: '#8C9EFF', sort_order: 0 });
+    setForm({ title: '', subtitle: '', highlight: '', link_url: '', image_url: '', bg_color: '#4a5abf', text_color: '#ffffff', highlight_color: '#D6F74C', sort_order: 0 });
     setEditingId(null);
     setShowForm(false);
   };
