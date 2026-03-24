@@ -92,17 +92,12 @@ export default function SignupPage() {
     }
   };
 
-  const handleSocialSignup = async (provider: 'kakao' | 'naver') => {
+  const handleKakaoSignup = async () => {
     if (!supabase) return;
     
     setIsLoading(true);
     setError(null);
 
-    if (provider === 'naver') {
-      window.location.href = '/api/auth/naver';
-      return;
-    }
-    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
@@ -112,7 +107,7 @@ export default function SignupPage() {
 
     if (error) {
       console.error('Social signup error:', error);
-      setError('소셜 회원가입에 실패했습니다');
+      setError('카카오 회원가입에 실패했습니다');
       setIsLoading(false);
     }
   };
@@ -158,31 +153,17 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 소셜 회원가입 */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="h-11 bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] border-[#FEE500]"
-              onClick={() => handleSocialSignup('kakao')}
-              disabled={isLoading}
-            >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3C6.48 3 2 6.48 2 10.5c0 2.52 1.64 4.74 4.12 6.03-.18.66-.67 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.37-1.57 3.32-2.2.64.09 1.3.14 1.97.14 5.52 0 10-3.48 10-7.5S17.52 3 12 3z"/>
-              </svg>
-              카카오
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-11 bg-[#03C75A] hover:bg-[#02B350] text-white border-[#03C75A]"
-              onClick={() => handleSocialSignup('naver')}
-              disabled={isLoading}
-            >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
-              </svg>
-              네이버
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="w-full h-11 bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] border-[#FEE500]"
+            onClick={handleKakaoSignup}
+            disabled={isLoading}
+          >
+            <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3C6.48 3 2 6.48 2 10.5c0 2.52 1.64 4.74 4.12 6.03-.18.66-.67 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.37-1.57 3.32-2.2.64.09 1.3.14 1.97.14 5.52 0 10-3.48 10-7.5S17.52 3 12 3z"/>
+            </svg>
+            카카오로 가입하기
+          </Button>
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
