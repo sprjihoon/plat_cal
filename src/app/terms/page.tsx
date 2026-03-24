@@ -13,7 +13,7 @@ export default function TermsPage() {
         <Card>
           <CardHeader>
             <CardTitle>쇼핑몰 수익 관리 시스템 이용약관</CardTitle>
-            <p className="text-sm text-muted-foreground">시행일: 2024년 1월 1일</p>
+            <p className="text-sm text-muted-foreground">시행일: 2026년 3월 24일</p>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none">
             <h2 className="text-lg font-semibold mt-6 mb-3">제1조 (목적)</h2>
@@ -81,7 +81,7 @@ export default function TermsPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">부칙</h2>
             <p className="text-muted-foreground">
-              이 약관은 2024년 1월 1일부터 시행됩니다.
+              이 약관은 2026년 3월 24일부터 시행됩니다.
             </p>
           </CardContent>
         </Card>

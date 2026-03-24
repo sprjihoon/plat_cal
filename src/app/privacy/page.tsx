@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <Card>
           <CardHeader>
             <CardTitle>개인정보처리방침</CardTitle>
-            <p className="text-sm text-muted-foreground">시행일: 2024년 1월 1일</p>
+            <p className="text-sm text-muted-foreground">시행일: 2026년 3월 24일</p>
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none">
             <p className="text-muted-foreground mb-4">
@@ -107,8 +107,8 @@ export default function PrivacyPage() {
               아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
             </p>
             <div className="bg-gray-50 p-4 rounded-lg text-muted-foreground mb-4">
-              <p><strong>개인정보 보호책임자</strong></p>
-              <p>이메일: privacy@example.com</p>
+              <p><strong>개인정보 보호책임자:</strong> 장지훈</p>
+              <p>이메일: info@tillion.kr</p>
             </div>
 
             <h2 className="text-lg font-semibold mt-6 mb-3">10. 개인정보처리방침 변경</h2>
@@ -119,7 +119,7 @@ export default function PrivacyPage() {
 
             <h2 className="text-lg font-semibold mt-6 mb-3">부칙</h2>
             <p className="text-muted-foreground">
-              이 개인정보처리방침은 2024년 1월 1일부터 시행됩니다.
+              이 개인정보처리방침은 2026년 3월 24일부터 시행됩니다.
             </p>
           </CardContent>
         </Card>
