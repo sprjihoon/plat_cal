@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTracker } from "@/components/tracking/PageTracker";
+import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,13 +54,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <QueryProvider>
           <TooltipProvider>
             <ErrorBoundary>
               <PageTracker />
-              {children}
+              <div className="flex-1">{children}</div>
+              <Footer />
             </ErrorBoundary>
           </TooltipProvider>
         </QueryProvider>
