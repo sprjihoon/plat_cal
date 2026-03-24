@@ -97,9 +97,14 @@ export default function SignupPage() {
     
     setIsLoading(true);
     setError(null);
+
+    if (provider === 'naver') {
+      window.location.href = '/api/auth/naver';
+      return;
+    }
     
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider === 'naver' ? 'kakao' : provider,
+      provider: 'kakao',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
