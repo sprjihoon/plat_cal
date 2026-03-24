@@ -21,6 +21,16 @@ export const metadata: Metadata = {
   description: "스마트스토어, 쿠팡, 에이블리 등 판매 채널별 마진율과 순이익을 계산하고 상품을 관리하세요.",
   keywords: ["마진 계산기", "쇼핑몰", "스마트스토어", "쿠팡", "에이블리", "순이익", "마진율", "상품관리"],
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
