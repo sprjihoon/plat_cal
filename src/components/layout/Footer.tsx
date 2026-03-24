@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { AdBannerCarousel } from './AdBannerCarousel';
+import { MobileAdBanner } from './MobileAdBanner';
 
-async function getAdBanners() {
+export async function getAdBanners() {
   try {
     const supabase = await createClient();
     const { data } = await (supabase as any)
@@ -21,7 +22,14 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-border bg-muted/30 mt-auto">
-      {banners.length > 0 && <AdBannerCarousel banners={banners} />}
+      {banners.length > 0 && (
+        <>
+          <div className="hidden sm:block">
+            <AdBannerCarousel banners={banners} />
+          </div>
+          <MobileAdBanner banners={banners} />
+        </>
+      )}
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="space-y-3 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -47,6 +55,7 @@ export async function Footer() {
           </p>
         </div>
       </div>
+      {banners.length > 0 && <div className="h-12 sm:hidden" />}
     </footer>
   );
 }
