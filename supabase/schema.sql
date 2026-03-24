@@ -514,3 +514,30 @@ create policy "Users can update own sessions"
 create policy "Admins can view all sessions"
   on public.user_sessions for select
   using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+
+-- 광고 배너
+create table if not exists public.ad_banners (
+  id uuid default uuid_generate_v4() primary key,
+  title text not null,
+  subtitle text,
+  highlight text,
+  link_url text,
+  image_url text,
+  bg_color text not null default '#1a1a2e',
+  text_color text not null default '#ffffff',
+  highlight_color text not null default '#8C9EFF',
+  is_active boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.ad_banners enable row level security;
+
+create policy "Anyone can view active banners"
+  on public.ad_banners for select
+  using (is_active = true);
+
+create policy "Admins can manage banners"
+  on public.ad_banners for all
+  using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
