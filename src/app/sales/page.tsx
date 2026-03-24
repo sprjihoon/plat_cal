@@ -121,7 +121,7 @@ export default function SalesPage() {
   const marginRate = summary.totalRevenue > 0 ? (summary.totalProfit / summary.totalRevenue * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">

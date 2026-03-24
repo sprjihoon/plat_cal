@@ -44,7 +44,7 @@ export default function ProductAnalyticsPage() {
     PLATFORM_PRESETS[ch as keyof typeof PLATFORM_PRESETS]?.name || ch;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Header />
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-4">

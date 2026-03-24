@@ -133,7 +133,7 @@ export default function DashboardPage() {
   const greeting = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '좋은 오후예요' : '좋은 저녁이에요';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">

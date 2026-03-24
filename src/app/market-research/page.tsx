@@ -378,7 +378,7 @@ export default function MarketResearchPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex-1 bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -387,7 +387,7 @@ export default function MarketResearchPage() {
   const subOptionTags = Array.from(new Set(currentSubOptions.map(o => o.tag).filter(Boolean)));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">

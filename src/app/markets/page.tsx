@@ -109,7 +109,7 @@ export default function MarketsPage() {
   const totalActive = allMarkets.filter(m => m.is_active).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
