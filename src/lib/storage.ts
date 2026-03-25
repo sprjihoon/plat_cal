@@ -1,5 +1,6 @@
 import type { PlatformPreset, SalesChannel } from '@/types';
 import { PLATFORM_PRESETS } from '@/constants';
+import { createClient } from '@/lib/supabase/client';
 
 const STORAGE_KEY = 'margin_calculator_platforms';
 
@@ -58,6 +59,10 @@ export function getStoredUpdatedAt(): string | null {
 
 export async function loadPlatformSettingsFromServer(): Promise<Record<SalesChannel, PlatformPreset> | null> {
   try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
     const res = await fetch('/api/platform-settings');
     if (!res.ok) return null;
     const data = await res.json();

@@ -1,11 +1,28 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createClient } from '@/lib/supabase/client';
 import type { Notification } from '@/types/database';
 
 interface NotificationsResponse {
   notifications: Notification[];
   unreadCount: number;
+}
+
+export function useUser() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserId(user?.id ?? null);
+      setLoading(false);
+    });
+  }, []);
+
+  return { userId, loading };
 }
 
 async function fetchNotifications(unreadOnly = false): Promise<NotificationsResponse> {
@@ -31,20 +48,22 @@ async function markAllRead(): Promise<void> {
   });
 }
 
-export function useNotifications() {
+export function useNotifications(enabled = true) {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: () => fetchNotifications(),
     refetchInterval: 60_000,
+    enabled,
   });
 }
 
-export function useUnreadCount() {
+export function useUnreadCount(enabled = true) {
   return useQuery({
     queryKey: ['notifications', 'unread'],
     queryFn: () => fetchNotifications(true),
     select: (data) => data.unreadCount,
     refetchInterval: 30_000,
+    enabled,
   });
 }
 

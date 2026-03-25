@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useNotifications, useMarkRead, useMarkAllRead } from '@/lib/hooks/useNotifications';
+import { useNotifications, useMarkRead, useMarkAllRead, useUser } from '@/lib/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import { Bell, CheckCheck } from 'lucide-react';
 
@@ -14,7 +14,9 @@ const TYPE_ICONS: Record<string, string> = {
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data } = useNotifications();
+  const { userId } = useUser();
+  const isLoggedIn = !!userId;
+  const { data } = useNotifications(isLoggedIn);
   const markRead = useMarkRead();
   const markAllRead = useMarkAllRead();
 
