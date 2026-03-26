@@ -72,10 +72,10 @@ export default function OperatingExpensesPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-5 sm:px-4 sm:py-8 sm:space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">운영비 관리</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">운영비 관리</h1>
             <p className="text-muted-foreground mt-1">포장비, 인건비, 창고비 등 운영비를 관리합니다</p>
           </div>
           <Link href="/expenses/operating/new">
@@ -200,7 +200,7 @@ export default function OperatingExpensesPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -90,10 +90,10 @@ export default function ExpensesPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-5 sm:px-4 sm:py-8 sm:space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">광고비 관리</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">광고비 관리</h1>
             <p className="text-muted-foreground mt-1">광고비를 기록하고 ROI/ROAS를 분석합니다</p>
           </div>
           <Link href="/expenses/new">

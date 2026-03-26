@@ -135,9 +135,5 @@
 .page-container {
   display: flex;
   flex-direction: column;
-}
-
-.page-container > * {
   flex: 1;
-  min-height: 0 !important;
 }

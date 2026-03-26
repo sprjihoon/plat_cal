@@ -155,45 +155,47 @@ export default function AdminPage() {
   return (
     <div className="bg-background">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-3">
           <Shield className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold">관리자 대시보드</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">관리자 대시보드</h1>
             <p className="text-muted-foreground text-sm">유저 관리, 공지, 알림, 활동 분석</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v || 'dashboard')}>
-          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9">
-            <TabsTrigger value="dashboard" className="flex items-center gap-1.5">
-              <BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">통계</span>
-            </TabsTrigger>
-            <TabsTrigger value="visitors" className="flex items-center gap-1.5">
-              <Wifi className="h-4 w-4" /><span className="hidden sm:inline">방문자</span>
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="flex items-center gap-1.5">
-              <Globe className="h-4 w-4" /><span className="hidden sm:inline">페이지</span>
-            </TabsTrigger>
-            <TabsTrigger value="usage" className="flex items-center gap-1.5">
-              <Database className="h-4 w-4" /><span className="hidden sm:inline">사용량</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-1.5">
-              <Users className="h-4 w-4" /><span className="hidden sm:inline">유저</span>
-            </TabsTrigger>
-            <TabsTrigger value="announcements" className="flex items-center gap-1.5">
-              <Megaphone className="h-4 w-4" /><span className="hidden sm:inline">공지</span>
-            </TabsTrigger>
-            <TabsTrigger value="ads" className="flex items-center gap-1.5">
-              <Image className="h-4 w-4" /><span className="hidden sm:inline">광고</span>
-            </TabsTrigger>
-            <TabsTrigger value="ad-analytics" className="flex items-center gap-1.5">
-              <MousePointerClick className="h-4 w-4" /><span className="hidden sm:inline">광고성과</span>
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-1.5">
-              <Activity className="h-4 w-4" /><span className="hidden sm:inline">로그</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-9 gap-0.5">
+              <TabsTrigger value="dashboard" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <BarChart3 className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">통계</span>
+              </TabsTrigger>
+              <TabsTrigger value="visitors" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Wifi className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">방문자</span>
+              </TabsTrigger>
+              <TabsTrigger value="pages" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Globe className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">페이지</span>
+              </TabsTrigger>
+              <TabsTrigger value="usage" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Database className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">사용량</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Users className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">유저</span>
+              </TabsTrigger>
+              <TabsTrigger value="announcements" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Megaphone className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">공지</span>
+              </TabsTrigger>
+              <TabsTrigger value="ads" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Image className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">광고</span>
+              </TabsTrigger>
+              <TabsTrigger value="ad-analytics" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <MousePointerClick className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">광고성과</span>
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="flex items-center gap-1 px-2.5 sm:px-3">
+                <Activity className="h-4 w-4 shrink-0" /><span className="text-xs whitespace-nowrap">로그</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard"><DashboardTab /></TabsContent>
           <TabsContent value="visitors"><VisitorsTab /></TabsContent>

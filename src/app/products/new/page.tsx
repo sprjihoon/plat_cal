@@ -24,7 +24,7 @@ export default function NewProductPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-2xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         {/* 페이지 헤더 */}
         <div className="flex items-center gap-4">
           <Link href="/products">
@@ -33,7 +33,7 @@ export default function NewProductPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">상품 등록</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">상품 등록</h1>
             <p className="text-muted-foreground">새 상품을 등록합니다</p>
           </div>
         </div>

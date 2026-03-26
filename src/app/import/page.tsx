@@ -291,7 +291,7 @@ export default function ImportPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-5xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
             <Button variant="ghost" size="icon">
@@ -299,7 +299,7 @@ export default function ImportPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">데이터 가져오기</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">데이터 가져오기</h1>
             <p className="text-muted-foreground">마켓 정산 엑셀 또는 CSV 파일을 업로드하세요</p>
           </div>
         </div>

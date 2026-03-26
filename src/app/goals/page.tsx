@@ -80,13 +80,13 @@ export default function GoalsPage() {
   return (
     <div className="bg-background">
       <Header />
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-4xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">목표 관리</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">목표 관리</h1>
             <p className="text-muted-foreground">매출, 마진율, ROAS 목표를 설정하고 추적합니다</p>
           </div>
           <Button onClick={() => setShowForm(!showForm)}>

@@ -86,7 +86,7 @@ export default function EditOperatingExpensePage({ params }: { params: Promise<{
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-2xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/expenses/operating">
             <Button variant="ghost" size="icon">
@@ -94,7 +94,7 @@ export default function EditOperatingExpensePage({ params }: { params: Promise<{
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">운영비 수정</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">운영비 수정</h1>
             <p className="text-muted-foreground">운영비 기록을 수정합니다</p>
           </div>
         </div>

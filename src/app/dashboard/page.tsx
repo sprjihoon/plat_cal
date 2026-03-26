@@ -136,14 +136,14 @@ export default function DashboardPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-5 sm:px-4 sm:py-8 sm:space-y-8">
         <div>
           {userName ? (
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
               {userName} 대표님, {greeting} 👋
             </h1>
           ) : (
-            <h1 className="text-2xl font-bold tracking-tight">대시보드</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">대시보드</h1>
           )}
           <p className="text-muted-foreground mt-1">매출, 비용, 수익을 한눈에 확인합니다</p>
         </div>
@@ -223,32 +223,32 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* KPI 카드 - 파스텔 컬러풀 */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               <Card className={`${KPI_STYLES[0].bg} ring-0 border-0`}>
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2.5 ${KPI_STYLES[0].iconBg} rounded-xl`}>
-                      <DollarSign className={`h-5 w-5 ${KPI_STYLES[0].iconColor}`} />
+                <CardContent className="p-3 sm:pt-5 sm:pb-4 sm:px-6">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className={`p-2 sm:p-2.5 ${KPI_STYLES[0].iconBg} rounded-xl`}>
+                      <DollarSign className={`h-4 w-4 sm:h-5 sm:w-5 ${KPI_STYLES[0].iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">총 매출</p>
-                      <p className={`text-lg font-bold truncate ${KPI_STYLES[0].accent}`}>{formatCurrency(data.summary.revenue)}</p>
-                      <div className="mt-1.5"><ChangeIndicator value={data.changes.revenue} /></div>
+                      <p className="text-[11px] sm:text-xs font-medium text-muted-foreground mb-0.5 sm:mb-1">총 매출</p>
+                      <p className={`text-base sm:text-lg font-bold truncate ${KPI_STYLES[0].accent}`}>{formatCurrency(data.summary.revenue)}</p>
+                      <div className="mt-1 sm:mt-1.5"><ChangeIndicator value={data.changes.revenue} /></div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className={`${KPI_STYLES[1].bg} ring-0 border-0`}>
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2.5 ${KPI_STYLES[1].iconBg} rounded-xl`}>
-                      <Wallet className={`h-5 w-5 ${KPI_STYLES[1].iconColor}`} />
+                <CardContent className="p-3 sm:pt-5 sm:pb-4 sm:px-6">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className={`p-2 sm:p-2.5 ${KPI_STYLES[1].iconBg} rounded-xl`}>
+                      <Wallet className={`h-4 w-4 sm:h-5 sm:w-5 ${KPI_STYLES[1].iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">총 비용</p>
-                      <p className={`text-lg font-bold truncate ${KPI_STYLES[1].accent}`}>{formatCurrency(data.summary.totalCost)}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1.5">
+                      <p className="text-[11px] sm:text-xs font-medium text-muted-foreground mb-0.5 sm:mb-1">총 비용</p>
+                      <p className={`text-base sm:text-lg font-bold truncate ${KPI_STYLES[1].accent}`}>{formatCurrency(data.summary.totalCost)}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 sm:mt-1.5">
                         광고 {formatCurrency(data.summary.adCost)} + 운영 {formatCurrency(data.summary.operatingCost)}
                       </p>
                     </div>
@@ -257,32 +257,32 @@ export default function DashboardPage() {
               </Card>
 
               <Card className={`${data.summary.netProfitAfterAll >= 0 ? KPI_STYLES[2].bg : KPI_STYLES[1].bg} ring-0 border-0`}>
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2.5 ${data.summary.netProfitAfterAll >= 0 ? KPI_STYLES[2].iconBg : KPI_STYLES[1].iconBg} rounded-xl`}>
-                      <TrendingUp className={`h-5 w-5 ${data.summary.netProfitAfterAll >= 0 ? KPI_STYLES[2].iconColor : KPI_STYLES[1].iconColor}`} />
+                <CardContent className="p-3 sm:pt-5 sm:pb-4 sm:px-6">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className={`p-2 sm:p-2.5 ${data.summary.netProfitAfterAll >= 0 ? KPI_STYLES[2].iconBg : KPI_STYLES[1].iconBg} rounded-xl`}>
+                      <TrendingUp className={`h-4 w-4 sm:h-5 sm:w-5 ${data.summary.netProfitAfterAll >= 0 ? KPI_STYLES[2].iconColor : KPI_STYLES[1].iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">순수익</p>
-                      <p className={`text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-rose-700'}`}>
+                      <p className="text-[11px] sm:text-xs font-medium text-muted-foreground mb-0.5 sm:mb-1">순수익</p>
+                      <p className={`text-base sm:text-lg font-bold truncate ${data.summary.netProfitAfterAll >= 0 ? 'text-[#4a5abf]' : 'text-rose-700'}`}>
                         {formatCurrency(data.summary.netProfitAfterAll)}
                       </p>
-                      <div className="mt-1.5"><ChangeIndicator value={data.changes.netProfitAfterAll} /></div>
+                      <div className="mt-1 sm:mt-1.5"><ChangeIndicator value={data.changes.netProfitAfterAll} /></div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className={`${KPI_STYLES[3].bg} ring-0 border-0`}>
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2.5 ${KPI_STYLES[3].iconBg} rounded-xl`}>
-                      <ShoppingCart className={`h-5 w-5 ${KPI_STYLES[3].iconColor}`} />
+                <CardContent className="p-3 sm:pt-5 sm:pb-4 sm:px-6">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className={`p-2 sm:p-2.5 ${KPI_STYLES[3].iconBg} rounded-xl`}>
+                      <ShoppingCart className={`h-4 w-4 sm:h-5 sm:w-5 ${KPI_STYLES[3].iconColor}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">판매</p>
-                      <p className={`text-lg font-bold ${KPI_STYLES[3].accent}`}>{data.summary.salesCount.toLocaleString()}건</p>
-                      <p className="text-[11px] text-muted-foreground mt-1.5">{data.summary.quantity.toLocaleString()}개 판매</p>
+                      <p className="text-[11px] sm:text-xs font-medium text-muted-foreground mb-0.5 sm:mb-1">판매</p>
+                      <p className={`text-base sm:text-lg font-bold ${KPI_STYLES[3].accent}`}>{data.summary.salesCount.toLocaleString()}건</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 sm:mt-1.5">{data.summary.quantity.toLocaleString()}개 판매</p>
                     </div>
                   </div>
                 </CardContent>
@@ -290,34 +290,34 @@ export default function DashboardPage() {
             </div>
 
             {/* 핵심 지표 */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-[#8C9EFF]/12 rounded-2xl p-4 text-center">
-                <p className="text-xs font-medium text-gray-500 mb-1">ROAS</p>
-                <p className={`text-2xl font-bold ${data.summary.roas >= 100 ? 'text-gray-900' : data.summary.roas > 0 ? 'text-gray-700' : 'text-gray-400'}`}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <div className="bg-[#8C9EFF]/12 rounded-2xl p-3 sm:p-4 text-center">
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 sm:mb-1">ROAS</p>
+                <p className={`text-xl sm:text-2xl font-bold ${data.summary.roas >= 100 ? 'text-gray-900' : data.summary.roas > 0 ? 'text-gray-700' : 'text-gray-400'}`}>
                   {data.summary.adCost > 0 ? `${data.summary.roas.toFixed(0)}%` : '-'}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">매출/광고비</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">매출/광고비</p>
               </div>
-              <div className="bg-[#D6F74C]/12 rounded-2xl p-4 text-center">
-                <p className="text-xs font-medium text-gray-500 mb-1">ROI</p>
-                <p className={`text-2xl font-bold ${data.summary.roi >= 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+              <div className="bg-[#D6F74C]/12 rounded-2xl p-3 sm:p-4 text-center">
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 sm:mb-1">ROI</p>
+                <p className={`text-xl sm:text-2xl font-bold ${data.summary.roi >= 0 ? 'text-gray-900' : 'text-gray-700'}`}>
                   {data.summary.totalCost > 0 ? `${data.summary.roi.toFixed(0)}%` : '-'}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">(순이익-비용)/비용</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">(순이익-비용)/비용</p>
               </div>
-              <div className="bg-[#8C9EFF]/10 rounded-2xl p-4 text-center">
-                <p className="text-xs font-medium text-gray-500 mb-1">마진율</p>
-                <p className={`text-2xl font-bold ${data.summary.marginRate >= 20 ? 'text-gray-900' : data.summary.marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
+              <div className="bg-[#8C9EFF]/10 rounded-2xl p-3 sm:p-4 text-center">
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 sm:mb-1">마진율</p>
+                <p className={`text-xl sm:text-2xl font-bold ${data.summary.marginRate >= 20 ? 'text-gray-900' : data.summary.marginRate >= 10 ? 'text-gray-700' : 'text-gray-500'}`}>
                   {data.summary.revenue > 0 ? `${data.summary.marginRate.toFixed(1)}%` : '-'}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">순이익/매출</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">순이익/매출</p>
               </div>
-              <div className="bg-[#D6F74C]/10 rounded-2xl p-4 text-center">
-                <p className="text-xs font-medium text-gray-500 mb-1">건당 평균</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="bg-[#D6F74C]/10 rounded-2xl p-3 sm:p-4 text-center">
+                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mb-0.5 sm:mb-1">건당 평균</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {data.summary.salesCount > 0 ? formatCurrency(data.summary.revenue / data.summary.salesCount) : '-'}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">총매출/판매건수</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">총매출/판매건수</p>
               </div>
             </div>
 

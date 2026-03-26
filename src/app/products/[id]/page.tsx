@@ -86,7 +86,7 @@ export default function ProductDetailPage({ params }: PageProps) {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         {/* 페이지 헤더 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -96,7 +96,7 @@ export default function ProductDetailPage({ params }: PageProps) {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">{product.name}</h1>
               {product.sku && (
                 <p className="text-muted-foreground">SKU: {product.sku}</p>
               )}

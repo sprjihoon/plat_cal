@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className="bg-background">
       <Header />
-      <div className="px-4 py-6">
+      <div className="px-3 py-4 sm:px-4 sm:py-6">
         <MarginCalculator />
       </div>
     </main>

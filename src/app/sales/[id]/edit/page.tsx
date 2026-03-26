@@ -145,7 +145,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-2xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/sales">
             <Button variant="ghost" size="icon">
@@ -153,7 +153,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">판매 기록 수정</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">판매 기록 수정</h1>
             <p className="text-muted-foreground">판매 내역을 수정합니다</p>
           </div>
         </div>

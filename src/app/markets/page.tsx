@@ -112,13 +112,13 @@ export default function MarketsPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-5 sm:px-4 sm:py-8 sm:space-y-8">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
             <Button variant="ghost" size="icon" className="rounded-xl"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">마켓 관리</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">마켓 관리</h1>
             <p className="text-muted-foreground mt-1">
               등록된 모든 마켓 설정을 한눈에 관리합니다
             </p>

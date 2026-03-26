@@ -99,10 +99,10 @@ export default function ReportsPage() {
     <div className="bg-background">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">결산 리포트</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">결산 리포트</h1>
             <p className="text-muted-foreground">기간별 매출, 비용, 수익을 종합 분석합니다</p>
           </div>
           <div className="flex gap-2">
@@ -255,7 +255,7 @@ export default function ReportsPage() {
             {/* 손익 계산서 */}
             <Card>
               <CardHeader><CardTitle>손익 계산서</CardTitle></CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

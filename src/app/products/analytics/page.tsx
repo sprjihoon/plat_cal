@@ -46,13 +46,13 @@ export default function ProductAnalyticsPage() {
   return (
     <div className="bg-background">
       <Header />
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-3 py-4 space-y-4 sm:px-4 sm:py-6 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/products">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">상품별 수익 분석</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">상품별 수익 분석</h1>
             <p className="text-muted-foreground">상품별 매출, 마진, ABC 등급을 분석합니다</p>
           </div>
         </div>
