@@ -57,7 +57,6 @@ export function usePageTracking(userId?: string | null) {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
     sessionId.current = getSessionId();
 
     if (!initialized.current) {
@@ -72,10 +71,9 @@ export function usePageTracking(userId?: string | null) {
         }),
       }).catch(() => {});
     }
-  }, [userId, pathname]);
+  }, [pathname]);
 
   useEffect(() => {
-    if (!userId) return;
     if (!sessionId.current) sessionId.current = getSessionId();
 
     const recordPageView = async () => {
@@ -103,11 +101,9 @@ export function usePageTracking(userId?: string | null) {
     };
 
     recordPageView();
-  }, [pathname, userId, closePreviousView]);
+  }, [pathname, closePreviousView]);
 
   useEffect(() => {
-    if (!userId) return;
-
     const handleBeforeUnload = () => {
       const now = new Date();
       const duration = Math.round((now.getTime() - enteredAt.current.getTime()) / 1000);
@@ -140,5 +136,5 @@ export function usePageTracking(userId?: string | null) {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [userId, pathname, updateSession]);
+  }, [pathname, updateSession]);
 }

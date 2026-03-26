@@ -467,6 +467,7 @@ create table if not exists public.page_views (
   entered_at timestamptz not null,
   left_at timestamptz,
   duration_seconds integer,
+  ip_address text,
   created_at timestamptz default now()
 );
 
@@ -474,6 +475,7 @@ create index if not exists idx_page_views_user on public.page_views(user_id, cre
 create index if not exists idx_page_views_session on public.page_views(session_id);
 create index if not exists idx_page_views_path on public.page_views(page_path, created_at desc);
 create index if not exists idx_page_views_created on public.page_views(created_at desc);
+create index if not exists idx_page_views_ip on public.page_views(ip_address, created_at desc);
 
 alter table public.page_views enable row level security;
 create policy "Users can insert own page views"
@@ -485,11 +487,17 @@ create policy "Users can update own page views"
 create policy "Admins can view all page views"
   on public.page_views for select
   using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+create policy "Anon can insert page views"
+  on public.page_views for insert
+  with check (user_id is null);
+create policy "Anon can update own page views by session"
+  on public.page_views for update
+  using (user_id is null);
 
 -- 유저 세션 기록
 create table if not exists public.user_sessions (
   id uuid default uuid_generate_v4() primary key,
-  user_id uuid references auth.users on delete cascade not null,
+  user_id uuid references auth.users on delete cascade,
   session_id text not null unique,
   started_at timestamptz default now(),
   ended_at timestamptz,
@@ -497,12 +505,15 @@ create table if not exists public.user_sessions (
   exit_page text,
   page_count integer default 0,
   user_agent text,
+  ip_address text,
+  country text,
   created_at timestamptz default now()
 );
 
 create index if not exists idx_user_sessions_user on public.user_sessions(user_id, created_at desc);
 create index if not exists idx_user_sessions_session on public.user_sessions(session_id);
 create index if not exists idx_user_sessions_created on public.user_sessions(created_at desc);
+create index if not exists idx_user_sessions_ip on public.user_sessions(ip_address, created_at desc);
 
 alter table public.user_sessions enable row level security;
 create policy "Users can insert own sessions"
@@ -514,6 +525,12 @@ create policy "Users can update own sessions"
 create policy "Admins can view all sessions"
   on public.user_sessions for select
   using (exists (select 1 from public.admin_users au where au.user_id = auth.uid()));
+create policy "Anon can insert sessions"
+  on public.user_sessions for insert
+  with check (user_id is null);
+create policy "Anon can update own sessions by session_id"
+  on public.user_sessions for update
+  using (user_id is null);
 
 -- 광고 배너
 create table if not exists public.ad_banners (
@@ -530,6 +547,7 @@ create table if not exists public.ad_banners (
   sort_order integer not null default 0,
   impression_count integer not null default 0,
   click_count integer not null default 0,
+  slide_interval integer not null default 4000,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

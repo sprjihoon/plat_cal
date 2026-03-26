@@ -26,7 +26,8 @@ import {
   TrendingDown, Activity, UserCheck, UserX, Eye, Globe, Database,
   Clock, ArrowRightLeft, LogIn, LogOut, Monitor, Image, ExternalLink,
   GripVertical, Pencil, ChevronUp, ChevronDown, MousePointerClick,
-  Smartphone, TabletSmartphone, MonitorSmartphone,
+  Smartphone, TabletSmartphone, MonitorSmartphone, Wifi, MapPin,
+  UserRound, Ghost, Timer, Radio,
 } from 'lucide-react';
 
 interface UserData {
@@ -164,9 +165,12 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v || 'dashboard')}>
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-9">
             <TabsTrigger value="dashboard" className="flex items-center gap-1.5">
               <BarChart3 className="h-4 w-4" /><span className="hidden sm:inline">통계</span>
+            </TabsTrigger>
+            <TabsTrigger value="visitors" className="flex items-center gap-1.5">
+              <Wifi className="h-4 w-4" /><span className="hidden sm:inline">방문자</span>
             </TabsTrigger>
             <TabsTrigger value="pages" className="flex items-center gap-1.5">
               <Globe className="h-4 w-4" /><span className="hidden sm:inline">페이지</span>
@@ -192,6 +196,7 @@ export default function AdminPage() {
           </TabsList>
 
           <TabsContent value="dashboard"><DashboardTab /></TabsContent>
+          <TabsContent value="visitors"><VisitorsTab /></TabsContent>
           <TabsContent value="pages"><PagesTab /></TabsContent>
           <TabsContent value="usage"><UsageTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
@@ -1440,8 +1445,60 @@ function AdsTab() {
     fetchBanners();
   };
 
+  const [slideInterval, setSlideInterval] = useState(4);
+  const [savingInterval, setSavingInterval] = useState(false);
+
+  useEffect(() => {
+    if (banners.length > 0) {
+      setSlideInterval((banners[0] as any).slide_interval ? (banners[0] as any).slide_interval / 1000 : 4);
+    }
+  }, [banners]);
+
+  const handleSaveInterval = async () => {
+    setSavingInterval(true);
+    const ms = Math.max(1000, Math.round(slideInterval * 1000));
+    await Promise.all(banners.map(b =>
+      fetch(`/api/admin/ads/${b.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slide_interval: ms }),
+      })
+    ));
+    setSavingInterval(false);
+    fetchBanners();
+  };
+
   return (
     <div className="space-y-6 mt-4">
+      {/* 슬라이드 전환 시간 설정 */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-sm font-medium whitespace-nowrap">슬라이드 전환 시간</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={30}
+                step={0.5}
+                value={slideInterval}
+                onChange={(e) => setSlideInterval(parseFloat(e.target.value) || 1)}
+                className="w-20 text-center"
+              />
+              <span className="text-sm text-muted-foreground">초</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleSaveInterval} disabled={savingInterval}>
+              {savingInterval && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+              저장
+            </Button>
+            <span className="text-xs text-muted-foreground">모든 배너에 공통 적용됩니다</span>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -1617,6 +1674,410 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string;
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ─── 방문자 분석 탭 ─────────────────────────────────
+interface VisitorData {
+  summary: {
+    totalSessions: number; uniqueIPs: number; loggedInSessions: number;
+    anonymousSessions: number; totalPageViews: number; avgSessionDuration: number;
+    avgPagesPerSession: number; period: number;
+  };
+  realtime: { activeVisitors: number; activeSessions: number; topPages: { path: string; count: number }[] };
+  ipStats: {
+    ip: string; visits: number; pageViews: number; avgDuration: number;
+    totalDuration: number; uniquePages: number; lastSeen: string;
+    isLoggedIn: boolean; device: string;
+  }[];
+  dailyTrend: {
+    date: string; sessions: number; uniqueIPs: number; loggedIn: number;
+    anonymous: number; pageViews: number; avgDuration: number;
+  }[];
+  hourlyVisitors: number[];
+  deviceBreakdown: { device: string; count: number }[];
+  recentSessions: {
+    sessionId: string; ip: string; isLoggedIn: boolean; entryPage: string;
+    exitPage: string; pageCount: number; duration: number; device: string;
+    startedAt: string; pages: { path: string; duration: number }[];
+  }[];
+  pagesByDuration: {
+    path: string; views: number; avgDuration: number; totalDuration: number; uniqueVisitors: number;
+  }[];
+}
+
+function VisitorsTab() {
+  const [data, setData] = useState<VisitorData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState('30');
+  const [ipSearch, setIpSearch] = useState('');
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/stats/visitors?days=${days}`);
+      const json = await res.json();
+      setData(json);
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, [days]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, fetchData]);
+
+  if (loading) return <LoadingSpinner />;
+  if (!data) return <p className="text-muted-foreground text-center py-8">데이터를 불러올 수 없습니다</p>;
+
+  const filteredIPs = ipSearch
+    ? data.ipStats.filter(s => s.ip.includes(ipSearch))
+    : data.ipStats;
+
+  const dailyMax = Math.max(...data.dailyTrend.map(d => d.sessions), 1);
+  const hourMax = Math.max(...data.hourlyVisitors, 1);
+
+  const DEVICE_LABEL: Record<string, string> = { desktop: '데스크톱', mobile: '모바일', tablet: '태블릿', bot: '봇', unknown: '기타' };
+  const DEVICE_ICON: Record<string, any> = { desktop: Monitor, mobile: Smartphone, tablet: TabletSmartphone, bot: Globe, unknown: Globe };
+
+  return (
+    <div className="space-y-6 mt-4">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-lg font-semibold flex items-center gap-2"><Wifi className="h-5 w-5" />방문자 분석</h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={autoRefresh ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className="gap-1.5"
+          >
+            <Radio className={`h-3.5 w-3.5 ${autoRefresh ? 'animate-pulse' : ''}`} />
+            {autoRefresh ? '실시간' : '자동새로고침'}
+          </Button>
+          <Select value={days} onValueChange={(v) => setDays(v || '30')}>
+            <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">오늘</SelectItem>
+              <SelectItem value="7">최근 7일</SelectItem>
+              <SelectItem value="14">최근 14일</SelectItem>
+              <SelectItem value="30">최근 30일</SelectItem>
+              <SelectItem value="90">최근 90일</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* 실시간 방문자 */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Radio className="h-6 w-6 text-primary animate-pulse" />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 bg-green-500 rounded-full border-2 border-background" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{data.realtime.activeVisitors}</p>
+                <p className="text-xs text-muted-foreground">현재 접속자 (5분 이내)</p>
+              </div>
+            </div>
+            {data.realtime.topPages.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {data.realtime.topPages.slice(0, 5).map((p) => (
+                  <Badge key={p.path} variant="secondary" className="text-xs">
+                    {p.path} <span className="ml-1 font-bold">{p.count}</span>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 요약 카드 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <StatCard icon={Wifi} label="총 세션" value={data.summary.totalSessions} />
+        <StatCard icon={MapPin} label="고유 IP" value={data.summary.uniqueIPs} />
+        <StatCard icon={UserRound} label="로그인 방문" value={data.summary.loggedInSessions} />
+        <StatCard icon={Ghost} label="비로그인 방문" value={data.summary.anonymousSessions} />
+        <StatCard icon={Eye} label="총 페이지뷰" value={data.summary.totalPageViews} />
+        <StatCard icon={Timer} label="평균 체류" value={0} sub={formatDuration(data.summary.avgSessionDuration)} />
+        <StatCard icon={Globe} label="세션당 페이지" value={data.summary.avgPagesPerSession} />
+      </div>
+
+      {/* 일별 방문 추이 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">일별 방문 추이</CardTitle>
+          <CardDescription>
+            <span className="inline-flex items-center gap-1.5 mr-4"><span className="w-3 h-3 rounded-sm bg-[#8C9EFF]" /> 세션 수</span>
+            <span className="inline-flex items-center gap-1.5 mr-4"><span className="w-3 h-3 rounded-sm bg-[#D6F74C]" /> 고유 IP</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-[2px] h-[140px]">
+            {data.dailyTrend.map((d) => (
+              <div key={d.date} className="flex-1 flex flex-col items-center gap-[1px] h-full justify-end group relative">
+                <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border rounded-md px-2 py-1 text-xs shadow-md whitespace-nowrap z-10">
+                  <p className="font-medium">{d.date}</p>
+                  <p>세션 {d.sessions} · IP {d.uniqueIPs}</p>
+                  <p>로그인 {d.loggedIn} · 비로그인 {d.anonymous}</p>
+                  <p>PV {d.pageViews} · 평균체류 {formatDuration(d.avgDuration)}</p>
+                </div>
+                <div className="w-full bg-[#8C9EFF] rounded-t-sm min-h-[1px]" style={{ height: `${(d.sessions / dailyMax) * 100}%` }} />
+                <div className="w-full bg-[#D6F74C] rounded-t-sm min-h-[1px]" style={{ height: `${(d.uniqueIPs / dailyMax) * 100}%` }} />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px] text-muted-foreground">{data.dailyTrend[0]?.date}</span>
+            <span className="text-[10px] text-muted-foreground">{data.dailyTrend[data.dailyTrend.length - 1]?.date}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 시간대별 분포 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" />시간대별 접속</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-0.5 h-32">
+              {data.hourlyVisitors.map((count, h) => (
+                <div key={h} className="flex-1 flex flex-col items-center justify-end group relative h-full">
+                  <div className="absolute -top-6 bg-foreground text-background text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    {h}시: {count}
+                  </div>
+                  <div
+                    className="w-full bg-[#8C9EFF]/50 hover:bg-[#8C9EFF]/80 rounded-t-sm transition-colors"
+                    style={{ height: `${(count / hourMax) * 100}%`, minHeight: count > 0 ? '2px' : '0' }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-0.5">
+              <span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>23시</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 디바이스 분포 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><MonitorSmartphone className="h-4 w-4" />디바이스별 분포</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.deviceBreakdown.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">데이터 없음</p>
+            ) : (
+              <div className="space-y-3">
+                {data.deviceBreakdown.map((d) => {
+                  const DevIcon = DEVICE_ICON[d.device] || Globe;
+                  const pct = data!.summary.totalSessions > 0 ? Math.round((d.count / data!.summary.totalSessions) * 100) : 0;
+                  return (
+                    <div key={d.device} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <DevIcon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-sm">{DEVICE_LABEL[d.device] || d.device}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold">{d.count}</span>
+                            <Badge variant="secondary">{pct}%</Badge>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-[#8C9EFF] rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 페이지별 체류시간 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><Timer className="h-4 w-4" />페이지별 체류시간 TOP</CardTitle>
+          <CardDescription>평균 체류시간이 긴 페이지 순</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>페이지</TableHead>
+                <TableHead className="text-right">조회수</TableHead>
+                <TableHead className="text-right">고유 방문자</TableHead>
+                <TableHead className="text-right">평균 체류</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">총 체류</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.pagesByDuration.map((p) => (
+                <TableRow key={p.path}>
+                  <TableCell className="font-mono text-sm">{p.path}</TableCell>
+                  <TableCell className="text-right">{p.views.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{p.uniqueVisitors.toLocaleString()}</TableCell>
+                  <TableCell className="text-right font-medium">{formatDuration(p.avgDuration)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground hidden sm:table-cell">{formatDuration(p.totalDuration)}</TableCell>
+                </TableRow>
+              ))}
+              {data.pagesByDuration.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">데이터 없음</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* IP별 통계 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4" />IP별 방문 통계</CardTitle>
+              <CardDescription>방문 횟수가 많은 IP 순</CardDescription>
+            </div>
+            <div className="relative w-[240px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="IP 검색..." value={ipSearch} onChange={(e) => setIpSearch(e.target.value)} className="pl-9" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>IP</TableHead>
+                <TableHead className="text-right">방문수</TableHead>
+                <TableHead className="text-right">페이지뷰</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">평균 체류</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">고유 페이지</TableHead>
+                <TableHead className="text-center">디바이스</TableHead>
+                <TableHead className="text-center">유형</TableHead>
+                <TableHead className="hidden sm:table-cell">최근 방문</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredIPs.slice(0, 50).map((s) => {
+                const DevIcon = DEVICE_ICON[s.device] || Globe;
+                return (
+                  <TableRow key={s.ip}>
+                    <TableCell className="font-mono text-sm">{s.ip}</TableCell>
+                    <TableCell className="text-right font-bold">{s.visits}</TableCell>
+                    <TableCell className="text-right">{s.pageViews}</TableCell>
+                    <TableCell className="text-right text-muted-foreground hidden sm:table-cell">{formatDuration(s.avgDuration)}</TableCell>
+                    <TableCell className="text-right hidden sm:table-cell">{s.uniquePages}</TableCell>
+                    <TableCell className="text-center"><DevIcon className="h-4 w-4 mx-auto text-muted-foreground" /></TableCell>
+                    <TableCell className="text-center">
+                      {s.isLoggedIn ? (
+                        <Badge className="bg-[#8C9EFF]/20 text-[#4a5abf] border-0 text-xs">회원</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">비회원</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
+                      {new Date(s.lastSeen).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filteredIPs.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    {ipSearch ? '검색 결과가 없습니다' : '데이터 없음'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* 최근 방문 세션 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><Activity className="h-4 w-4" />최근 방문 세션</CardTitle>
+          <CardDescription>최근 50개 세션 (클릭하여 상세 보기)</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {data.recentSessions.map((s) => {
+              const isExpanded = expandedSession === s.sessionId;
+              const DevIcon = DEVICE_ICON[s.device] || Globe;
+              return (
+                <div key={s.sessionId}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+                    onClick={() => setExpandedSession(isExpanded ? null : s.sessionId)}
+                  >
+                    <div className="shrink-0">
+                      <DevIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm">{s.ip}</span>
+                        {s.isLoggedIn ? (
+                          <Badge className="bg-[#8C9EFF]/20 text-[#4a5abf] border-0 text-[10px]">회원</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px]">비회원</Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">{s.pageCount}페이지</span>
+                        <span className="text-xs text-muted-foreground">{formatDuration(s.duration)}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        {s.entryPage} → {s.exitPage || s.entryPage}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(s.startedAt).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isExpanded && s.pages.length > 0 && (
+                    <div className="px-4 pb-3 pl-12">
+                      <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
+                        {s.pages.map((page, i) => (
+                          <div key={`${page.path}-${i}`} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground w-5">{i + 1}</span>
+                              <span className="font-mono">{page.path}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{formatDuration(page.duration)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {data.recentSessions.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-8">최근 세션 데이터가 없습니다</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
