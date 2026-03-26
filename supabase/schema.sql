@@ -453,6 +453,28 @@ drop trigger if exists set_updated_at on public.user_status;
 create trigger set_updated_at before update on public.user_status
   for each row execute procedure public.handle_updated_at();
 
+-- 알림
+create table if not exists public.notifications (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  type text not null default 'system',
+  title text not null,
+  message text not null,
+  is_read boolean not null default false,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_notifications_user on public.notifications(user_id, created_at desc);
+create index if not exists idx_notifications_unread on public.notifications(user_id, is_read) where is_read = false;
+
+alter table public.notifications enable row level security;
+create policy "Users can view own notifications"
+  on public.notifications for select
+  using (auth.uid() = user_id);
+create policy "Users can update own notifications"
+  on public.notifications for update
+  using (auth.uid() = user_id);
+
 -- ============================================================
 -- 페이지 트래킹 시스템
 -- ============================================================
