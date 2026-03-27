@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,9 +19,19 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     setSupabase(createClient());
+    const saved = localStorage.getItem('saved_login');
+    if (saved) {
+      try {
+        const { email: savedEmail, password: savedPassword } = JSON.parse(saved);
+        setEmail(savedEmail || '');
+        setPassword(savedPassword || '');
+        setRememberMe(true);
+      } catch { /* ignore */ }
+    }
   }, []);
 
   const handleKakaoLogin = async () => {
@@ -66,6 +77,11 @@ export default function LoginPage() {
       }
       setIsLoading(null);
     } else {
+      if (rememberMe) {
+        localStorage.setItem('saved_login', JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem('saved_login');
+      }
       router.refresh();
       window.location.href = '/dashboard';
     }
@@ -84,7 +100,7 @@ export default function LoginPage() {
           {/* 소셜 로그인 */}
           <Button
             variant="outline"
-            className="w-full h-11 bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] border-[#FEE500]"
+            className="w-full h-11 !bg-[#FEE500] hover:!bg-[#FDD800] !text-[#191919] !border-[#FEE500]"
             onClick={handleKakaoLogin}
             disabled={isLoading !== null}
           >
@@ -151,6 +167,23 @@ export default function LoginPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => {
+                  setRememberMe(checked === true);
+                  if (!checked) localStorage.removeItem('saved_login');
+                }}
+              />
+              <label
+                htmlFor="remember"
+                className="text-sm text-muted-foreground cursor-pointer select-none"
+              >
+                아이디/비밀번호 저장
+              </label>
             </div>
 
             {error && (
