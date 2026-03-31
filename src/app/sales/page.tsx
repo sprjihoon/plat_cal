@@ -131,11 +131,11 @@ export default function SalesPage() {
             <p className="text-muted-foreground mt-1">일일 판매 내역을 기록하고 관리합니다</p>
           </div>
           <div className="flex gap-2">
-            <div className="flex border rounded-xl overflow-hidden">
+            <div className="flex bg-muted rounded-lg p-0.5">
               <Button
                 variant={viewMode === 'daily' ? 'default' : 'ghost'}
                 size="sm"
-                className="rounded-none"
+                className="rounded-md h-8 px-3"
                 onClick={() => setViewMode('daily')}
               >
                 <CalendarDays className="h-4 w-4 mr-1" />일별
@@ -143,7 +143,7 @@ export default function SalesPage() {
               <Button
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
-                className="rounded-none"
+                className="rounded-md h-8 px-3"
                 onClick={() => setViewMode('list')}
               >
                 <LayoutList className="h-4 w-4 mr-1" />목록
