@@ -29,7 +29,7 @@ const defaultNavItems: NavItem[] = [
   { href: '/goals', label: '목표' },
   { href: '/import', label: '가져오기' },
   { href: '/market-research', label: '시장조사' },
-  { href: '/pricing', label: '요금제' },
+  // { href: '/pricing', label: '요금제' }, // PG 연동 후 활성화
   { href: '/settings', label: '설정' },
 ];
 
