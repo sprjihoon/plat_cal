@@ -229,12 +229,12 @@ export function MarginCalculator() {
   }, [sellingPrice, productCost, platformFeeRate, paymentFeeRate, sellerShippingCost, packagingCost, advertisingCost, otherCosts, wholesaleVatType, targetMarginRate]);
 
   // 모드 1: 순이익 계산
-  const handleCalculateProfit = useCallback(() => {
+  const handleCalculateProfit = useCallback((): boolean => {
     const inputs = getInputs();
     
     if (inputs.sellingPrice <= 0) {
       alert('판매가를 입력해주세요');
-      return;
+      return false;
     }
 
     try {
@@ -243,22 +243,24 @@ export function MarginCalculator() {
       setRecommendedPrice(null);
       setMaxAllowableCost(null);
       setHasCalculated(true);
+      return true;
     } catch (e) {
       alert('계산 중 오류가 발생했습니다');
+      return false;
     }
   }, [getInputs]);
 
   // 모드 2: 목표 마진율 → 판매가 정하기
-  const handleCalculatePrice = useCallback(() => {
+  const handleCalculatePrice = useCallback((): boolean => {
     const inputs = getInputs();
     
     if (inputs.productCost <= 0) {
       alert('상품 원가를 입력해주세요');
-      return;
+      return false;
     }
     if (inputs.targetMarginRate <= 0 || inputs.targetMarginRate >= 100) {
       alert('목표 마진율을 1~99% 사이로 입력해주세요');
-      return;
+      return false;
     }
 
     try {
@@ -266,7 +268,7 @@ export function MarginCalculator() {
       
       if (price === Infinity || price <= 0) {
         alert('해당 조건으로는 목표 마진율 달성이 불가능합니다.\n수수료율을 낮추거나 목표 마진율을 조정해주세요.');
-        return;
+        return false;
       }
       
       setRecommendedPrice(price);
@@ -277,22 +279,24 @@ export function MarginCalculator() {
       setResult(calcResult);
       setMaxAllowableCost(null);
       setHasCalculated(true);
+      return true;
     } catch (e) {
       alert('계산 중 오류가 발생했습니다');
+      return false;
     }
   }, [getInputs]);
 
   // 모드 3: 원가 찾기 (최대 원가 계산)
-  const handleCalculateCost = useCallback(() => {
+  const handleCalculateCost = useCallback((): boolean => {
     const inputs = getInputs();
     
     if (inputs.sellingPrice <= 0) {
       alert('판매가를 입력해주세요');
-      return;
+      return false;
     }
     if (inputs.targetMarginRate <= 0 || inputs.targetMarginRate >= 100) {
       alert('목표 마진율을 1~99% 사이로 입력해주세요');
-      return;
+      return false;
     }
 
     try {
@@ -300,7 +304,7 @@ export function MarginCalculator() {
       
       if (maxCost <= 0) {
         alert('해당 조건으로는 목표 마진율 달성이 불가능합니다.\n판매가를 높이거나 수수료율을 낮춰주세요.');
-        return;
+        return false;
       }
       
       setMaxAllowableCost(maxCost);
@@ -311,8 +315,10 @@ export function MarginCalculator() {
       setResult(calcResult);
       setRecommendedPrice(null);
       setHasCalculated(true);
+      return true;
     } catch (e) {
       alert('계산 중 오류가 발생했습니다');
+      return false;
     }
   }, [getInputs]);
 
@@ -334,10 +340,11 @@ export function MarginCalculator() {
       .catch(() => {});
   }, []);
 
+  // 허용 여부만 확인 (카운트 증가 없음)
   const checkCalculationAllowed = useCallback(async (): Promise<boolean> => {
     if (isAuthenticated) return true;
     try {
-      const res = await fetch('/api/calculator/check', { method: 'POST' });
+      const res = await fetch('/api/calculator/check');
       const data = await res.json();
       if (data.isAuthenticated) {
         setIsAuthenticated(true);
@@ -354,22 +361,41 @@ export function MarginCalculator() {
     }
   }, [isAuthenticated]);
 
+  // 결과가 실제로 표시된 후 카운트 차감
+  const recordCalculation = useCallback(async () => {
+    if (isAuthenticated) return;
+    try {
+      const res = await fetch('/api/calculator/check', { method: 'POST' });
+      const data = await res.json();
+      if (!data.isAuthenticated) {
+        setCalcRemaining(data.remaining);
+      }
+    } catch {}
+  }, [isAuthenticated]);
+
   // 계산 실행 (모드에 따라)
   const handleCalculate = useCallback(async () => {
     const allowed = await checkCalculationAllowed();
     if (!allowed) return;
+
+    let success = false;
     switch (mode) {
       case 'profit':
-        handleCalculateProfit();
+        success = handleCalculateProfit();
         break;
       case 'price':
-        handleCalculatePrice();
+        success = handleCalculatePrice();
         break;
       case 'cost':
-        handleCalculateCost();
+        success = handleCalculateCost();
         break;
     }
-  }, [mode, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed]);
+
+    // 결과가 실제로 표시된 경우에만 횟수 차감
+    if (success) {
+      await recordCalculation();
+    }
+  }, [mode, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed, recordCalculation]);
 
   // 추가 비용 합계
   const additionalCostTotal = 
