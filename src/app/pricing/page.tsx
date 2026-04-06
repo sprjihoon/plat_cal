@@ -17,10 +17,12 @@ const PLANS = [
     cta: '무료로 시작하기',
     ctaVariant: 'outline' as const,
     features: [
-      '마진 계산기 무제한 사용',
-      '상품 10개까지 무료 등록',
+      '상품 10개까지 등록',
+      '마진 계산기 무제한',
       '판매 장부 & 수익 리포트',
-      '기본 기능 전체 이용',
+      '목표 설정 & 광고비 관리',
+      '시장조사 판별 & 엑셀 가져오기',
+      '전체 기능 이용 가능',
     ],
   },
   {
@@ -34,12 +36,12 @@ const PLANS = [
     cta: 'PRO 시작하기',
     ctaVariant: 'brand' as const,
     features: [
-      '마진 계산기 무제한 사용',
       '상품 50개까지 등록',
+      '마진 계산기 무제한',
       '판매 장부 & 수익 리포트',
-      '목표 설정 & 관리',
-      '광고비 & 운영비 관리',
-      '시장조사 판별 도구',
+      '목표 설정 & 광고비 관리',
+      '시장조사 판별 & 엑셀 가져오기',
+      '전체 기능 이용 가능',
     ],
   },
   {
@@ -53,14 +55,12 @@ const PLANS = [
     cta: 'Plus 시작하기',
     ctaVariant: 'violet' as const,
     features: [
-      '마진 계산기 무제한 사용',
       '상품 300개까지 등록',
+      '마진 계산기 무제한',
       '판매 장부 & 수익 리포트',
-      '목표 설정 & 관리',
-      '광고비 & 운영비 관리',
-      '시장조사 판별 무제한',
-      '엑셀 가져오기',
-      '우선 고객 지원',
+      '목표 설정 & 광고비 관리',
+      '시장조사 판별 & 엑셀 가져오기',
+      '전체 기능 이용 가능',
     ],
   },
 ] as const;
@@ -206,11 +206,11 @@ export default function PricingPage() {
                     { feature: '상품 등록', free: '최대 10개', pro: '최대 50개', plus: '최대 300개' },
                     { feature: '판매 장부', free: true, pro: true, plus: true },
                     { feature: '수익 리포트', free: true, pro: true, plus: true },
-                    { feature: '목표 설정', free: false, pro: true, plus: true },
-                    { feature: '광고비 & 운영비', free: false, pro: true, plus: true },
-                    { feature: '시장조사 판별', free: false, pro: '월 10회', plus: '무제한' },
-                    { feature: '엑셀 가져오기', free: false, pro: false, plus: true },
-                    { feature: '우선 고객 지원', free: false, pro: false, plus: true },
+                    { feature: '목표 설정', free: true, pro: true, plus: true },
+                    { feature: '광고비 & 운영비', free: true, pro: true, plus: true },
+                    { feature: '시장조사 판별', free: true, pro: true, plus: true },
+                    { feature: '엑셀 가져오기', free: true, pro: true, plus: true },
+                    { feature: '우선 고객 지원', free: true, pro: true, plus: true },
                   ] as { feature: string; free: boolean | string; pro: boolean | string; plus: boolean | string }[]
                 ).map(({ feature, free, pro, plus }) => (
                   <tr key={feature} className="hover:bg-muted/20 transition-colors">
