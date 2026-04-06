@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     { data: banners },
   ] = await Promise.all([
     sb.from('ad_click_logs')
-      .select('id, banner_id, event_type, user_id, session_id, page_path, referrer, device_type, ip_hash, created_at')
+      .select('id, banner_id, event_type, user_id, session_id, page_path, referrer, device_type, ip_hash, ip_address, created_at')
       .gte('created_at', sinceISO)
       .order('created_at', { ascending: false })
       .limit(10000),
@@ -114,6 +114,41 @@ export async function GET(request: NextRequest) {
   const uniqueUsers = new Set(allLogs.filter((l: any) => l.user_id).map((l: any) => l.user_id)).size;
   const uniqueIPs = new Set(allLogs.map((l: any) => l.ip_hash)).size;
 
+  // 최근 클릭 로그 (누가 / 어디서) — 관리자 전용
+  const clickOnly = allLogs.filter((l: any) => l.event_type === 'click');
+  const recentClickLogs = [...clickOnly]
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 200);
+
+  const clickUserIds = [...new Set(recentClickLogs.map((l: any) => l.user_id).filter(Boolean))] as string[];
+  const profileById = new Map<string, { name: string | null; email: string | null }>();
+  if (clickUserIds.length > 0) {
+    const { data: profiles } = await sb.from('profiles').select('id, name, email').in('id', clickUserIds);
+    for (const p of profiles || []) {
+      profileById.set(p.id, { name: p.name ?? null, email: p.email ?? null });
+    }
+  }
+
+  const bannerTitleById = new Map<string, string>(allBanners.map((b: any) => [b.id, b.title]));
+
+  const recentClicks = recentClickLogs.map((l: any) => {
+    const prof = l.user_id ? profileById.get(l.user_id) : undefined;
+    const ipRaw = typeof l.ip_address === 'string' && l.ip_address.trim() ? l.ip_address.trim() : null;
+    return {
+      id: l.id,
+      createdAt: l.created_at,
+      bannerId: l.banner_id,
+      bannerTitle: bannerTitleById.get(l.banner_id) || '(알 수 없음)',
+      pagePath: l.page_path || '—',
+      device: l.device_type || 'unknown',
+      ip: ipRaw,
+      ipHashShort: !ipRaw && l.ip_hash ? String(l.ip_hash).slice(0, 12) : null,
+      userName: prof?.name || null,
+      userEmail: prof?.email || null,
+      isLoggedIn: !!l.user_id,
+    };
+  });
+
   return NextResponse.json({
     summary: {
       totalImpressions,
@@ -129,5 +164,6 @@ export async function GET(request: NextRequest) {
     topReferrers,
     dailyTrend,
     hourlyClicks,
+    recentClicks,
   });
 }

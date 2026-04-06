@@ -27,7 +27,7 @@ import {
   Clock, ArrowRightLeft, LogIn, LogOut, Monitor, Image, ExternalLink,
   GripVertical, Pencil, ChevronUp, ChevronDown, MousePointerClick,
   Smartphone, TabletSmartphone, MonitorSmartphone, Wifi, MapPin,
-  UserRound, Ghost, Timer, Radio,
+  UserRound, Ghost, Timer, Radio, CalendarDays,
 } from 'lucide-react';
 
 interface UserData {
@@ -1743,6 +1743,14 @@ interface VisitorData {
   pagesByDuration: {
     path: string; views: number; avgDuration: number; totalDuration: number; uniqueVisitors: number;
   }[];
+  today: {
+    date: string;
+    uniqueVisitors: number;
+    sessions: number;
+    pageViews: number;
+    repeatByVisit: { visits: number; visitors: number }[];
+  };
+  periodRepeatByVisit: { visits: number; visitors: number }[];
 }
 
 function VisitorsTab() {
@@ -1840,6 +1848,86 @@ function VisitorsTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 오늘(KST) · 실방문자 · 반복 유입 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="border-green-600/20 bg-green-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-green-600" />
+              오늘 ({data.today.date}, 서울)
+            </CardTitle>
+            <CardDescription>실방문자 = 오늘 한 번이라도 세션이 잡힌 고유 IP 수</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3 text-center sm:text-left">
+              <div className="rounded-lg bg-background/60 border px-3 py-2">
+                <p className="text-[11px] text-muted-foreground flex items-center justify-center sm:justify-start gap-1">
+                  <MapPin className="h-3 w-3" /> 실방문자
+                </p>
+                <p className="text-xl font-bold tabular-nums">{data.today.uniqueVisitors.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-background/60 border px-3 py-2">
+                <p className="text-[11px] text-muted-foreground flex items-center justify-center sm:justify-start gap-1">
+                  <Wifi className="h-3 w-3" /> 세션
+                </p>
+                <p className="text-xl font-bold tabular-nums">{data.today.sessions.toLocaleString()}</p>
+              </div>
+              <div className="rounded-lg bg-background/60 border px-3 py-2">
+                <p className="text-[11px] text-muted-foreground flex items-center justify-center sm:justify-start gap-1">
+                  <Eye className="h-3 w-3" /> 페이지뷰
+                </p>
+                <p className="text-xl font-bold tabular-nums">{data.today.pageViews.toLocaleString()}</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium mb-2">오늘 · IP당 세션 수 (반복 유입)</p>
+              {data.today.repeatByVisit.length === 0 ? (
+                <p className="text-sm text-muted-foreground">오늘 집계된 세션이 없습니다</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {data.today.repeatByVisit.map((row) => (
+                    <Badge key={row.visits} variant="secondary" className="text-xs font-normal px-2.5 py-1">
+                      <span className="font-semibold">{row.visits}회</span>
+                      <span className="mx-1 text-muted-foreground">·</span>
+                      <span>{row.visitors.toLocaleString()}명</span>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              선택 기간 · 반복 유입 분포
+            </CardTitle>
+            <CardDescription>
+              최근 {data.summary.period}일 안에서 IP당 누적 세션 수 — 2회·3회 등 몇 명인지
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.periodRepeatByVisit.length === 0 ? (
+              <p className="text-sm text-muted-foreground">데이터 없음</p>
+            ) : (
+              <div className="max-h-[220px] overflow-y-auto pr-1">
+                <div className="flex flex-wrap gap-2">
+                  {data.periodRepeatByVisit.map((row) => (
+                    <Badge key={row.visits} variant="outline" className="text-xs font-normal px-2.5 py-1">
+                      <span className="font-semibold">{row.visits}회</span>
+                      <span className="mx-1 text-muted-foreground">·</span>
+                      <span>{row.visitors.toLocaleString()}명</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -2137,6 +2225,19 @@ interface AdAnalyticsData {
   topReferrers: { source: string; clicks: number }[];
   dailyTrend: { date: string; impressions: number; clicks: number }[];
   hourlyClicks: number[];
+  recentClicks: {
+    id: string;
+    createdAt: string;
+    bannerId: string;
+    bannerTitle: string;
+    pagePath: string;
+    device: string;
+    ip: string | null;
+    ipHashShort: string | null;
+    userName: string | null;
+    userEmail: string | null;
+    isLoggedIn: boolean;
+  }[];
 }
 
 const DEVICE_LABELS: Record<string, string> = { mobile: '모바일', tablet: '태블릿', desktop: '데스크톱', unknown: '기타' };
@@ -2160,7 +2261,10 @@ function AdAnalyticsTab() {
   if (loading) return <LoadingSpinner />;
   if (!data) return <p className="text-center text-muted-foreground py-8">데이터를 불러올 수 없습니다</p>;
 
-  const { summary, bannerStats, deviceBreakdown, topPages, topReferrers, dailyTrend, hourlyClicks } = data;
+  const {
+    summary, bannerStats, deviceBreakdown, topPages, topReferrers, dailyTrend, hourlyClicks,
+    recentClicks = [],
+  } = data;
   const maxHourly = Math.max(...hourlyClicks, 1);
 
   return (
@@ -2287,6 +2391,83 @@ function AdAnalyticsTab() {
                         <Badge variant={b.is_active ? 'default' : 'secondary'}>
                           {b.is_active ? '활성' : '비활성'}
                         </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 클릭자 상세 (최근 200건) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <UserRound className="h-4 w-4" />
+            클릭 로그
+          </CardTitle>
+          <CardDescription>
+            선택 기간 내 최근 클릭 200건 · 회원은 프로필 이름·이메일, 비회원은 IP(또는 이전 로그는 해시만 저장된 경우 짧은 해시)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {recentClicks.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8 px-4">클릭 기록이 없습니다</p>
+          ) : (
+            <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">시간</TableHead>
+                    <TableHead>배너</TableHead>
+                    <TableHead className="hidden md:table-cell">페이지</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">디바이스</TableHead>
+                    <TableHead>사용자</TableHead>
+                    <TableHead className="whitespace-nowrap">IP / 식별</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentClicks.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap align-top">
+                        {new Date(c.createdAt).toLocaleString('ko-KR', {
+                          month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        })}
+                      </TableCell>
+                      <TableCell className="text-sm align-top max-w-[140px]">
+                        <span className="line-clamp-2">{c.bannerTitle}</span>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-xs font-mono align-top max-w-[180px]">
+                        <span className="line-clamp-2">{c.pagePath}</span>
+                      </TableCell>
+                      <TableCell className="text-center align-top">
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {DEVICE_LABELS[c.device] || c.device}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm align-top min-w-[120px]">
+                        {c.isLoggedIn ? (
+                          <div>
+                            {c.userName && <p className="font-medium leading-tight">{c.userName}</p>}
+                            {c.userEmail && (
+                              <p className="text-xs text-muted-foreground break-all leading-tight">{c.userEmail}</p>
+                            )}
+                            {!c.userName && !c.userEmail && (
+                              <span className="text-muted-foreground text-xs">회원 (프로필 없음)</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">비회원</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs align-top whitespace-nowrap">
+                        {c.ip ? c.ip : c.ipHashShort ? (
+                          <span className="text-muted-foreground" title="마이그레이션 이전 로그">해시 {c.ipHashShort}…</span>
+                        ) : (
+                          '—'
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

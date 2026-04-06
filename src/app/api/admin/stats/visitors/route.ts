@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth } from '@/lib/api/validate';
 
+/** yyyy-mm-dd in Asia/Seoul for an ISO timestamp */
+function toKstYmd(iso: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(iso));
+}
+
+function kstTodayYmd(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+function bucketSessionCountsPerKey(counts: Iterable<number>): { visits: number; visitors: number }[] {
+  const m = new Map<number, number>();
+  for (const c of counts) {
+    m.set(c, (m.get(c) || 0) + 1);
+  }
+  return Array.from(m.entries())
+    .map(([visits, visitors]) => ({ visits, visitors }))
+    .sort((a, b) => a.visits - b.visits);
+}
+
 export async function GET(request: NextRequest) {
   const auth = await withAdminAuth();
   if (auth instanceof NextResponse) return auth;
@@ -203,6 +232,28 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.avgDuration - a.avgDuration)
     .slice(0, 20);
 
+  // --- 오늘 (KST) 요약 · 오늘 기준 IP당 세션 수(반복 유입) ---
+  const todayYmd = kstTodayYmd();
+  const todaySessionsList = sessions.filter((s: any) => toKstYmd(s.created_at) === todayYmd);
+  const todayPageViewsList = pageViews.filter((pv: any) => {
+    const t = pv.entered_at || pv.created_at;
+    return t && toKstYmd(t) === todayYmd;
+  });
+  const todayUniqueIPs = new Set(
+    todaySessionsList.map((s: any) => s.ip_address).filter(Boolean),
+  );
+  const todayIpSessionCounts = new Map<string, number>();
+  for (const s of todaySessionsList) {
+    const ip = s.ip_address || 'unknown';
+    todayIpSessionCounts.set(ip, (todayIpSessionCounts.get(ip) || 0) + 1);
+  }
+  const todayRepeatByVisit = bucketSessionCountsPerKey(todayIpSessionCounts.values());
+
+  // --- 선택 기간 내 IP당 누적 세션 수 (반복 유입 분포) ---
+  const periodRepeatByVisit = bucketSessionCountsPerKey(
+    Array.from(ipMap.values()).map((st) => st.visits),
+  );
+
   return NextResponse.json({
     summary: {
       totalSessions: sessions.length,
@@ -225,6 +276,14 @@ export async function GET(request: NextRequest) {
     deviceBreakdown,
     recentSessions,
     pagesByDuration,
+    today: {
+      date: todayYmd,
+      uniqueVisitors: todayUniqueIPs.size,
+      sessions: todaySessionsList.length,
+      pageViews: todayPageViewsList.length,
+      repeatByVisit: todayRepeatByVisit,
+    },
+    periodRepeatByVisit,
   });
 }
 

@@ -30,9 +30,10 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     const ua = request.headers.get('user-agent') || '';
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const rawIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || request.headers.get('x-real-ip')
       || 'unknown';
+    const ip = rawIp.length > 100 ? rawIp.slice(0, 100) : rawIp;
     const referrer = request.headers.get('referer') || '';
 
     await (supabase as any).from('ad_click_logs').insert({
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       user_agent: ua.substring(0, 500),
       device_type: getDeviceType(ua),
       ip_hash: hashIP(ip),
+      ip_address: ip === 'unknown' ? null : ip,
     });
 
     return NextResponse.json({ ok: true });
