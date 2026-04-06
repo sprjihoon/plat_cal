@@ -38,6 +38,7 @@ interface UserData {
   last_sign_in_at: string | null;
   status: string;
   suspended_reason: string | null;
+  plan: 'free' | 'pro' | 'plus';
   stats: { salesCount: number; productCount: number; adCount: number; expenseCount: number; totalActivity: number };
 }
 
@@ -52,6 +53,7 @@ interface StatsData {
     churnRate: number;
     totalSales: number;
     totalProducts: number;
+    planCounts: { free: number; pro: number; plus: number };
   };
   dailyTrend: { date: string; signups: number; active: number }[];
   cohort: { week: string; signups: number; retention: { week: number; retained: number; rate: number }[] }[];
@@ -547,6 +549,33 @@ function DashboardTab() {
         <StatCard icon={Activity} label="30일 활성" value={o.activeIn30d} sub={`${o.totalUsers > 0 ? Math.round((o.activeIn30d / o.totalUsers) * 100) : 0}%`} />
       </div>
 
+      {/* 플랜별 유저 수 */}
+      {o.planCounts && (
+        <div className="grid grid-cols-3 gap-3">
+          <Card>
+            <CardContent className="pt-5 pb-4 text-center">
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Free</p>
+              <p className="text-3xl font-bold">{o.planCounts.free}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">명</p>
+            </CardContent>
+          </Card>
+          <Card className="border-[#4a5abf]/40">
+            <CardContent className="pt-5 pb-4 text-center">
+              <p className="text-xs font-semibold text-[#4a5abf] uppercase tracking-wider mb-1">Pro</p>
+              <p className="text-3xl font-bold text-[#4a5abf]">{o.planCounts.pro}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">명</p>
+            </CardContent>
+          </Card>
+          <Card className="border-violet-400/40">
+            <CardContent className="pt-5 pb-4 text-center">
+              <p className="text-xs font-semibold text-violet-600 uppercase tracking-wider mb-1">Plus</p>
+              <p className="text-3xl font-bold text-violet-600">{o.planCounts.plus}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">명</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* 일별 유입/활성 추이 (30일) */}
       <Card>
         <CardHeader>
@@ -774,6 +803,7 @@ function UsersTab() {
                   <TableHead className="hidden sm:table-cell">가입일</TableHead>
                   <TableHead className="hidden sm:table-cell">최근 접속</TableHead>
                   <TableHead>활동</TableHead>
+                  <TableHead>플랜</TableHead>
                   <TableHead>상태</TableHead>
                   <TableHead className="text-right">관리</TableHead>
                 </TableRow>
@@ -795,6 +825,15 @@ function UsersTab() {
                     </TableCell>
                     <TableCell>
                       <span className="text-xs">{u.stats.totalActivity}건</span>
+                    </TableCell>
+                    <TableCell>
+                      {u.plan === 'plus' ? (
+                        <Badge className="bg-violet-500/10 text-violet-600 border-violet-500/20 text-xs font-semibold">Plus</Badge>
+                      ) : u.plan === 'pro' ? (
+                        <Badge className="bg-[#4a5abf]/10 text-[#4a5abf] border-[#4a5abf]/20 text-xs font-semibold">Pro</Badge>
+                      ) : (
+                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">Free</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       {u.status === 'suspended' ? (

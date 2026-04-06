@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   const { data: profiles } = await (serviceClient as any)
     .from('profiles')
-    .select('id, email, name, avatar_url, created_at')
+    .select('id, email, name, avatar_url, created_at, plan')
     .in('id', userIds);
 
   const { data: statuses } = await (serviceClient as any)
@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
       status: st?.status || 'active',
       suspended_reason: st?.suspended_reason || null,
       suspended_at: st?.suspended_at || null,
+      plan: (profile?.plan || 'free') as 'free' | 'pro' | 'plus',
       stats: { salesCount, productCount, adCount, expenseCount, totalActivity },
     };
   });

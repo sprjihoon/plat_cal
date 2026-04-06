@@ -102,10 +102,18 @@ export async function GET(_request: NextRequest) {
   });
 
   const { data: profiles } = await (serviceClient as any)
-    .from('profiles').select('id, name, email');
-  const profileMap = new Map<string, { name: string; email: string }>(
+    .from('profiles').select('id, name, email, plan');
+  const profileMap = new Map<string, { name: string; email: string; plan: string }>(
     (profiles || []).map((p: any) => [p.id, p])
   );
+
+  // 플랜별 유저 수
+  const planCounts = { free: 0, pro: 0, plus: 0 };
+  (profiles || []).forEach((p: any) => {
+    const plan = p.plan as 'free' | 'pro' | 'plus';
+    if (plan in planCounts) planCounts[plan]++;
+    else planCounts.free++;
+  });
 
   const topUsers = Array.from(activityMap.entries())
     .sort((a, b) => b[1] - a[1])
@@ -141,6 +149,7 @@ export async function GET(_request: NextRequest) {
       churnRate,
       totalSales: totalSales || 0,
       totalProducts: totalProducts || 0,
+      planCounts,
     },
     dailyTrend,
     cohort: cohortWeeks.reverse(),
