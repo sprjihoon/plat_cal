@@ -1073,6 +1073,46 @@ export function MarginCalculator() {
         </Card>
       )}
 
+      {/* 계산 후 회원가입 유도 CTA */}
+      {hasCalculated && result && isAuthenticated === false && (
+        <div className="rounded-2xl bg-gradient-to-br from-[#8C9EFF]/15 to-[#D6F74C]/10 border border-[#8C9EFF]/30 p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-[#8C9EFF]/20 rounded-xl shrink-0">
+              <Sparkles className="h-4 w-4 text-[#4a5abf]" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">이 결과를 저장하고 싶으신가요?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                무료 가입하면 계산 결과를 상품으로 저장하고, 실제 판매·비용까지 연동해서 수익을 분석할 수 있어요.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Link href={`/auth/signup`} className="flex-1">
+              <Button
+                size="sm"
+                className="w-full bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] border-0 font-semibold text-xs"
+              >
+                <svg className="h-3.5 w-3.5 mr-1.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3C6.48 3 2 6.48 2 10.5c0 2.52 1.64 4.74 4.12 6.03-.18.66-.67 2.38-.77 2.75-.12.47.17.46.36.34.15-.1 2.37-1.57 3.32-2.2.64.09 1.3.14 1.97.14 5.52 0 10-3.48 10-7.5S17.52 3 12 3z"/>
+                </svg>
+                카카오로 무료 시작
+              </Button>
+            </Link>
+            <Link href="/auth/signup" className="flex-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-xs border-[#8C9EFF]/40 text-[#4a5abf] hover:bg-[#8C9EFF]/10"
+              >
+                <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                이메일로 가입
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* 상품 추가 다이얼로그 */}
       <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
         <DialogContent>
