@@ -40,7 +40,7 @@ import {
 import { PLATFORM_PRESETS } from '@/constants';
 import { loadPlatformSettings, loadPlatformSettingsWithFallback } from '@/lib/storage';
 import type { SalesChannel, VatType, CalculatorInputs, CalculationResult, PlatformPreset } from '@/types';
-import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings, Search, Plus, Loader2, CheckCircle } from 'lucide-react';
+import { RotateCcw, Calculator, TrendingUp, TrendingDown, AlertCircle, ChevronRight, Target, DollarSign, Package, Settings, Search, Plus, Loader2, CheckCircle, Lock, UserPlus, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -316,8 +316,48 @@ export function MarginCalculator() {
     }
   }, [getInputs]);
 
+  // 비회원 계산 횟수 제한
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [calcRemaining, setCalcRemaining] = useState<number | null>(null);
+  const [calcLimit] = useState(5);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/calculator/check')
+      .then(r => r.json())
+      .then(data => {
+        setIsAuthenticated(data.isAuthenticated);
+        if (!data.isAuthenticated) {
+          setCalcRemaining(data.remaining);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const checkCalculationAllowed = useCallback(async (): Promise<boolean> => {
+    if (isAuthenticated) return true;
+    try {
+      const res = await fetch('/api/calculator/check', { method: 'POST' });
+      const data = await res.json();
+      if (data.isAuthenticated) {
+        setIsAuthenticated(true);
+        return true;
+      }
+      setCalcRemaining(data.remaining);
+      if (!data.allowed) {
+        setShowSignupPrompt(true);
+        return false;
+      }
+      return true;
+    } catch {
+      return true;
+    }
+  }, [isAuthenticated]);
+
   // 계산 실행 (모드에 따라)
-  const handleCalculate = useCallback(() => {
+  const handleCalculate = useCallback(async () => {
+    const allowed = await checkCalculationAllowed();
+    if (!allowed) return;
     switch (mode) {
       case 'profit':
         handleCalculateProfit();
@@ -329,7 +369,7 @@ export function MarginCalculator() {
         handleCalculateCost();
         break;
     }
-  }, [mode, handleCalculateProfit, handleCalculatePrice, handleCalculateCost]);
+  }, [mode, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed]);
 
   // 추가 비용 합계
   const additionalCostTotal = 
@@ -834,6 +874,22 @@ export function MarginCalculator() {
         </AccordionItem>
       </Accordion>
 
+      {/* 비회원 사용 횟수 안내 */}
+      {isAuthenticated === false && calcRemaining !== null && (
+        <div className="flex items-center justify-between text-sm px-1">
+          <span className="text-muted-foreground flex items-center gap-1.5">
+            <Lock className="h-3.5 w-3.5" />
+            오늘 남은 무료 계산 횟수
+          </span>
+          <span className={cn(
+            'font-semibold',
+            calcRemaining <= 1 ? 'text-red-500' : calcRemaining <= 2 ? 'text-orange-500' : 'text-[#4a5abf]'
+          )}>
+            {calcRemaining} / {calcLimit}회
+          </span>
+        </div>
+      )}
+
       {/* 계산하기 버튼 */}
       <Button 
         onClick={handleCalculate} 
@@ -843,6 +899,16 @@ export function MarginCalculator() {
         <Calculator className="h-5 w-5 mr-2" />
         {getButtonText()}
       </Button>
+
+      {/* 비회원 가입 유도 배너 */}
+      {isAuthenticated === false && (
+        <div className="flex items-center gap-3 rounded-lg border border-[#4a5abf]/30 bg-[#4a5abf]/5 px-4 py-3">
+          <Sparkles className="h-4 w-4 text-[#4a5abf] shrink-0" />
+          <p className="text-xs text-muted-foreground flex-1">
+            <Link href="/auth/signup" className="font-semibold text-[#4a5abf] hover:underline">무료 회원가입</Link>하면 횟수 제한 없이 마진계산기를 사용할 수 있어요
+          </p>
+        </div>
+      )}
 
       {/* 결과 표시 */}
       {hasCalculated && result && (
@@ -1039,6 +1105,53 @@ export function MarginCalculator() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 회원가입 유도 다이얼로그 (횟수 초과) */}
+      <Dialog open={showSignupPrompt} onOpenChange={setShowSignupPrompt}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-2">
+              <div className="h-14 w-14 rounded-full bg-[#4a5abf]/10 flex items-center justify-center">
+                <Lock className="h-7 w-7 text-[#4a5abf]" />
+              </div>
+            </div>
+            <DialogTitle className="text-center">오늘 무료 사용 횟수를 모두 사용했어요</DialogTitle>
+            <DialogDescription className="text-center">
+              비회원은 하루 {calcLimit}회까지 무료로 계산할 수 있어요.<br />
+              무료로 가입하면 횟수 제한 없이 사용할 수 있어요.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 py-2">
+            <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+              <p className="font-semibold text-foreground flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#4a5abf]" />
+                회원 무료 혜택
+              </p>
+              <ul className="space-y-1 text-muted-foreground pl-6 list-disc">
+                <li>마진계산기 무제한 사용</li>
+                <li>상품 관리 및 마진 추적</li>
+                <li>판매 장부 & 수익 리포트</li>
+                <li>시장조사 판별 도구</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Link href="/auth/signup" className="w-full">
+              <Button className="w-full h-11 text-base font-semibold" onClick={() => setShowSignupPrompt(false)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                무료 회원가입
+              </Button>
+            </Link>
+            <Link href="/auth/login" className="w-full">
+              <Button variant="outline" className="w-full" onClick={() => setShowSignupPrompt(false)}>
+                이미 계정이 있어요 (로그인)
+              </Button>
+            </Link>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

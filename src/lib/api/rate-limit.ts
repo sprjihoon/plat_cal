@@ -28,6 +28,22 @@ export function checkRateLimit(
   return { allowed: true, remaining, resetIn };
 }
 
+export function peekRateLimit(
+  key: string,
+  { windowMs = 60_000, maxRequests = 30 }: RateLimitOptions = {}
+): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+
+  if (!entry || now > entry.resetTime) {
+    return { allowed: true, remaining: maxRequests, resetIn: windowMs };
+  }
+
+  const remaining = Math.max(0, maxRequests - entry.count);
+  const resetIn = entry.resetTime - now;
+  return { allowed: entry.count < maxRequests, remaining, resetIn };
+}
+
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitMap) {
