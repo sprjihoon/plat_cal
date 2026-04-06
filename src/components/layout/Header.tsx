@@ -20,6 +20,7 @@ interface HeaderProps {
 }
 
 const defaultNavItems: NavItem[] = [
+  { href: '/pricing', label: '요금제' },
   { href: '/dashboard', label: '대시보드' },
   { href: '/products', label: '상품' },
   { href: '/sales', label: '판매장부' },
