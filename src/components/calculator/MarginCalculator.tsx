@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -327,6 +327,7 @@ export function MarginCalculator() {
   const [calcRemaining, setCalcRemaining] = useState<number | null>(null);
   const [calcLimit] = useState(5);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const lastCalcKeyRef = useRef<string | null>(null); // 직전 계산 입력값 키 (중복 차감 방지)
 
   useEffect(() => {
     fetch('/api/calculator/check')
@@ -378,6 +379,21 @@ export function MarginCalculator() {
     const allowed = await checkCalculationAllowed();
     if (!allowed) return;
 
+    // 현재 입력값 키 (모드 + 핵심 입력값으로 중복 계산 판별)
+    const inputs = getInputs();
+    const calcKey = JSON.stringify({
+      mode,
+      sellingPrice: inputs.sellingPrice,
+      productCost: inputs.productCost,
+      platformFeeRate: inputs.platformFeeRate,
+      paymentFeeRate: inputs.paymentFeeRate,
+      targetMarginRate: inputs.targetMarginRate,
+      sellerShippingCost: inputs.sellerShippingCost,
+      packagingCost: inputs.packagingCost,
+      advertisingCost: inputs.advertisingCost,
+      otherCosts: inputs.otherCosts,
+    });
+
     let success = false;
     switch (mode) {
       case 'profit':
@@ -391,11 +407,12 @@ export function MarginCalculator() {
         break;
     }
 
-    // 결과가 실제로 표시된 경우에만 횟수 차감
-    if (success) {
+    // 결과가 표시됐고, 직전과 다른 입력값일 때만 횟수 차감
+    if (success && calcKey !== lastCalcKeyRef.current) {
+      lastCalcKeyRef.current = calcKey;
       await recordCalculation();
     }
-  }, [mode, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed, recordCalculation]);
+  }, [mode, getInputs, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed, recordCalculation]);
 
   // 추가 비용 합계
   const additionalCostTotal = 
