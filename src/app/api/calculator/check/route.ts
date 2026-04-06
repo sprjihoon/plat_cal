@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import type { CalcRateLimit } from '@/types/database';
 
 const DAILY_LIMIT = 5;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24시간
@@ -25,11 +26,11 @@ export async function GET(request: NextRequest) {
   const now = new Date();
 
   const service = await createServiceClient();
-  const { data } = await service
+  const { data } = await (service as any)
     .from('calc_rate_limit')
     .select('count, reset_at')
     .eq('ip', ip)
-    .single();
+    .single() as { data: Pick<CalcRateLimit, 'count' | 'reset_at'> | null };
 
   // 레코드 없거나 만료됐으면 full remaining
   if (!data || new Date(data.reset_at) <= now) {
@@ -70,11 +71,11 @@ export async function POST(request: NextRequest) {
   const service = await createServiceClient();
 
   // 기존 레코드 조회
-  const { data: existing } = await service
+  const { data: existing } = await (service as any)
     .from('calc_rate_limit')
     .select('count, reset_at')
     .eq('ip', ip)
-    .single();
+    .single() as { data: Pick<CalcRateLimit, 'count' | 'reset_at'> | null };
 
   let newCount: number;
   let newResetAt: string;
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
   }
 
   // upsert
-  await service
+  await (service as any)
     .from('calc_rate_limit')
     .upsert({ ip, count: newCount, reset_at: newResetAt }, { onConflict: 'ip' });
 

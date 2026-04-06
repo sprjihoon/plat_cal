@@ -115,7 +115,7 @@ export default function OperatingExpensesPage() {
             <CardContent className="pt-6">
               <h3 className="font-semibold mb-4">카테고리별 지출</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {Object.entries(categoryTotals)
+                {(Object.entries(categoryTotals) as [string, number][])
                   .sort((a, b) => b[1] - a[1])
                   .map(([cat, amount]) => (
                     <div key={cat} className="p-3.5 bg-muted/40 rounded-xl">
