@@ -35,11 +35,13 @@ const defaultNavItems: NavItem[] = [
 export function Header({ navItems = defaultNavItems }: HeaderProps) {
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkAdmin = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
       if (!user) return;
       const { data } = await supabase.from('admin_users').select('id').eq('user_id', user.id).single();
       if (data) setIsAdmin(true);
@@ -85,6 +87,16 @@ export function Header({ navItems = defaultNavItems }: HeaderProps) {
           </nav>
         </div>
         <div className="flex items-center gap-1.5">
+          {isLoggedIn === false && (
+            <Link href="/auth/signup">
+              <Button
+                size="sm"
+                className="bg-[#4a5abf] hover:bg-[#3a4aaf] text-white font-semibold px-4 shadow-sm shadow-[#4a5abf]/30"
+              >
+                무료 가입하기
+              </Button>
+            </Link>
+          )}
           <ThemeToggle />
           <NotificationBell />
           <UserMenu />

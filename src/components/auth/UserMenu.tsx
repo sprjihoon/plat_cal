@@ -60,21 +60,11 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
-        <Link href="/auth/login">
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            로그인
-          </Button>
-        </Link>
-        <Link href="/auth/signup">
-          <Button
-            size="sm"
-            className="bg-[#4a5abf] hover:bg-[#3a4aaf] text-white font-semibold px-4 shadow-sm shadow-[#4a5abf]/30"
-          >
-            무료 가입하기
-          </Button>
-        </Link>
-      </div>
+      <Link href="/auth/login">
+        <Button variant="ghost" size="sm" className="text-muted-foreground">
+          로그인
+        </Button>
+      </Link>
     );
   }
 
