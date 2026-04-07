@@ -59,16 +59,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const service = await createServiceClient();
+
+  let mode: string | null = null;
+  try {
+    const body = await request.json();
+    mode = body?.mode ?? null;
+  } catch { /* body 없으면 무시 */ }
 
   if (user) {
+    // 로그인 사용자 — 횟수 제한 없이 calc_logs만 기록
+    await (service as any).from('calc_logs').insert({ user_id: user.id, is_auth: true, mode });
     return NextResponse.json({ isAuthenticated: true, allowed: true, remaining: null });
   }
 
   const ip = getClientIp(request);
   const now = new Date();
   const resetAt = new Date(now.getTime() + WINDOW_MS);
-
-  const service = await createServiceClient();
 
   // 기존 레코드 조회
   const { data: existing } = await (service as any)
@@ -89,10 +96,13 @@ export async function POST(request: NextRequest) {
     newResetAt = existing.reset_at;
   }
 
-  // upsert
+  // upsert rate limit
   await (service as any)
     .from('calc_rate_limit')
     .upsert({ ip, count: newCount, reset_at: newResetAt }, { onConflict: 'ip' });
+
+  // 비로그인 계산 로그 기록
+  await (service as any).from('calc_logs').insert({ ip, is_auth: false, mode });
 
   const allowed = newCount <= DAILY_LIMIT;
   const remaining = Math.max(0, DAILY_LIMIT - newCount);

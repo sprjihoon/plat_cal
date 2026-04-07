@@ -27,7 +27,7 @@ import {
   Clock, ArrowRightLeft, LogIn, LogOut, Monitor, Image, ExternalLink,
   GripVertical, Pencil, ChevronUp, ChevronDown, MousePointerClick,
   Smartphone, TabletSmartphone, MonitorSmartphone, Wifi, MapPin,
-  UserRound, Ghost, Timer, Radio, CalendarDays,
+  UserRound, Ghost, Timer, Radio, CalendarDays, Calculator,
 } from 'lucide-react';
 
 interface UserData {
@@ -520,15 +520,32 @@ function UsageTab() {
   );
 }
 
+interface CalcStatsData {
+  totalCount: number;
+  todayCount: number;
+  weekCount: number;
+  todayByMode: { profit: number; price: number; cost: number; unknown: number };
+  todayAuth: number;
+  todayGuest: number;
+  totalByMode30d: { profit: number; price: number; cost: number; unknown: number };
+  authCount30d: number;
+  guestCount30d: number;
+  dailyTrend: { date: string; total: number; auth: number; guest: number; profit: number; price: number; cost: number }[];
+}
+
 function DashboardTab() {
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [calcStats, setCalcStats] = useState<CalcStatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/stats')
-      .then((r) => r.json())
-      .then(setStats)
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch('/api/admin/stats').then((r) => r.json()),
+      fetch('/api/admin/stats/calculator').then((r) => r.json()),
+    ]).then(([s, c]) => {
+      setStats(s);
+      setCalcStats(c);
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <LoadingSpinner />;
@@ -574,6 +591,112 @@ function DashboardTab() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* 마진계산기 사용 통계 */}
+      {calcStats && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              마진계산기 사용 현황
+            </CardTitle>
+            <CardDescription>계산 버튼 클릭 기준 (로그인/비로그인 모두 포함)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 총 횟수 요약 */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-[#8C9EFF]/12 rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">오늘</p>
+                <p className="text-2xl font-bold">{calcStats.todayCount.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">회</p>
+              </div>
+              <div className="bg-[#D6F74C]/12 rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">최근 7일</p>
+                <p className="text-2xl font-bold">{calcStats.weekCount.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">회</p>
+              </div>
+              <div className="bg-[#8C9EFF]/8 rounded-xl p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">누적</p>
+                <p className="text-2xl font-bold">{calcStats.totalCount.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">회</p>
+              </div>
+            </div>
+
+            {/* 오늘 모드별 + 로그인 여부 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border rounded-xl p-3 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">오늘 · 계산 모드별</p>
+                <div className="space-y-1.5">
+                  {[
+                    { key: 'profit', label: '순이익 계산', color: 'bg-[#8C9EFF]' },
+                    { key: 'price',  label: '판매가 계산', color: 'bg-[#D6F74C]' },
+                    { key: 'cost',   label: '원가 계산',   color: 'bg-orange-400' },
+                  ].map(({ key, label, color }) => {
+                    const cnt = calcStats.todayByMode[key as keyof typeof calcStats.todayByMode] ?? 0;
+                    const total = calcStats.todayCount || 1;
+                    return (
+                      <div key={key} className="flex items-center gap-2 text-xs">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
+                        <span className="flex-1 text-muted-foreground">{label}</span>
+                        <span className="font-semibold">{cnt}회</span>
+                        <span className="text-muted-foreground w-9 text-right">{total > 0 ? Math.round((cnt / total) * 100) : 0}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="border rounded-xl p-3 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">오늘 · 로그인 여부</p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: '로그인', value: calcStats.todayAuth,  color: 'bg-[#4a5abf]' },
+                    { label: '비로그인', value: calcStats.todayGuest, color: 'bg-gray-300' },
+                  ].map(({ label, value, color }) => {
+                    const total = calcStats.todayCount || 1;
+                    return (
+                      <div key={label} className="flex items-center gap-2 text-xs">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
+                        <span className="flex-1 text-muted-foreground">{label}</span>
+                        <span className="font-semibold">{value}회</span>
+                        <span className="text-muted-foreground w-9 text-right">{total > 0 ? Math.round((value / total) * 100) : 0}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 일별 추이 차트 */}
+            {calcStats.dailyTrend.length > 0 && (() => {
+              const chartMax = Math.max(...calcStats.dailyTrend.map(d => d.total), 1);
+              return (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">일별 계산 횟수 (최근 30일)</p>
+                  <div className="flex items-end gap-[2px] h-[80px]">
+                    {calcStats.dailyTrend.map((d) => (
+                      <div key={d.date} className="flex-1 flex flex-col h-full justify-end group relative">
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border rounded-md px-2 py-1 text-xs shadow-md whitespace-nowrap z-10 left-1/2 -translate-x-1/2">
+                          <p className="font-medium">{d.date}</p>
+                          <p>총 {d.total}회 (순이익 {d.profit} · 판매가 {d.price} · 원가 {d.cost})</p>
+                          <p>로그인 {d.auth} · 비로그인 {d.guest}</p>
+                        </div>
+                        <div
+                          className="w-full bg-[#8C9EFF] rounded-t-sm min-h-[1px]"
+                          style={{ height: `${(d.total / chartMax) * 100}%` }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-muted-foreground">{calcStats.dailyTrend[0]?.date}</span>
+                    <span className="text-[10px] text-muted-foreground">{calcStats.dailyTrend[calcStats.dailyTrend.length - 1]?.date}</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
       )}
 
       {/* 일별 유입/활성 추이 (30일) */}

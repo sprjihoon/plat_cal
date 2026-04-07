@@ -363,16 +363,19 @@ export function MarginCalculator() {
   }, [isAuthenticated]);
 
   // 결과가 실제로 표시된 후 카운트 차감
-  const recordCalculation = useCallback(async () => {
-    if (isAuthenticated) return;
+  const recordCalculation = useCallback(async (calcMode: string) => {
     try {
-      const res = await fetch('/api/calculator/check', { method: 'POST' });
+      const res = await fetch('/api/calculator/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: calcMode }),
+      });
       const data = await res.json();
       if (!data.isAuthenticated) {
         setCalcRemaining(data.remaining);
       }
     } catch {}
-  }, [isAuthenticated]);
+  }, []);
 
   // 계산 실행 (모드에 따라)
   const handleCalculate = useCallback(async () => {
@@ -410,7 +413,7 @@ export function MarginCalculator() {
     // 결과가 표시됐고, 직전과 다른 입력값일 때만 횟수 차감
     if (success && calcKey !== lastCalcKeyRef.current) {
       lastCalcKeyRef.current = calcKey;
-      await recordCalculation();
+      await recordCalculation(mode);
     }
   }, [mode, getInputs, handleCalculateProfit, handleCalculatePrice, handleCalculateCost, checkCalculationAllowed, recordCalculation]);
 
